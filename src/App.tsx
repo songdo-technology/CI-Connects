@@ -45,6 +45,8 @@ import { MessagesView } from './components/MessagesView';
 import { SessionDoorScanner } from './components/SessionDoorScanner';
 import { ContactCardModal } from './components/ContactCardModal';
 import { PrintableBadge } from './components/PrintableBadge';
+import { RoomSignage } from './components/RoomSignage';
+import { SignageDirectory } from './components/SignageDirectory';
 
 /** The three surfaces of the product: a public event site anyone can read, a
  *  sign-in gate, and the authenticated attendee portal behind it. */
@@ -396,6 +398,39 @@ export default function App() {
     () => attendance.filter(a => a.userId === currentUser.id),
     [attendance, currentUser.id],
   );
+
+  // ------------------------------------------------------ Surface: signage
+  // Read straight from the URL rather than from state: a CI Vision Live Cast
+  // opens a bare URL with no way to click through an app shell, so the display
+  // has to resolve from the address alone and stay put.
+  const params = new URLSearchParams(window.location.search);
+  const signageParam = params.get('signage');
+
+  if (signageParam) {
+    if (signageParam === 'index') {
+      return <SignageDirectory event={EVENT_CONFIG} rooms={rooms} sessions={sessions} />;
+    }
+    const signageRoom = rooms.find(r => r.id === signageParam);
+    if (signageRoom) {
+      // Optional ?t=HH:MM previews any moment of the programme without
+      // waiting for the real clock to reach it.
+      const tParam = params.get('t');
+      const simulated = tParam && /^\d{1,2}:\d{2}$/.test(tParam)
+        ? Number(tParam.split(':')[0]) * 60 + Number(tParam.split(':')[1])
+        : null;
+      return (
+        <RoomSignage
+          event={EVENT_CONFIG}
+          room={signageRoom}
+          sessions={sessions}
+          tracks={tracks}
+          profiles={allUsers}
+          sponsors={sponsors}
+          simulatedMinutes={simulated}
+        />
+      );
+    }
+  }
 
   // ------------------------------------------------- Surface: public site
   if (surface === 'public') {
