@@ -197,29 +197,58 @@ export type ActiveTab =
   | 'admin'
   | 'luckydraw';
 
+/** Where an event sits relative to today. Derived from its dates rather than
+ *  stored, so an event cannot go stale by being left in the wrong state. */
+export type EventStatus = 'past' | 'live' | 'upcoming';
+
+export type EventCategory =
+  | 'Conference'
+  | 'Symposium'
+  | 'Workshop'
+  | 'Community'
+  | 'Admissions'
+  | 'Student';
+
 /**
- * Everything the public-facing event page renders. Kept as data so a new
- * event is a content change, not a code change — the same portal can front
- * the annual conference one term and a parent symposium the next.
+ * Everything the public-facing page for one event renders.
+ *
+ * The platform hosts many of these across a year, so the heavier storytelling
+ * fields are optional: a two-hour workshop needs a name, dates and a summary,
+ * while the flagship conference earns an About section, FAQs and a Discover
+ * block. The page renders whatever is present and omits the rest.
  */
 export interface EventConfig {
   id: string;
+  /** URL-facing identifier: /?event=<slug> */
+  slug: string;
   name: string;
   shortName: string;
   tagline: string;
-  description: string;
+  /** One or two lines for the events hub card. */
+  summary: string;
+  category: EventCategory;
+  /** Longer prose for the event's own page. */
+  description?: string;
   startDate: string;
   endDate: string;
   dateLabel: string;
   venueName: string;
-  venueAddress: string;
+  venueAddress?: string;
   heroImageUrl: string;
   registrationOpen: boolean;
-  registrationNote: string;
+  registrationNote?: string;
   /** Marks demo/scaffold content. Surfaces a visible badge on the public page
    *  so a sample event is never mistaken for a real announced one. */
   isTemplate?: boolean;
-  highlights: { label: string; value: string }[];
+  /** The flagship event of the year, given prominence on the hub. */
+  isFeatured?: boolean;
+  /** True when this event's sessions, badges and portal are wired up. Others
+   *  are showcase entries with a landing page only. */
+  hasPortal?: boolean;
+  highlights?: { label: string; value: string }[];
+  about?: { heading: string; body: string }[];
+  /** Recorded after the fact, shown on past-event cards. */
+  outcomes?: { label: string; value: string }[];
   /** The "get to know the school" half of the event. Present when the
    *  conference doubles as a way for visiting educators to meet the community
    *  and consider joining it; omit for a purely academic programme. */
@@ -229,6 +258,14 @@ export interface EventConfig {
     points: { title: string; body: string }[];
     closing: string;
   };
-  about: { heading: string; body: string }[];
-  faqs: { question: string; answer: string }[];
+  faqs?: { question: string; answer: string }[];
+}
+
+/** Resolves an event's status from its dates against a reference day. */
+export function eventStatus(e: EventConfig, today = new Date()): EventStatus {
+  const start = new Date(e.startDate + 'T00:00:00');
+  const end = new Date(e.endDate + 'T23:59:59');
+  if (today > end) return 'past';
+  if (today >= start) return 'live';
+  return 'upcoming';
 }

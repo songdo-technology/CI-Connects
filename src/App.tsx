@@ -11,6 +11,7 @@ import {
   INITIAL_ATTENDANCE,
   INITIAL_MESSAGES,
   EVENT_CONFIG,
+  EVENTS,
 } from './data/initialData';
 import {
   ActiveTab,
@@ -46,11 +47,13 @@ import { SessionDoorScanner } from './components/SessionDoorScanner';
 import { ContactCardModal } from './components/ContactCardModal';
 import { PrintableBadge } from './components/PrintableBadge';
 import { RoomSignage } from './components/RoomSignage';
+import { EventsHub } from './components/EventsHub';
 import { SignageDirectory } from './components/SignageDirectory';
 
-/** The three surfaces of the product: a public event site anyone can read, a
- *  sign-in gate, and the authenticated attendee portal behind it. */
-type Surface = 'public' | 'signin' | 'portal';
+/** The public surfaces of the product: a hub listing every event Chadwick
+ *  runs, one page per event, a sign-in gate, and the attendee portal behind
+ *  it. Signage resolves ahead of all of them, straight from the URL. */
+type Surface = 'hub' | 'event' | 'signin' | 'portal';
 
 const now = () =>
   new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -69,7 +72,9 @@ export default function App() {
   const [messages, setMessages] = useState<DirectMessage[]>(INITIAL_MESSAGES);
 
   // Auth & surface routing
-  const [surface, setSurface] = useState<Surface>('public');
+  const [surface, setSurface] = useState<Surface>('hub');
+  /** Which event the public pages and the portal are scoped to. */
+  const [activeEventSlug, setActiveEventSlug] = useState<string>(EVENT_CONFIG.slug);
   const [authSession, setAuthSession] = useState<AuthSession | null>(null);
 
   // UI Navigation State
@@ -82,6 +87,24 @@ export default function App() {
   const [isPrintBadgeOpen, setIsPrintBadgeOpen] = useState(false);
   const [contactCardProfile, setContactCardProfile] = useState<UserProfile | null>(null);
   const [pendingThreadUserId, setPendingThreadUserId] = useState<string | null>(null);
+
+  const activeEvent = useMemo(
+    () => EVENTS.find(e => e.slug === activeEventSlug) ?? EVENT_CONFIG,
+    [activeEventSlug],
+  );
+
+  /** Sessions belonging to the active event. Only the flagship has a
+   *  programme today; other events render as landing pages. */
+  const eventSessions = useMemo(
+    () => sessions.filter(s => s.eventId === activeEvent.id),
+    [sessions, activeEvent.id],
+  );
+
+  const openEvent = (slug: string) => {
+    setActiveEventSlug(slug);
+    setSurface('event');
+    window.scrollTo(0, 0);
+  };
 
   /** The signed-in user, resolved from the auth session rather than held
    *  separately, so there is exactly one source of truth for identity. */
@@ -99,7 +122,10 @@ export default function App() {
 
   const handleSignOut = () => {
     setAuthSession(null);
-    setSurface('public');
+    // Back to the hub rather than the event page: signing out is a step away
+    // from this event, not deeper into it.
+    setSurface('hub');
+    window.scrollTo(0, 0);
   };
 
   // Atomic Capacity Reservation & Waitlist Procedure
@@ -408,7 +434,7 @@ export default function App() {
 
   if (signageParam) {
     if (signageParam === 'index') {
-      return <SignageDirectory event={EVENT_CONFIG} rooms={rooms} sessions={sessions} />;
+      return <SignageDirectory event={activeEvent} rooms={rooms} sessions={sessions} />;
     }
     const signageRoom = rooms.find(r => r.id === signageParam);
     if (signageRoom) {
@@ -420,7 +446,7 @@ export default function App() {
         : null;
       return (
         <RoomSignage
-          event={EVENT_CONFIG}
+          event={activeEvent}
           room={signageRoom}
           sessions={sessions}
           tracks={tracks}
@@ -432,17 +458,29 @@ export default function App() {
     }
   }
 
-  // ------------------------------------------------- Surface: public site
-  if (surface === 'public') {
+  // ------------------------------------------------------- Surface: hub
+  if (surface === 'hub') {
+    return (
+      <EventsHub
+        events={EVENTS}
+        onOpenEvent={openEvent}
+        onSignIn={() => setSurface('signin')}
+      />
+    );
+  }
+
+  // ------------------------------------------------ Surface: one event
+  if (surface === 'event') {
     return (
       <PublicEventPage
-        event={EVENT_CONFIG}
-        sessions={sessions}
+        event={activeEvent}
+        sessions={eventSessions}
         tracks={tracks}
         rooms={rooms}
         profiles={allUsers}
         sponsors={sponsors}
         onSignIn={() => setSurface('signin')}
+        onBackToEvents={() => { setSurface('hub'); window.scrollTo(0, 0); }}
       />
     );
   }
@@ -453,8 +491,8 @@ export default function App() {
       <LandingPage
         profiles={allUsers}
         onSignIn={handleSignIn}
-        onBackToEvent={() => setSurface('public')}
-        eventName={EVENT_CONFIG.shortName}
+        onBackToEvent={() => setSurface(activeEvent.hasPortal ? 'event' : 'hub')}
+        eventName={activeEvent.shortName}
       />
     );
   }
@@ -548,7 +586,7 @@ export default function App() {
           onImportCsvSessions={handleImportCsvSessions}
           mealServices={mealServices}
           attendance={attendance}
-          event={EVENT_CONFIG}
+          event={activeEvent}
         />
       )}
     </>
@@ -571,7 +609,7 @@ export default function App() {
         bookmarkedCount={bookmarkedSessionsCount}
         unreadMessageCount={unreadMessageCount}
         onSignOut={handleSignOut}
-        onViewPublicPage={() => setSurface('public')}
+        onViewPublicPage={() => { setSurface('event'); window.scrollTo(0, 0); }}
       />
 
       {/* Main View Area */}
@@ -602,10 +640,10 @@ export default function App() {
           </div>
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setSurface('public')}
+              onClick={() => { setSurface('hub'); window.scrollTo(0, 0); }}
               className="text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
             >
-              View public event page
+              All Chadwick events
             </button>
             <span>•</span>
             <button
@@ -665,7 +703,7 @@ export default function App() {
       <PrintableBadge
         isOpen={isPrintBadgeOpen}
         onClose={() => setIsPrintBadgeOpen(false)}
-        event={EVENT_CONFIG}
+        event={activeEvent}
         profiles={allUsers}
         currentUser={currentUser}
         sessions={sessions}

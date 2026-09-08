@@ -7,6 +7,8 @@ import { EventConfig, Session, Track, Room, UserProfile, Sponsor } from '../type
 
 interface PublicEventPageProps {
   event: EventConfig;
+  /** Back to the events hub. */
+  onBackToEvents: () => void;
   sessions: Session[];
   tracks: Track[];
   rooms: Room[];
@@ -25,8 +27,12 @@ interface PublicEventPageProps {
  * change rather than a code change.
  */
 export const PublicEventPage: React.FC<PublicEventPageProps> = ({
-  event, sessions, tracks, rooms, profiles, sponsors, onSignIn,
+  event, sessions, tracks, rooms, profiles, sponsors, onSignIn, onBackToEvents,
 }) => {
+  // Only the flagship has a programme wired up. For a landing-page-only event
+  // the agenda, speaker and venue-room sections are hidden rather than shown
+  // empty, which would read as a broken page rather than a lighter one.
+  const hasProgramme = sessions.length > 0;
   const [agendaDay, setAgendaDay] = useState(1);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
@@ -48,10 +54,14 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
 
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
-  const NAV = [
-    ['About', 'about'], ['Speakers', 'speakers'], ['Agenda', 'agenda'],
-    ['Venue', 'venue'], ['Discover', 'discover'], ['FAQ', 'faq'],
-  ] as const;
+  const NAV = ([
+    event.about?.length ? ['About', 'about'] : null,
+    hasProgramme ? ['Speakers', 'speakers'] : null,
+    hasProgramme ? ['Agenda', 'agenda'] : null,
+    ['Venue', 'venue'],
+    event.discover ? ['Discover', 'discover'] : null,
+    event.faqs?.length ? ['FAQ', 'faq'] : null,
+  ].filter(Boolean)) as [string, string][];
 
   return (
     <div className="min-h-screen bg-white">
@@ -76,6 +86,12 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
           </div>
 
           <nav className="hidden md:flex items-center gap-1">
+            <button
+              onClick={onBackToEvents}
+              className="px-3 py-2 text-sm font-medium text-slate-500 hover:text-blue-700 transition-colors cursor-pointer"
+            >
+              ← All events
+            </button>
             {NAV.map(([label, id]) => (
               <button
                 key={id}
@@ -168,7 +184,7 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
         {/* Highlights strip */}
         <div className="relative border-t border-white/15 bg-blue-950/40 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-2 md:grid-cols-4 gap-6">
-            {event.highlights.map((h) => (
+            {(event.highlights ?? []).map((h) => (
               <div key={h.label}>
                 <div className="text-2xl sm:text-3xl font-bold text-white">{h.value}</div>
                 <div className="text-xs text-blue-200/70 uppercase tracking-wide mt-0.5">{h.label}</div>
@@ -179,6 +195,7 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
       </section>
 
       {/* ---------------- About ---------------- */}
+      {(event.description || event.about?.length) && (
       <section id="about" className="py-20 sm:py-24 bg-white scroll-mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mb-14">
@@ -189,7 +206,7 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
-            {event.about.map((block, i) => (
+            {(event.about ?? []).map((block, i) => (
               <div key={block.heading}>
                 <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-sm mb-4">
                   {i + 1}
@@ -201,8 +218,10 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
           </div>
         </div>
       </section>
+      )}
 
       {/* ---------------- Tracks ---------------- */}
+      {hasProgramme && (
       <section className="py-16 bg-slate-50 border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6">Programme tracks</h2>
@@ -219,8 +238,10 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
           </div>
         </div>
       </section>
+      )}
 
       {/* ---------------- Speakers ---------------- */}
+      {hasProgramme && (
       <section id="speakers" className="py-20 sm:py-24 bg-white scroll-mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">Speakers</div>
@@ -253,8 +274,10 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
           </div>
         </div>
       </section>
+      )}
 
       {/* ---------------- Agenda ---------------- */}
+      {hasProgramme && (
       <section id="agenda" className="py-20 sm:py-24 bg-slate-50 border-y border-slate-200 scroll-mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">Agenda</div>
@@ -345,6 +368,7 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
           </div>
         </div>
       </section>
+      )}
 
       {/* ---------------- Venue ---------------- */}
       <section id="venue" className="py-20 sm:py-24 bg-white scroll-mt-16">
@@ -352,9 +376,9 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
           <div>
             <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">Venue</div>
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">{event.venueName}</h2>
-            <p className="text-slate-600 leading-relaxed mb-6">{event.venueAddress}</p>
+            {event.venueAddress && <p className="text-slate-600 leading-relaxed mb-6">{event.venueAddress}</p>}
             <div className="space-y-3">
-              {rooms.map((r) => (
+              {(hasProgramme ? rooms : []).map((r) => (
                 <div key={r.id} className="flex items-center justify-between gap-4 py-3 border-b border-slate-100">
                   <div className="min-w-0">
                     <div className="text-sm font-semibold text-slate-800 truncate">{r.name}</div>
@@ -442,13 +466,14 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
       )}
 
       {/* ---------------- FAQ ---------------- */}
+      {!!event.faqs?.length && (
       <section id="faq" className="py-20 sm:py-24 bg-white scroll-mt-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">FAQ</div>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-10">Questions, answered</h2>
 
           <div className="divide-y divide-slate-200 border-y border-slate-200">
-            {event.faqs.map((faq, i) => (
+            {(event.faqs ?? []).map((faq, i) => (
               <div key={faq.question}>
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
@@ -468,11 +493,13 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
         </div>
       </section>
 
+      )}
+
       {/* ---------------- Closing CTA ---------------- */}
       <section className="py-20 bg-blue-600 text-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to join us?</h2>
-          <p className="text-blue-100/90 leading-relaxed mb-8">{event.registrationNote}</p>
+          {event.registrationNote && <p className="text-blue-100/90 leading-relaxed mb-8">{event.registrationNote}</p>}
           <button
             onClick={onSignIn}
             className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white text-blue-800 font-bold hover:bg-blue-50 transition-colors cursor-pointer"

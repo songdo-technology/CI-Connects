@@ -766,6 +766,12 @@ export const INITIAL_MESSAGES: DirectMessage[] = [
    ============================================================ */
 export const EVENT_CONFIG: EventConfig = {
   id: 'evt-mission-conference',
+  slug: 'mission-conference-2026',
+  category: 'Conference',
+  isFeatured: true,
+  hasPortal: true,
+  summary:
+    'Our flagship gathering. Educators from eighteen countries, five mission strands, and two days on what a school holds onto while its tools learn to think.',
   name: 'Chadwick Mission Conference',
   shortName: 'Mission Conference',
   tagline: 'Relationships Drive Our Mission',
@@ -854,3 +860,151 @@ export const EVENT_CONFIG: EventConfig = {
     },
   ],
 };
+
+/* ============================================================
+   The events catalogue. CI Connects runs the whole year, not one conference,
+   so the hub reads from this list and each entry renders its own landing page
+   at /?event=<slug>. Only the flagship carries a full portal today; the rest
+   are landing pages, which is the honest state of the platform.
+   ============================================================ */
+export const EVENTS: EventConfig[] = [
+  EVENT_CONFIG,
+
+  {
+    id: 'evt-open-house-2026',
+    slug: 'admissions-open-house-nov-2026',
+    category: 'Admissions',
+    name: 'Autumn Admissions Open House',
+    shortName: 'Open House',
+    tagline: 'See the school on an ordinary Tuesday',
+    summary:
+      'Prospective families walk the campus during a normal teaching day, sit in on lessons, and meet the faculty their children would actually learn from.',
+    startDate: '2026-11-14',
+    endDate: '2026-11-14',
+    dateLabel: 'Saturday 14 November 2026',
+    venueName: 'Chadwick International, Songdo',
+    heroImageUrl: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1200&auto=format&fit=crop&q=80',
+    registrationOpen: true,
+    isTemplate: true,
+    highlights: [
+      { label: 'Divisions', value: '4' },
+      { label: 'Open lessons', value: '20+' },
+      { label: 'Hours', value: '4' },
+    ],
+  },
+
+  {
+    id: 'evt-student-forum-2027',
+    slug: 'global-citizenship-student-forum-2027',
+    category: 'Student',
+    name: 'Global Citizenship Student Forum',
+    shortName: 'Student Forum',
+    tagline: 'Students setting the agenda',
+    summary:
+      'Upper School delegations from across the region convene on a single question of consequence. Students chair every session; adults are permitted to listen.',
+    startDate: '2027-02-20',
+    endDate: '2027-02-21',
+    dateLabel: 'Saturday 20 - Sunday 21 February 2027',
+    venueName: 'Chadwick International, Songdo',
+    heroImageUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&auto=format&fit=crop&q=80',
+    registrationOpen: false,
+    isTemplate: true,
+    highlights: [
+      { label: 'Delegations', value: '14' },
+      { label: 'Student chairs', value: '100%' },
+      { label: 'Days', value: '2' },
+    ],
+  },
+
+  {
+    id: 'evt-ai-practice-2027',
+    slug: 'ai-in-practice-series-2027',
+    category: 'Workshop',
+    name: 'AI in Practice: Twilight Workshop Series',
+    shortName: 'AI in Practice',
+    tagline: 'Six Thursdays, one department at a time',
+    summary:
+      'A working series rather than a keynote. Departments bring a real unit and leave having rebuilt one assessment around what the tools have actually changed.',
+    startDate: '2027-01-14',
+    endDate: '2027-02-25',
+    dateLabel: 'Six Thursdays, January - February 2027',
+    venueName: 'Innovation Design Lab, Chadwick International',
+    heroImageUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&auto=format&fit=crop&q=80',
+    registrationOpen: true,
+    isTemplate: true,
+    highlights: [
+      { label: 'Sessions', value: '6' },
+      { label: 'Departments', value: '9' },
+      { label: 'Format', value: 'Hands-on' },
+    ],
+  },
+
+  {
+    id: 'evt-onboarding-2026',
+    slug: 'educator-onboarding-institute-2026',
+    category: 'Community',
+    name: 'New Educator Onboarding Institute',
+    shortName: 'Onboarding Institute',
+    tagline: 'Three days before the students arrive',
+    summary:
+      'Incoming faculty met the mission, the campus and each other before the first bell — and the cohort that went through it is still meeting monthly.',
+    startDate: '2026-08-10',
+    endDate: '2026-08-12',
+    dateLabel: '10 - 12 August 2026',
+    venueName: 'Chadwick International, Songdo',
+    heroImageUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1200&auto=format&fit=crop&q=80',
+    registrationOpen: false,
+    isTemplate: true,
+    outcomes: [
+      { label: 'New colleagues', value: '31' },
+      { label: 'Countries of origin', value: '11' },
+      { label: 'Still meeting monthly', value: 'Yes' },
+    ],
+  },
+
+  {
+    id: 'evt-wellbeing-summit-2026',
+    slug: 'wellbeing-belonging-summit-2026',
+    category: 'Symposium',
+    name: 'Wellbeing & Belonging Summit',
+    shortName: 'Wellbeing Summit',
+    tagline: 'The conditions learning needs',
+    summary:
+      'Counsellors, tutors and division heads spent a day on the unglamorous groundwork: workload, belonging, and the signals a school sends without meaning to.',
+    startDate: '2026-05-08',
+    endDate: '2026-05-08',
+    dateLabel: 'Friday 8 May 2026',
+    venueName: 'Humanities Wing, Chadwick International',
+    heroImageUrl: 'https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=1200&auto=format&fit=crop&q=80',
+    registrationOpen: false,
+    isTemplate: true,
+    outcomes: [
+      { label: 'Attendees', value: '124' },
+      { label: 'Schools', value: '9' },
+      { label: 'Policies revised', value: '3' },
+    ],
+  },
+
+  {
+    id: 'evt-future-learning-2026',
+    slug: 'future-of-learning-symposium-2026',
+    category: 'Symposium',
+    name: 'Future of Learning Symposium',
+    shortName: 'Future of Learning',
+    tagline: 'The conversation that started this one',
+    summary:
+      'The symposium whose closing question - what is a school for, once the answers are free? - became the premise of the Mission Conference.',
+    startDate: '2026-03-06',
+    endDate: '2026-03-07',
+    dateLabel: '6 - 7 March 2026',
+    venueName: 'Grand Performing Arts Center, Chadwick International',
+    heroImageUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&auto=format&fit=crop&q=80',
+    registrationOpen: false,
+    isTemplate: true,
+    outcomes: [
+      { label: 'Attendees', value: '210' },
+      { label: 'Sessions', value: '28' },
+      { label: 'Countries', value: '12' },
+    ],
+  },
+];
