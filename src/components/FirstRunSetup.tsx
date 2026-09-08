@@ -56,9 +56,17 @@ export const FirstRunSetup: React.FC<FirstRunSetupProps> = ({ store, onDone }) =
   const run = async () => {
     setRunning(true);
     setError(null);
+    const uid = auth.firebaseUser?.uid;
     try {
       for (const { key, items, label } of SEED) {
-        await store.batch(items.map((item) => ({ op: 'create' as const, key, item })));
+        // Events are stamped with the seeding administrator as owner. The
+        // rules gate every edit on ownerId, so an unstamped event would be one
+        // that no organiser could ever modify — and the create rule refuses it
+        // outright.
+        const prepared = key === 'events' && uid
+          ? items.map((e) => ({ ...(e as object), ownerId: uid, status: 'published' }))
+          : items;
+        await store.batch(prepared.map((item) => ({ op: 'create' as const, key, item })));
         setDone((d) => [...d, label]);
       }
       onDone();

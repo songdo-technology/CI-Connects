@@ -293,6 +293,13 @@ export interface EventConfig {
   heroImageUrl: string;
   registrationOpen: boolean;
   registrationNote?: string;
+  /** Uid of the organiser who owns this event. The security rules gate every
+   *  edit on it, so an event without an owner is one nobody but a technical
+   *  admin can change. Stamped at creation, including during seeding. */
+  ownerId?: string;
+  /** Drafts are visible only to organisers; published events are the public
+   *  website. Absent is treated as published, so existing rows keep working. */
+  status?: 'draft' | 'published';
   /** Marks demo/scaffold content. Surfaces a visible badge on the public page
    *  so a sample event is never mistaken for a real announced one. */
   isTemplate?: boolean;

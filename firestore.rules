@@ -149,7 +149,8 @@ service cloud.firestore {
     // that can be changed later is not evidence of anything.
     match /attendance/{recordId} {
       allow read: if isOrganiser() || (signedIn() && resource.data.userId == uid());
-      allow create: if isDoorStaff() && request.resource.data.scannedBy == uid();
+      allow create: if isAdmin()
+                    || (isDoorStaff() && request.resource.data.scannedBy == uid());
       allow update, delete: if false;
     }
 
@@ -159,11 +160,12 @@ service cloud.firestore {
     // record.
     match /feedback/{entryId} {
       allow read: if isOrganiser() || (signedIn() && resource.data.userId == uid());
-      allow create: if signedIn()
-                    && request.resource.data.userId == uid()
-                    && request.resource.data.rating is int
-                    && request.resource.data.rating >= 1
-                    && request.resource.data.rating <= 5;
+      allow create: if isAdmin()
+                    || (signedIn()
+                        && request.resource.data.userId == uid()
+                        && request.resource.data.rating is int
+                        && request.resource.data.rating >= 1
+                        && request.resource.data.rating <= 5);
       allow update: if signedIn()
                     && resource.data.userId == uid()
                     && unchanged(['userId', 'targetId', 'submittedAt']);
@@ -173,7 +175,9 @@ service cloud.firestore {
     // -------------------------------------------------------------- community
     match /communityTopics/{topicId} {
       allow read: if signedIn();
-      allow create: if signedIn() && request.resource.data.authorId == uid();
+      // isAdmin() covers seeding and imports, where the author is someone else.
+      allow create: if isAdmin()
+                    || (signedIn() && request.resource.data.authorId == uid());
       allow update: if isOrganiser()
                     || (signedIn() && resource.data.authorId == uid())
                     // Anyone signed in may RSVP, like or reply, and nothing else.
@@ -186,7 +190,8 @@ service cloud.firestore {
     // excluded: running an event does not entitle anyone to read private mail.
     match /messages/{messageId} {
       allow read: if signedIn() && uid() in [resource.data.fromUserId, resource.data.toUserId];
-      allow create: if signedIn() && request.resource.data.fromUserId == uid();
+      allow create: if isAdmin()
+                    || (signedIn() && request.resource.data.fromUserId == uid());
       // Only the recipient may mark a message read.
       allow update: if signedIn()
                     && resource.data.toUserId == uid()
