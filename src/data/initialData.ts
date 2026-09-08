@@ -1,11 +1,14 @@
 import { Room, Track, Sponsor, UserProfile, Session, CommunityTopic, BroadcastAnnouncement, MealService, AttendanceRecord, DirectMessage, EventConfig } from '../types';
 
 export const INITIAL_TRACKS: Track[] = [
-  { id: 'track-eng', name: 'Engineering & EdTech Architecture', colorHex: '#002B54', orderIndex: 1 },
-  { id: 'track-ai', name: 'AI Workflows & Safety', colorHex: '#2A6791', orderIndex: 2 },
-  { id: 'track-lead', name: 'Leadership & School Culture', colorHex: '#5E6513', orderIndex: 3 },
-  { id: 'track-ped', name: 'Pedagogical Innovation', colorHex: '#B04318', orderIndex: 4 },
-  { id: 'track-well', name: 'Wellbeing & Inclusion', colorHex: '#6B605A', orderIndex: 5 },
+  // The five strands of the Chadwick mission: to develop global citizens with
+  // keen minds, exemplary character, self-knowledge and the ability to lead.
+  // Colors are Chadwick secondaries, deepened to clear WCAG AA behind white.
+  { id: 'track-global', name: 'Global Citizenship', colorHex: '#002B54', orderIndex: 1 },
+  { id: 'track-minds', name: 'Keen Minds', colorHex: '#2A6791', orderIndex: 2 },
+  { id: 'track-character', name: 'Exemplary Character', colorHex: '#5E6513', orderIndex: 3 },
+  { id: 'track-self', name: 'Self-Knowledge', colorHex: '#6B605A', orderIndex: 4 },
+  { id: 'track-lead', name: 'Leadership', colorHex: '#B04318', orderIndex: 5 },
 ];
 
 export const INITIAL_ROOMS: Room[] = [
@@ -220,11 +223,11 @@ export const INITIAL_PROFILES: UserProfile[] = [
 export const INITIAL_SESSIONS: Session[] = [
   {
     id: 'sess-01-keynote',
-    eventId: 'evt-ci-conference',
+    eventId: 'evt-mission-conference',
     roomId: 'room-pac',
-    trackId: 'track-eng',
-    title: 'Opening Keynote: Architecting In-House Systems vs Commercial SaaS Traps',
-    description: 'Why modern educational institutions and enterprises are reclaiming software autonomy. A deep breakdown of Sched, Whova, Google Workspace SSO hd validation, and agent-assisted software craftsmanship.',
+    trackId: 'track-global',
+    title: 'Opening Keynote: Human at the Centre in an Age of Intelligent Machines',
+    description: 'Our mission asks us to develop global citizens with keen minds, exemplary character, self-knowledge and the ability to lead. What does each of those words demand of us now that machines can write, reason and persuade? A frank look at what technology should, and should not, be asked to carry.',
     day: 1,
     dateStr: 'Friday, Oct 16, 2026',
     startTime: '09:00 AM',
@@ -237,17 +240,17 @@ export const INITIAL_SESSIONS: Session[] = [
     speakerIds: ['usr-marcus-vance', 'usr-dean-norman'],
     primarySponsorId: 'spon-google',
     slidesUrl: 'https://storage.googleapis.com/ci-conference-2026/keynote-architecture-v1.pdf',
-    slidesName: 'Reclaiming-Sovereignty-Keynote.pdf (14.2 MB)',
+    slidesName: 'Human-at-the-Centre-Keynote.pdf (14.2 MB)',
     isFeatured: true,
-    tags: ['Architecture', 'Keynote', 'SSO', 'SaaS vs Build'],
+    tags: ['Keynote', 'Mission', 'AI & Humanity', 'Global Citizenship'],
   },
   {
     id: 'sess-02-ai-classroom',
-    eventId: 'evt-ci-conference',
+    eventId: 'evt-mission-conference',
     roomId: 'room-lab102',
-    trackId: 'track-ai',
-    title: 'Hands-on Workshop: Safe AI Workflows & Student Prompt Literacy',
-    description: 'An interactive coding & pedagogical session in the Design Lab. Learn how to configure safe prompt boundaries, monitor cognitive dependency, and introduce agentic coding directly into AP Computer Science.',
+    trackId: 'track-minds',
+    title: 'Thinking With Machines, Not For Them: Prompt Literacy as Critical Inquiry',
+    description: 'A hands-on workshop on using AI to sharpen student reasoning rather than replace it. Participants build prompts that demand evidence, surface assumptions and invite disagreement, then test them against real student work.',
     day: 1,
     dateStr: 'Friday, Oct 16, 2026',
     startTime: '10:45 AM',
@@ -265,17 +268,17 @@ export const INITIAL_SESSIONS: Session[] = [
     speakerIds: ['usr-sarah-lin'],
     primarySponsorId: 'spon-google',
     slidesUrl: 'https://storage.googleapis.com/ci-conference-2026/prompt-literacy-workshop.pdf',
-    slidesName: 'AI-Literacy-Curriculum-Framework.pdf (8.7 MB)',
+    slidesName: 'Prompt-Literacy-Workshop.pdf (8.4 MB)',
     isFeatured: true,
-    tags: ['AI Workflows', 'Hands-on', 'Computer Science'],
+    tags: ['Keen Minds', 'AI Literacy', 'Critical Thinking', 'Workshop'],
   },
   {
     id: 'sess-03-ethics-panel',
-    eventId: 'evt-ci-conference',
+    eventId: 'evt-mission-conference',
     roomId: 'room-hall301',
-    trackId: 'track-lead',
-    title: 'Panel Discussion: Academic Integrity in the Age of Generative AI',
-    description: 'Faculty and student ambassadors debate where authentic human voice begins and digital assistance ends. Examining revised assessment rubrics, policy formulations, and faculty consensus.',
+    trackId: 'track-character',
+    title: 'Integrity When the Machine Can Write: Honour in an AI Era',
+    description: 'Exemplary character is easy to name and hard to assess. A candid panel on what academic honesty means when the tools are this good, why detection alone fails, and how honour has to be taught rather than policed.',
     day: 1,
     dateStr: 'Friday, Oct 16, 2026',
     startTime: '10:45 AM',
@@ -288,16 +291,16 @@ export const INITIAL_SESSIONS: Session[] = [
     speakerIds: ['usr-david-kim', 'usr-chloe-bennett'],
     primarySponsorId: 'spon-canva',
     slidesUrl: 'https://storage.googleapis.com/ci-conference-2026/academic-integrity-panel.pdf',
-    slidesName: 'Assessment-Rubrics-AI-Age.pdf (5.1 MB)',
-    tags: ['Policy', 'Humanities', 'Assessment Rubrics'],
+    slidesName: 'Integrity-in-an-AI-Era.pdf (5.1 MB)',
+    tags: ['Exemplary Character', 'Academic Integrity', 'Panel', 'Honour'],
   },
   {
     id: 'sess-04-lunch-collab',
-    eventId: 'evt-ci-conference',
+    eventId: 'evt-mission-conference',
     roomId: 'room-pac',
-    trackId: 'track-well',
-    title: 'Networking Luncheon & Informal Subject Meetups',
-    description: 'Enjoy lunch while joining self-organized breakout tables organized through our Community Board. Department heads and subject coaches facilitate informal tables across the Dining Pavilion.',
+    trackId: 'track-global',
+    title: 'Community Luncheon & Cross-Divisional Conversations',
+    description: 'Lunch with intent. Tables are grouped by mission strand rather than by division, so Lower School and Upper School colleagues end up discussing the same question from opposite ends of a student journey.',
     day: 1,
     dateStr: 'Friday, Oct 16, 2026',
     startTime: '12:15 PM',
@@ -309,15 +312,15 @@ export const INITIAL_SESSIONS: Session[] = [
     waitlistUserIds: [],
     speakerIds: ['usr-dean-norman'],
     primarySponsorId: 'spon-canva',
-    tags: ['Networking', 'Community', 'Lunch'],
+    tags: ['Community', 'Networking', 'Cross-Divisional'],
   },
   {
     id: 'sess-05-robotics-maker',
-    eventId: 'evt-ci-conference',
+    eventId: 'evt-mission-conference',
     roomId: 'room-hub204',
-    trackId: 'track-ped',
-    title: 'Inquiry-Based Robotics: Building Cross-Disciplinary STEM Challenges',
-    description: 'Elena Rostova guides teachers on orchestrating collaborative engineering sprints that integrate kinematics physics, microcontroller programming, and artistic CAD chassis fabrication.',
+    trackId: 'track-minds',
+    title: 'Inquiry-Based Robotics: Building Cross-Disciplinary Challenges',
+    description: 'How an open-ended robotics challenge develops keen minds across subjects — the engineering is the visible part, but the reasoning, iteration and argument are the point. Includes a challenge design template to take back to your division.',
     day: 1,
     dateStr: 'Friday, Oct 16, 2026',
     startTime: '01:45 PM',
@@ -330,16 +333,16 @@ export const INITIAL_SESSIONS: Session[] = [
     speakerIds: ['usr-elena-rostova'],
     primarySponsorId: 'spon-apple',
     slidesUrl: 'https://storage.googleapis.com/ci-conference-2026/robotics-stem-curriculum.pdf',
-    slidesName: 'Cross-Disciplinary-Robotics-Guide.pdf (11.0 MB)',
-    tags: ['STEM', 'Robotics', 'Physics', 'Design Thinking'],
+    slidesName: 'Inquiry-Robotics-Challenges.pdf (11.7 MB)',
+    tags: ['Keen Minds', 'Inquiry', 'STEM', 'Cross-Disciplinary'],
   },
   {
     id: 'sess-06-veracross-sync',
-    eventId: 'evt-ci-conference',
+    eventId: 'evt-mission-conference',
     roomId: 'room-media',
-    trackId: 'track-eng',
-    title: 'Technical Deep-Dive: Veracross API v3 & Google Calendar Room Locks',
-    description: 'An architectural session for campus IT engineers and administrators. How to configure cron syncs with Veracross faculty endpoints and resolve double-booking conflicts on Google Calendar Resource mailboxes.',
+    trackId: 'track-lead',
+    title: 'Systems That Serve People: Designing School Operations Around Learning',
+    description: 'A working session on the unglamorous half of leadership — timetables, rooms, rosters and the systems beneath them. How we choose and build tools so they absorb administrative friction rather than adding it, leaving teachers free to teach.',
     day: 1,
     dateStr: 'Friday, Oct 16, 2026',
     startTime: '01:45 PM',
@@ -352,16 +355,16 @@ export const INITIAL_SESSIONS: Session[] = [
     waitlistUserIds: ['usr-david-kim'],
     speakerIds: ['usr-marcus-vance', 'usr-dean-norman'],
     slidesUrl: 'https://storage.googleapis.com/ci-conference-2026/veracross-google-sync.pdf',
-    slidesName: 'API-Integration-Patterns-v3.pdf (6.4 MB)',
-    tags: ['Veracross', 'Google Calendar API', 'PostgreSQL RLS'],
+    slidesName: 'Systems-That-Serve-People.pdf (6.3 MB)',
+    tags: ['Leadership', 'Operations', 'Systems Design', 'Human-Centred Tech'],
   },
   {
     id: 'sess-07-math-dataviz',
-    eventId: 'evt-ci-conference',
+    eventId: 'evt-mission-conference',
     roomId: 'room-lab102',
-    trackId: 'track-ped',
-    title: 'Data Literacy & Real-World Climate Datasets with Python & D3',
-    description: 'Transforming high school mathematics into an empirical science lab. Hands-on modeling of atmospheric carbon and glacial retreat data with observable visualizations.',
+    trackId: 'track-global',
+    title: 'Reading the World in Data: Climate, Migration and Global Citizenship',
+    description: 'Global citizenship needs more than sympathy — it needs the ability to read the evidence. Working with real climate and migration datasets, this session builds the statistical judgement students need to hold an informed position, and to notice when a chart is arguing with them.',
     day: 2,
     dateStr: 'Saturday, Oct 17, 2026',
     startTime: '09:00 AM',
@@ -374,16 +377,16 @@ export const INITIAL_SESSIONS: Session[] = [
     speakerIds: ['usr-meiling-zhou'],
     primarySponsorId: 'spon-apple',
     slidesUrl: 'https://storage.googleapis.com/ci-conference-2026/math-dataviz.pdf',
-    slidesName: 'Climate-Data-Literacy-Labs.pdf (9.3 MB)',
-    tags: ['Math', 'Python', 'D3.js', 'Climate Science'],
+    slidesName: 'Reading-the-World-in-Data.pdf (9.8 MB)',
+    tags: ['Global Citizenship', 'Data Literacy', 'Climate', 'Evidence'],
   },
   {
     id: 'sess-08-wellbeing-digital',
-    eventId: 'evt-ci-conference',
+    eventId: 'evt-mission-conference',
     roomId: 'room-hall301',
-    trackId: 'track-well',
-    title: 'Student Wellbeing in a 1:1 Laptop Campus: Ergonomics & Digital Balance',
-    description: 'Practical strategies for balancing screen time, fostering peer connection, and training faculty to notice tech-induced fatigue.',
+    trackId: 'track-self',
+    title: 'Attention, Balance and Self-Knowledge on a Connected Campus',
+    description: 'Self-knowledge is the strand most easily crowded out by a device. Practical approaches to helping students notice their own attention, name what a tool is doing to it, and choose deliberately — drawing on what we have learned from our own 1:1 programme.',
     day: 2,
     dateStr: 'Saturday, Oct 17, 2026',
     startTime: '09:00 AM',
@@ -394,15 +397,15 @@ export const INITIAL_SESSIONS: Session[] = [
     reservedUserIds: ['usr-david-kim', 'usr-elena-rostova'],
     waitlistUserIds: [],
     speakerIds: ['usr-david-kim'],
-    tags: ['Wellbeing', 'Student Health', 'Screen Fatigue'],
+    tags: ['Self-Knowledge', 'Wellbeing', 'Attention', 'Digital Balance'],
   },
   {
     id: 'sess-09-closing-raffle',
-    eventId: 'evt-ci-conference',
+    eventId: 'evt-mission-conference',
     roomId: 'room-pac',
     trackId: 'track-lead',
-    title: 'Summit Closing Plenary, Grand Lucky Draw & Keynote Synthesis',
-    description: 'Closing remarks, presentation of the Annual Innovation Awards, and our verified-attendee Lucky Draw stage raffle with campus sponsor prizes.',
+    title: 'Closing Plenary: The Ability to Lead, and What We Do on Monday',
+    description: 'The conference closes where the mission does — with the ability to lead. Strand leads report what emerged, we name the commitments worth carrying into the year, and the community draw sends everyone home. Leadership here means whoever chooses to act first.',
     day: 2,
     dateStr: 'Saturday, Oct 17, 2026',
     startTime: '03:30 PM',
@@ -415,21 +418,21 @@ export const INITIAL_SESSIONS: Session[] = [
     speakerIds: ['usr-dean-norman', 'usr-marcus-vance'],
     primarySponsorId: 'spon-google',
     isFeatured: true,
-    tags: ['Closing', 'Lucky Draw', 'Awards', 'Plenary'],
+    tags: ['Leadership', 'Plenary', 'Commitments', 'Closing'],
   },
 ];
 
 export const INITIAL_COMMUNITY_TOPICS: CommunityTopic[] = [
   {
     id: 'comm-01',
-    eventId: 'evt-ci-conference',
+    eventId: 'evt-mission-conference',
     authorId: 'usr-sarah-lin',
     authorName: 'Dr. Sarah Lin',
     authorEmail: 'slin@chadwickschool.org',
     authorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80',
     authorDepartment: 'STEM & Computer Science',
     authorType: 'internal_faculty',
-    title: 'Informal Lunch Meetup: AI in K-12 CS & Robotics Teachers',
+    title: 'Lunch Meetup: Keen Minds strand — where is AI actually helping?',
     content: 'Let\'s gather during Friday lunch (around 12:30 PM) at the Outdoor Courtyard shaded picnic tables! We can discuss what prompt frameworks you\'re testing with 9th-12th graders and share curricula.',
     category: 'Informal Meetups',
     location: 'Campus Outdoor Courtyard, Table 4',
@@ -458,14 +461,14 @@ export const INITIAL_COMMUNITY_TOPICS: CommunityTopic[] = [
   },
   {
     id: 'comm-02',
-    eventId: 'evt-ci-conference',
+    eventId: 'evt-mission-conference',
     authorId: 'usr-dean-norman',
     authorName: 'Dean Norman',
     authorEmail: 'dnorman@chadwickschool.org',
     authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
     authorDepartment: 'Information Technology',
     authorType: 'internal_staff',
-    title: 'Organizers Desk: Campus Wi-Fi & Slide Upload Instructions',
+    title: 'Organiser Desk: Campus Wi-Fi & Slide Upload Instructions',
     content: 'Welcome everyone! For all speakers, please make sure your final presentation slides are submitted via the session drawer or directly to AV desk by 8:30 AM. Campus network is "Summit-Guest" with credentials in your badge lanyard.',
     category: 'Ask Organizers',
     location: 'Auditorium Tech Booth',
@@ -485,7 +488,7 @@ export const INITIAL_COMMUNITY_TOPICS: CommunityTopic[] = [
   },
   {
     id: 'comm-03',
-    eventId: 'evt-ci-conference',
+    eventId: 'evt-mission-conference',
     authorId: 'usr-elena-rostova',
     authorName: 'Elena Rostova',
     authorEmail: 'elena.rostova@seoul-foreign.org',
@@ -525,9 +528,9 @@ export const INITIAL_ANNOUNCEMENTS: BroadcastAnnouncement[] = [
 ];
 
 export const SAMPLE_CSV_TEMPLATE = `Title,Description,Date,StartTime,EndTime,Track,TrackColor,Room,RoomCapacity,SpeakerName,SpeakerEmail,SpeakerTitle
-"AI-Assisted Grading Workflows","Analyzing formative writing rubrics with local LLMs","2026-10-16","11:00 AM","12:15 PM","AI Workflows & Safety","#2A6791","Innovation Design Lab 102",30,"Dr. Sarah Lin","slin@chadwickschool.org","CS Department Chair"
-"Mindful Leadership for Educators","Building resilient faculty teams in high-pressure school cultures","2026-10-16","01:45 PM","03:00 PM","Leadership & School Culture","#5E6513","Humanities Lecture Hall 301",55,"Prof. David Kim","dkim@chadwickschool.org","Ethics Lead"
-"Next-Gen Campus Network Security","Zero-trust architecture and 802.1X enterprise authentication","2026-10-17","10:30 AM","11:45 AM","Engineering & EdTech Architecture","#002B54","Science & Engineering Hub 204",40,"Marcus Vance","marcus@vance-systems.io","Principal Architect"`;
+"Argument in the Age of Autocomplete","Teaching students to defend a position a model could have written for them","2026-10-16","11:00 AM","12:15 PM","Keen Minds","#2A6791","Innovation Design Lab 102",30,"Dr. Sarah Lin","slin@chadwickschool.org","CS Department Chair"
+"Quiet Leadership: Growing Colleagues, Not Followers","How middle leaders build capacity without adding load","2026-10-16","01:45 PM","03:00 PM","Leadership","#B04318","Humanities Lecture Hall 301",55,"Prof. David Kim","dkim@chadwickschool.org","Ethics Lead"
+"Service Beyond the Service Trip","Designing global citizenship that outlasts a week abroad","2026-10-17","10:30 AM","11:45 AM","Global Citizenship","#002B54","Science & Engineering Hub 204",40,"Elena Rostova","elena@rostova-learning.org","Learning Designer"`;
 
 
 /* ============================================================
@@ -686,12 +689,12 @@ export const INITIAL_MESSAGES: DirectMessage[] = [
    for a different event without touching the portal.
    ============================================================ */
 export const EVENT_CONFIG: EventConfig = {
-  id: 'evt-ci-conference',
-  name: 'Chadwick International Conference',
-  shortName: 'CI Conference',
+  id: 'evt-mission-conference',
+  name: 'Chadwick Mission Conference',
+  shortName: 'Mission Conference',
   tagline: 'Relationships Drive Our Mission',
   description:
-    'A two-day gathering of the Chadwick International community — faculty, staff, students and visiting colleagues — built around the conviction that the strongest learning happens inside strong relationships. Hosted on campus in Songdo.',
+    'Our annual gathering, organised around the five strands of the Chadwick mission — to develop global citizens with keen minds, exemplary character, self-knowledge and the ability to lead. Two days on what those words ask of us now that our tools can think, and on keeping the human at the centre of the answer.',
   startDate: '2026-10-16',
   endDate: '2026-10-17',
   dateLabel: 'Friday 16 - Saturday 17 October 2026',
@@ -704,26 +707,30 @@ export const EVENT_CONFIG: EventConfig = {
   registrationNote:
     'Chadwick faculty, staff and students sign in with their school Google account. Visiting colleagues use the access code sent with their invitation.',
   highlights: [
+    { label: 'Mission strands', value: '5' },
     { label: 'Sessions', value: '40+' },
-    { label: 'Tracks', value: '5' },
-    { label: 'Departments', value: '12' },
+    { label: 'Divisions represented', value: '4' },
     { label: 'Days', value: '2' },
   ],
   about: [
     {
+      heading: 'The mission is the programme',
+      body: 'Every session sits under one of the five strands — Global Citizenship, Keen Minds, Exemplary Character, Self-Knowledge, or Leadership. Not a theme bolted onto a schedule, but the structure of the schedule itself, so that two days of conversation add up to something about who we are trying to help students become.',
+    },
+    {
+      heading: 'Future-forward, human-centred',
+      body: 'Artificial intelligence runs through all five strands rather than sitting in a track of its own, because that is how it arrives in a school. The question we keep asking is not what the technology can do, but which parts of our mission it should be nowhere near.',
+    },
+    {
       heading: 'Relationships first',
-      body: 'Chadwick has always held that who a student learns alongside matters as much as what they learn. This conference applies the same idea to the adults: sessions are built for conversation, not broadcast, and the schedule leaves room for the talking that happens between them.',
-    },
-    {
-      heading: 'Led from inside the school',
-      body: 'Every session is presented by a colleague who teaches, leads or supports learning here or at a partner school. No vendor keynotes and no product pitches, so the practice being described is practice someone is actually accountable for.',
-    },
-    {
-      heading: 'One campus, one community',
-      body: 'Sessions run across the Performing Arts Center, Innovation Design Lab and Humanities wing, all within a few minutes\' walk. Meals and refreshments are included for everyone attending.',
+      body: 'Chadwick has always held that who a student learns alongside matters as much as what they learn. The same applies to the adults: sessions are built for conversation rather than broadcast, and the schedule protects the talking that happens between them.',
     },
   ],
   faqs: [
+    {
+      question: 'How is the programme organised?',
+      answer: 'Around the five strands of our mission — Global Citizenship, Keen Minds, Exemplary Character, Self-Knowledge and Leadership. You can follow one strand across both days, or move between them; the agenda filters either way.',
+    },
     {
       question: 'Who can attend?',
       answer: 'Chadwick International faculty, staff and student ambassadors, together with invited colleagues from partner schools across the region.',
