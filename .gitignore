@@ -6,3 +6,9 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Local Claude Code settings (launch.json is shared, settings.local.json is not)
+.claude/settings.local.json
+
+# Cloudflare
+.wrangler/
