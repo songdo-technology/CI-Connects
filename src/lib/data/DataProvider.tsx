@@ -7,6 +7,12 @@ type Collections = { [K in CollectionKey]: CollectionTypes[K][] };
 interface DataContextValue extends Collections {
   /** False until every collection has delivered its first snapshot. */
   ready: boolean;
+  /** True when backed by Firestore rather than the in-memory store. Screens
+   *  that only make sense against a real backend — first-run setup — key off
+   *  this rather than reading environment variables themselves. */
+  isRemote: boolean;
+  /** Escape hatch for bulk operations such as seeding. */
+  store: DataStore;
   create: DataStore['create'];
   update: DataStore['update'];
   remove: DataStore['remove'];
@@ -26,9 +32,11 @@ const EMPTY = Object.fromEntries(COLLECTION_KEYS.map((k) => [k, []])) as Collect
  * opening their own would be both slow and expensive. Components read from
  * context and stay unaware of where the data came from.
  */
-export const DataProvider: React.FC<{ store: DataStore; children: React.ReactNode }> = ({
-  store, children,
-}) => {
+export const DataProvider: React.FC<{
+  store: DataStore;
+  isRemote?: boolean;
+  children: React.ReactNode;
+}> = ({ store, isRemote = false, children }) => {
   const [collections, setCollections] = useState<Collections>(EMPTY);
   const [readyKeys, setReadyKeys] = useState<Set<CollectionKey>>(new Set());
 
@@ -50,11 +58,13 @@ export const DataProvider: React.FC<{ store: DataStore; children: React.ReactNod
   const value = useMemo<DataContextValue>(() => ({
     ...collections,
     ready: readyKeys.size === COLLECTION_KEYS.length,
+    isRemote,
+    store: storeRef.current,
     create: (key, item) => storeRef.current.create(key, item),
     update: (key, id, patch) => storeRef.current.update(key, id, patch),
     remove: (key, id) => storeRef.current.remove(key, id),
     batch: (operations) => storeRef.current.batch(operations),
-  }), [collections, readyKeys]);
+  }), [collections, readyKeys, isRemote]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };

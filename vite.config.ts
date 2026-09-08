@@ -6,6 +6,21 @@ import {defineConfig} from 'vite';
 export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss()],
+    build: {
+      rollupOptions: {
+        output: {
+          // Firebase is roughly half the bundle and changes on a different
+          // cadence to our code, so it gets its own long-lived chunk instead
+          // of being invalidated by every application deploy.
+          manualChunks: {
+            firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
+            react: ['react', 'react-dom'],
+          },
+        },
+      },
+      // The app chunk is what gates first paint; the vendor chunks are cached.
+      chunkSizeWarningLimit: 700,
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

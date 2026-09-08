@@ -1,0 +1,28 @@
+rules_version = '2';
+
+// Event cover images and speaker photos uploaded through the admin console.
+// Reads are public because these appear on the public event pages; writes are
+// limited to organisers and capped, since an unbounded upload path is the
+// easiest way to run up a storage bill.
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null; }
+    function role() {
+      return signedIn()
+        ? firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role
+        : 'anonymous';
+    }
+    function isOrganiser() { return role() in ['technical_admin', 'event_organizer']; }
+
+    match /events/{eventId}/{fileName} {
+      allow read: if true;
+      allow write: if isOrganiser()
+                   && request.resource.size < 8 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

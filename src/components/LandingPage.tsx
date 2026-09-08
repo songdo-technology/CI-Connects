@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Building2, ArrowRight, Mail, KeyRound, AlertCircle, CalendarDays, Users, QrCode, UtensilsCrossed } from 'lucide-react';
 import { UserProfile, AuthMethod } from '../types';
+import { useAuth } from '../lib/AuthProvider';
 
 interface LandingPageProps {
   profiles: UserProfile[];
@@ -25,6 +26,7 @@ interface LandingPageProps {
 const GUEST_DEMO_CODE = 'CI-DEMO';
 
 export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, onBackToEvent, eventName }) => {
+  const auth = useAuth();
   const [mode, setMode] = useState<'choose' | 'guest'>('choose');
   const [ssoPickerOpen, setSsoPickerOpen] = useState(false);
   const [guestEmail, setGuestEmail] = useState('');
@@ -119,7 +121,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, on
 
               {/* Chadwick SSO */}
               <button
-                onClick={() => setSsoPickerOpen((v) => !v)}
+                onClick={() => (auth.live ? auth.signIn() : setSsoPickerOpen((v) => !v))}
                 className="w-full flex items-center justify-between gap-3 px-5 py-4 rounded-xl bg-blue-600 text-white font-semibold shadow-sm hover:bg-blue-700 transition-colors cursor-pointer"
               >
                 <span className="flex items-center gap-3">
@@ -134,7 +136,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, on
                 For staff, faculty and students with an @chadwickschool.org account.
               </p>
 
-              {ssoPickerOpen && (
+              {auth.error && (
+                <div className="mt-3 flex items-start gap-2 px-3.5 py-3 rounded-lg bg-amber-50 border border-amber-200">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-900 leading-relaxed">{auth.error}</p>
+                </div>
+              )}
+
+              {!auth.live && ssoPickerOpen && (
                 <div className="mt-3 border border-slate-200 rounded-xl bg-white overflow-hidden shadow-sm">
                   <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
                     Choose an account
@@ -258,8 +267,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, on
           )}
 
           <p className="text-[11px] text-slate-400 leading-relaxed mt-8 text-center">
-            Prototype build — sign-in is simulated and no credentials are collected
-            or transmitted.
+            {auth.live
+              ? 'Sign-in is handled by Google. CI Connects never sees your password.'
+              : 'Demo build — sign-in is simulated and no credentials are collected or transmitted.'}
           </p>
         </div>
       </div>

@@ -36,6 +36,7 @@ import { PrintableBadge } from './components/PrintableBadge';
 import { RoomSignage } from './components/RoomSignage';
 import { EventsHub } from './components/EventsHub';
 import { useData } from './lib/data/DataProvider';
+import { FirstRunSetup } from './components/FirstRunSetup';
 import { FeedbackView } from './components/FeedbackView';
 import { SignageDirectory } from './components/SignageDirectory';
 
@@ -69,6 +70,8 @@ export default function App() {
     update,
     batch,
     ready,
+    isRemote,
+    store,
   } = useData();
 
   // Auth & surface routing
@@ -444,6 +447,13 @@ export default function App() {
     () => attendance.filter(a => a.userId === currentUserId),
     [attendance, currentUserId],
   );
+
+  // An empty Firestore is indistinguishable from a loading one to everything
+  // below, so the first run is handled explicitly rather than left to hang on
+  // the loading gate.
+  if (isRemote && ready && allUsers.length === 0) {
+    return <FirstRunSetup store={store} onDone={() => window.location.reload()} />;
+  }
 
   // Gate placed after every hook: returning earlier would change the hook
   // count between the loading and loaded renders, which React rejects.
