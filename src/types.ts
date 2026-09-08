@@ -220,6 +220,15 @@ export interface EventConfig {
    *  so a sample event is never mistaken for a real announced one. */
   isTemplate?: boolean;
   highlights: { label: string; value: string }[];
+  /** The "get to know the school" half of the event. Present when the
+   *  conference doubles as a way for visiting educators to meet the community
+   *  and consider joining it; omit for a purely academic programme. */
+  discover?: {
+    heading: string;
+    intro: string;
+    points: { title: string; body: string }[];
+    closing: string;
+  };
   about: { heading: string; body: string }[];
   faqs: { question: string; answer: string }[];
 }

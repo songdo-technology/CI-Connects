@@ -49,8 +49,8 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
   const NAV = [
-    ['About', 'about'], ['Speakers', 'speakers'],
-    ['Agenda', 'agenda'], ['Venue', 'venue'], ['FAQ', 'faq'],
+    ['About', 'about'], ['Speakers', 'speakers'], ['Agenda', 'agenda'],
+    ['Venue', 'venue'], ['Discover', 'discover'], ['FAQ', 'faq'],
   ] as const;
 
   return (
@@ -372,6 +372,55 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
           </div>
         </div>
       </section>
+
+
+      {/* ---------------- Discover Chadwick ----------------
+          The school-connection half of the event. Framed as an invitation
+          rather than a recruitment pitch, because that is what actually
+          persuades a mission-aligned teacher — and because overselling here
+          would undercut the honesty the rest of the page trades on. */}
+      {event.discover && (
+        <section id="discover" className="py-20 sm:py-24 bg-blue-600 text-white scroll-mt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mb-14">
+              <div className="text-xs font-bold text-blue-200 uppercase tracking-widest mb-3">
+                Discover Chadwick
+              </div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-5">
+                {event.discover.heading}
+              </h2>
+              <p className="text-lg text-blue-50/90 leading-relaxed">
+                {event.discover.intro}
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 lg:gap-10 mb-14">
+              {event.discover.points.map((pt, i) => (
+                <div key={pt.title}>
+                  <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center font-bold text-sm mb-4">
+                    {i + 1}
+                  </div>
+                  <h3 className="text-lg font-bold mb-2.5">{pt.title}</h3>
+                  <p className="text-sm text-blue-50/80 leading-relaxed">{pt.body}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-white/20 pt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <p className="text-xl sm:text-2xl font-light italic text-blue-100 max-w-2xl leading-snug">
+                {event.discover.closing}
+              </p>
+              <button
+                onClick={onSignIn}
+                className="shrink-0 inline-flex items-center gap-2 px-7 py-4 rounded-xl bg-white text-blue-800 font-bold hover:bg-blue-50 transition-colors cursor-pointer"
+              >
+                Join us in October
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ---------------- Sponsors ---------------- */}
       {sponsors.length > 0 && (
