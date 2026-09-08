@@ -1,4 +1,4 @@
-import { Room, Track, Sponsor, UserProfile, Session, CommunityTopic, BroadcastAnnouncement, MealService, AttendanceRecord, DirectMessage, EventConfig } from '../types';
+import { Room, Track, Sponsor, UserProfile, Session, CommunityTopic, BroadcastAnnouncement, MealService, AttendanceRecord, DirectMessage, EventConfig, FeedbackEntry } from '../types';
 
 export const INITIAL_TRACKS: Track[] = [
   // The five strands of the Chadwick mission: to develop global citizens with
@@ -1152,5 +1152,37 @@ export const EVENTS: EventConfig[] = [
       { label: 'Sessions', value: '28' },
       { label: 'Countries', value: '12' },
     ],
+  },
+];
+
+/* Seed feedback so the organiser report has something to aggregate. */
+export const INITIAL_FEEDBACK: FeedbackEntry[] = [
+  {
+    id: 'fb-001', userId: 'usr-david-kim', targetKind: 'session', targetId: 'sess-01-keynote',
+    rating: 5,
+    glow: 'The framing of the mission as the question rather than the backdrop landed hard. I have been to a lot of AI keynotes and this is the first that started from what a school is for.',
+    grow: 'It ran long enough that the Q&A got squeezed, and the questions were where the disagreement was.',
+    submittedAt: 'Oct 16, 2026 10:40 AM', isAnonymous: false,
+  },
+  {
+    id: 'fb-002', userId: 'usr-elena-rostova', targetKind: 'session', targetId: 'sess-01-keynote',
+    rating: 4,
+    glow: 'Genuinely useful to hear a school say plainly which parts of its mission it will not automate.',
+    grow: 'Would have valued a concrete example of a decision that went the other way - something they tried and pulled back on.',
+    submittedAt: 'Oct 16, 2026 11:02 AM', isAnonymous: true,
+  },
+  {
+    id: 'fb-003', userId: 'usr-meiling-zhou', targetKind: 'overall', targetId: 'overall',
+    rating: 5,
+    glow: 'Tables grouped by mission strand at lunch was a small decision that changed the whole day. I spoke to people I would never have found.',
+    grow: 'Two days is tight for five strands. I had to choose between sessions I wanted equally.',
+    submittedAt: 'Oct 17, 2026 05:10 PM', isAnonymous: false,
+  },
+  {
+    id: 'fb-004', userId: 'usr-chloe-bennett', targetKind: 'meal', targetId: 'catering',
+    rating: 3,
+    glow: 'Halal option was properly thought through, not an afterthought, and the labelling was clear.',
+    grow: 'The queue at Day 1 lunch took most of the break. Two service points instead of one would fix it.',
+    submittedAt: 'Oct 16, 2026 01:20 PM', isAnonymous: false,
   },
 ];

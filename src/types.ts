@@ -64,6 +64,36 @@ export interface AttendanceRecord {
   scannedBy: string;
 }
 
+/**
+ * Glows and grows. Two named fields rather than one comment box, because a
+ * single box reliably collects only complaints or only praise; asking for both
+ * by name gets each from the same person.
+ */
+export type FeedbackTargetKind = 'session' | 'meal' | 'overall' | 'venue' | 'organisation';
+
+export interface FeedbackEntry {
+  id: string;
+  userId: string;
+  targetKind: FeedbackTargetKind;
+  /** Session id, meal-service id, or a fixed key for event-wide aspects. */
+  targetId: string;
+  /** 1-5. The glow and grow carry the substance; this makes it sortable. */
+  rating: number;
+  glow: string;
+  grow: string;
+  submittedAt: string;
+  /** Withheld names still count toward ratings, but the text is unattributed. */
+  isAnonymous: boolean;
+}
+
+/** Event-wide aspects that always accept feedback, regardless of attendance. */
+export const EVENT_FEEDBACK_ASPECTS: { id: string; kind: FeedbackTargetKind; label: string; hint: string }[] = [
+  { id: 'overall', kind: 'overall', label: 'The conference overall', hint: 'Programme, balance of strands, and whether it felt worth the two days.' },
+  { id: 'catering', kind: 'meal', label: 'Food & refreshments', hint: 'Quality, choice, dietary provision and queue times.' },
+  { id: 'venue', kind: 'venue', label: 'Venue & wayfinding', hint: 'Rooms, signage, accessibility and getting between sessions.' },
+  { id: 'organisation', kind: 'organisation', label: 'Registration & communication', hint: 'Sign-up, the portal, the badge, and knowing where to be.' },
+];
+
 export interface DirectMessage {
   id: string;
   fromUserId: string;
@@ -209,6 +239,7 @@ export type ActiveTab =
   | 'community'
   | 'directory'
   | 'messages'
+  | 'feedback'
   | 'admin'
   | 'luckydraw';
 

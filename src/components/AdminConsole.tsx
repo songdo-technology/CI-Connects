@@ -15,9 +15,10 @@ import {
   ShieldCheck,
   Send
 } from 'lucide-react';
-import { Session, Track, Room, UserProfile, BroadcastAnnouncement, MealService, AttendanceRecord, EventConfig } from '../types';
+import { Session, Track, Room, UserProfile, BroadcastAnnouncement, MealService, AttendanceRecord, EventConfig, FeedbackEntry } from '../types';
 import { SAMPLE_CSV_TEMPLATE } from '../data/initialData';
 import { SignageControl } from './SignageControl';
+import { FeedbackReport } from './FeedbackReport';
 
 interface AdminConsoleProps {
   sessions: Session[];
@@ -34,6 +35,7 @@ interface AdminConsoleProps {
   };
   mealServices: MealService[];
   attendance: AttendanceRecord[];
+  feedback: FeedbackEntry[];
   event: EventConfig;
 }
 
@@ -56,16 +58,19 @@ interface ParsedRow {
 }
 
 export const AdminConsole: React.FC<AdminConsoleProps> = ({
-  
-  event,sessions,
+  event,
+  sessions,
   tracks,
   rooms,
   profiles,
   announcements,
+  mealServices,
+  attendance,
+  feedback,
   onBroadcastAnnouncement,
   onImportCsvSessions,
 }) => {
-  const [activeTab, setActiveTab] = useState<'import' | 'broadcast' | 'capacity' | 'signage'>('import');
+  const [activeTab, setActiveTab] = useState<'import' | 'broadcast' | 'capacity' | 'signage' | 'feedback'>('import');
   const [csvContent, setCsvContent] = useState<string>(SAMPLE_CSV_TEMPLATE);
   const [parsedRows, setParsedRows] = useState<ParsedRow[]>([]);
   const [importReport, setImportReport] = useState<{
@@ -317,6 +322,14 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
           >
             Digital Signage
           </button>
+          <button
+            onClick={() => setActiveTab('feedback')}
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+              activeTab === 'feedback' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Feedback Report
+          </button>
         </div>
       </div>
 
@@ -542,6 +555,15 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             )}
           </form>
         </div>
+      )}
+
+      {activeTab === 'feedback' && (
+        <FeedbackReport
+          feedback={feedback}
+          sessions={sessions}
+          mealServices={mealServices}
+          profiles={profiles}
+        />
       )}
 
       {activeTab === 'signage' && (

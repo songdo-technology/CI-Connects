@@ -10,6 +10,7 @@ import {
   INITIAL_MEAL_SERVICES,
   INITIAL_ATTENDANCE,
   INITIAL_MESSAGES,
+  INITIAL_FEEDBACK,
   EVENT_CONFIG,
   EVENTS,
 } from './data/initialData';
@@ -25,6 +26,7 @@ import {
   MealService,
   AttendanceRecord,
   DirectMessage,
+  FeedbackEntry,
   AuthSession,
   AuthMethod,
 } from './types';
@@ -48,6 +50,7 @@ import { ContactCardModal } from './components/ContactCardModal';
 import { PrintableBadge } from './components/PrintableBadge';
 import { RoomSignage } from './components/RoomSignage';
 import { EventsHub } from './components/EventsHub';
+import { FeedbackView } from './components/FeedbackView';
 import { SignageDirectory } from './components/SignageDirectory';
 
 /** The public surfaces of the product: a hub listing every event Chadwick
@@ -70,6 +73,7 @@ export default function App() {
   const [mealServices, setMealServices] = useState<MealService[]>(INITIAL_MEAL_SERVICES);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>(INITIAL_ATTENDANCE);
   const [messages, setMessages] = useState<DirectMessage[]>(INITIAL_MESSAGES);
+  const [feedback, setFeedback] = useState<FeedbackEntry[]>(INITIAL_FEEDBACK);
 
   // Auth & surface routing
   /** Read once from the URL so /?event=<slug> is a real, shareable address
@@ -314,6 +318,20 @@ export default function App() {
   const handleOpenThread = (userId: string) => {
     setPendingThreadUserId(userId);
     setActiveTab('messages');
+  };
+
+  // ------------------------------------------------------- Feedback
+  const handleSubmitFeedback = (
+    entry: Omit<FeedbackEntry, 'id' | 'userId' | 'submittedAt'>,
+  ) => {
+    setFeedback(prev => [{
+      ...entry,
+      id: `fb-${Date.now()}`,
+      userId: currentUser.id,
+      submittedAt: new Date().toLocaleString([], {
+        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+      }),
+    }, ...prev]);
   };
 
   // Community Topic Handlers
@@ -592,6 +610,17 @@ export default function App() {
         />
       )}
 
+      {activeTab === 'feedback' && (
+        <FeedbackView
+          currentUser={currentUser}
+          sessions={sessions}
+          mealServices={mealServices}
+          attendance={attendance}
+          feedback={feedback}
+          onSubmit={handleSubmitFeedback}
+        />
+      )}
+
       {activeTab === 'luckydraw' && (
         <LuckyDraw
           profiles={allUsers}
@@ -610,6 +639,7 @@ export default function App() {
           onImportCsvSessions={handleImportCsvSessions}
           mealServices={mealServices}
           attendance={attendance}
+          feedback={feedback}
           event={activeEvent}
         />
       )}
