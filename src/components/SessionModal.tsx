@@ -46,6 +46,11 @@ export const SessionModal: React.FC<SessionModalProps> = ({
   const track = tracks.find(t => t.id === session.trackId);
   const room = rooms.find(r => r.id === session.roomId);
   const sponsor = sponsors.find(s => s.id === session.primarySponsorId);
+  // Smaller sponsors credited alongside the headline one, so a Gold or Bronze
+  // partner still appears where attendees actually look.
+  const supporting = (session.supportingSponsorIds ?? [])
+    .map(id => sponsors.find(s => s.id === id))
+    .filter((s): s is NonNullable<typeof s> => Boolean(s));
   const speakers = profiles.filter(p => session.speakerIds.includes(p.id));
 
   const isReserved = session.reservedUserIds.includes(currentUser.id);
@@ -143,26 +148,39 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                   {sponsor.tier} Partner
                 </span>
               </div>
-              <div className="flex items-start gap-3">
-                <img
-                  src={sponsor.logoUrl}
-                  alt={sponsor.name}
-                  className="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0"
-                />
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-sm font-bold text-slate-900">{sponsor.name}</h4>
-                  <p className="text-xs text-slate-600 mt-0.5">{sponsor.description}</p>
+              <div className="min-w-0">
+                <h4 className="text-lg font-bold text-slate-900 leading-tight">{sponsor.name}</h4>
+                {sponsor.description && (
+                  <p className="text-xs text-slate-600 mt-1">{sponsor.description}</p>
+                )}
+                {sponsor.websiteUrl && (
                   <a
                     href={sponsor.websiteUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 mt-1"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 mt-1.5"
                   >
-                    <span>Visit Partner Portal</span>
+                    <span>Visit partner site</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
-                </div>
+                )}
               </div>
+
+              {supporting.length > 0 && (
+                <div className="pt-2.5 mt-1 border-t border-blue-200/70">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                    With support from
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    {supporting.map(sp => (
+                      <span key={sp.id} className="text-xs font-semibold text-slate-600">
+                        {sp.name}
+                        <span className="text-[10px] text-slate-400 font-medium"> · {sp.tier}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

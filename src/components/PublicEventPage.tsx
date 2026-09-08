@@ -4,6 +4,7 @@ import {
   Users, Sparkles, LogIn,
 } from 'lucide-react';
 import { EventConfig, Session, Track, Room, UserProfile, Sponsor } from '../types';
+import { SponsorWall } from './SponsorWall';
 
 interface PublicEventPageProps {
   event: EventConfig;
@@ -59,6 +60,7 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
     hasProgramme ? ['Speakers', 'speakers'] : null,
     hasProgramme ? ['Agenda', 'agenda'] : null,
     ['Venue', 'venue'],
+    sponsors.length ? ['Sponsors', 'sponsors'] : null,
     event.discover ? ['Discover', 'discover'] : null,
     event.faqs?.length ? ['FAQ', 'faq'] : null,
   ].filter(Boolean)) as [string, string][];
@@ -448,19 +450,17 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
 
       {/* ---------------- Sponsors ---------------- */}
       {sponsors.length > 0 && (
-        <section className="py-16 bg-slate-50 border-y border-slate-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-8 text-center">
-              Supported by
-            </h2>
-            <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6">
-              {sponsors.map((s) => (
-                <div key={s.id} className="text-center">
-                  <div className="text-lg font-bold text-slate-700">{s.name}</div>
-                  <div className="text-[11px] text-slate-400 uppercase tracking-wide">{s.tier}</div>
-                </div>
-              ))}
+        <section id="sponsors" className="py-20 sm:py-24 bg-slate-50 border-y border-slate-200 scroll-mt-16">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-14">
+              <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">
+                Sponsors & Partners
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
+                Supported by organisations invested in education
+              </h2>
             </div>
+            <SponsorWall sponsors={sponsors} onEnquire={onSignIn} />
           </div>
         </section>
       )}

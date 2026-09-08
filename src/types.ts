@@ -117,15 +117,27 @@ export interface Room {
   veracrossResourceId?: string;
 }
 
+/** Ordered by prominence. `Host` sits outside the paid ladder — the school
+ *  convening the event is acknowledged, not sold a package. */
+export type SponsorTier = 'Host' | 'Platinum' | 'Gold' | 'Silver' | 'Bronze' | 'Exhibitor';
+
 export interface Sponsor {
   id: string;
   name: string;
-  tier: 'Diamond' | 'Platinum' | 'Gold' | 'Institutional Partner';
-  logoUrl: string;
-  websiteUrl: string;
-  description: string;
-  tagline: string;
+  tier: SponsorTier;
+  /** The single lead sponsor within Platinum, given the largest treatment. */
+  isPremier?: boolean;
+  /** Open tier slot, rendered as an invitation rather than a company. */
+  isPlaceholder?: boolean;
+  logoUrl?: string;
+  websiteUrl?: string;
+  description?: string;
+  tagline?: string;
 }
+
+/** Display weights per tier, used by the public page and the sponsor rail. */
+export const SPONSOR_TIER_ORDER: SponsorTier[] =
+  ['Host', 'Platinum', 'Gold', 'Silver', 'Bronze', 'Exhibitor'];
 
 export interface Session {
   id: string;
@@ -144,7 +156,10 @@ export interface Session {
   reservedUserIds: string[];
   waitlistUserIds: string[];
   speakerIds: string[];
+  /** Headline sponsor for this session, shown prominently. */
   primarySponsorId?: string;
+  /** Smaller sponsors credited alongside it. */
+  supportingSponsorIds?: string[];
   slidesUrl?: string;
   slidesName?: string;
   isFeatured?: boolean;

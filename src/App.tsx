@@ -72,9 +72,18 @@ export default function App() {
   const [messages, setMessages] = useState<DirectMessage[]>(INITIAL_MESSAGES);
 
   // Auth & surface routing
-  const [surface, setSurface] = useState<Surface>('hub');
+  /** Read once from the URL so /?event=<slug> is a real, shareable address
+   *  rather than only an in-app transition. */
+  const initialEventSlug = (() => {
+    const slug = new URLSearchParams(window.location.search).get('event');
+    return slug && EVENTS.some(e => e.slug === slug) ? slug : null;
+  })();
+
+  const [surface, setSurface] = useState<Surface>(initialEventSlug ? 'event' : 'hub');
   /** Which event the public pages and the portal are scoped to. */
-  const [activeEventSlug, setActiveEventSlug] = useState<string>(EVENT_CONFIG.slug);
+  const [activeEventSlug, setActiveEventSlug] = useState<string>(
+    initialEventSlug ?? EVENT_CONFIG.slug,
+  );
   const [authSession, setAuthSession] = useState<AuthSession | null>(null);
 
   // UI Navigation State
@@ -100,9 +109,25 @@ export default function App() {
     [sessions, activeEvent.id],
   );
 
+  /** Keeps the address bar in step with the surface, so a visitor can copy the
+   *  URL of the event they are looking at and it opens there. */
+  const syncUrl = (slug: string | null) => {
+    const url = new URL(window.location.href);
+    if (slug) url.searchParams.set('event', slug);
+    else url.searchParams.delete('event');
+    window.history.replaceState({}, '', url.toString());
+  };
+
   const openEvent = (slug: string) => {
     setActiveEventSlug(slug);
     setSurface('event');
+    syncUrl(slug);
+    window.scrollTo(0, 0);
+  };
+
+  const openHub = () => {
+    setSurface('hub');
+    syncUrl(null);
     window.scrollTo(0, 0);
   };
 
@@ -124,8 +149,7 @@ export default function App() {
     setAuthSession(null);
     // Back to the hub rather than the event page: signing out is a step away
     // from this event, not deeper into it.
-    setSurface('hub');
-    window.scrollTo(0, 0);
+    openHub();
   };
 
   // Atomic Capacity Reservation & Waitlist Procedure
@@ -480,7 +504,7 @@ export default function App() {
         profiles={allUsers}
         sponsors={sponsors}
         onSignIn={() => setSurface('signin')}
-        onBackToEvents={() => { setSurface('hub'); window.scrollTo(0, 0); }}
+        onBackToEvents={openHub}
       />
     );
   }
@@ -640,7 +664,7 @@ export default function App() {
           </div>
           <div className="flex items-center gap-4">
             <button
-              onClick={() => { setSurface('hub'); window.scrollTo(0, 0); }}
+              onClick={openHub}
               className="text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
             >
               All Chadwick events
