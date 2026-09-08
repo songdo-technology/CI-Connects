@@ -42,7 +42,7 @@ export const ArchitectureGuideModal: React.FC<ArchitectureGuideModalProps> = ({
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-slate-900">
-                CI Events: Architectural Blueprint
+                CI Connects: Architectural Blueprint
               </h2>
               <p className="text-xs text-slate-500">
                 Engineering specification & implementation notes based on your architecture document

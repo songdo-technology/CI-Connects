@@ -1,1 +1,117 @@
 @import "tailwindcss";
+
+/* ============================================================
+   Chadwick International brand theme
+   Source: Chadwick School Brand Playbook, Section C (Color Palette)
+            and Section D.1 (Primary Fonts).
+
+   Tailwind's stock `blue`, `indigo`, `emerald` and `amber` ramps are
+   overridden here with Chadwick-derived ones. That way the palette is
+   enforced centrally instead of being scattered across ~175 utility
+   classes in the components — change a value here and the whole app
+   follows.
+   ============================================================ */
+
+@theme {
+  /* --- Named brand colors, exactly as specified in the playbook --- */
+  --color-chadwick-navy: #002b54; /* PRIMARY — PMS 539C */
+  --color-chadwick-sky: #acd4f1; /* PMS 544C */
+  --color-chadwick-azure: #56a0d3; /* PMS 542C */
+  --color-chadwick-safari: #e7e5d3; /* PMS 454C */
+  --color-chadwick-silver-sage: #dbd8bd; /* PMS 453C */
+  --color-chadwick-tarragon: #c5c19d; /* PMS 452C */
+  --color-chadwick-dusky-green: #b2a97e; /* PMS 451C */
+  --color-chadwick-slate: #a6b4ac; /* PMS 443C */
+  --color-chadwick-quarry: #8b9b92; /* PMS 444C */
+  --color-chadwick-sea-fog: #c3b7b1; /* PMS 436C */
+  --color-chadwick-flint: #978981; /* PMS 437C */
+  --color-chadwick-paprika: #f15d22; /* PMS 179C */
+  --color-chadwick-burnt-sienna: #d9531e; /* PMS 180C */
+  --color-chadwick-lemongrass: #f2e18b; /* PMS 459C */
+  --color-chadwick-fern: #d9da55; /* PMS 7492C */
+  --color-chadwick-palm: #b0bc22; /* PMS 7495C */
+  --color-chadwick-bamboo: #e9d666; /* PMS 458C */
+
+  /* --- Primary ramp: Chadwick Navy.
+         Anchored so that `blue-600`, the app's main action color,
+         lands exactly on the brand primary #002B54. Sky Blue and
+         Azure Blue occupy 200 and 400. --- */
+  --color-blue-50: #f1f7fc;
+  --color-blue-100: #ddebf8;
+  --color-blue-200: #acd4f1; /* Sky Blue */
+  --color-blue-300: #82bce5;
+  --color-blue-400: #56a0d3; /* Azure Blue */
+  --color-blue-500: #2d77ac;
+  --color-blue-600: #002b54; /* Chadwick Navy — PRIMARY */
+  --color-blue-700: #002445;
+  --color-blue-800: #001c36;
+  --color-blue-900: #001527;
+  --color-blue-950: #000d18;
+
+  /* --- Secondary ramp: Azure Blue, for accents that need to sit
+         alongside navy without competing with it. --- */
+  --color-indigo-50: #eff7fc;
+  --color-indigo-100: #d9ecf8;
+  --color-indigo-200: #acd4f1; /* Sky Blue */
+  --color-indigo-300: #84bee6;
+  --color-indigo-400: #56a0d3; /* Azure Blue */
+  --color-indigo-500: #3b83b7;
+  --color-indigo-600: #2a6791;
+  --color-indigo-700: #1d4b6a;
+  --color-indigo-800: #133345;
+  --color-indigo-900: #0b1f2b;
+  --color-indigo-950: #06131b;
+
+  /* --- Deep-navy ramp for the feature surfaces that previously used
+         purple (Lucky Draw hero, gamification panels). --- */
+  --color-purple-50: #f1f7fc;
+  --color-purple-100: #ddebf8;
+  --color-purple-200: #acd4f1;
+  --color-purple-300: #82bce5;
+  --color-purple-400: #56a0d3;
+  --color-purple-500: #2d77ac;
+  --color-purple-600: #164a72;
+  --color-purple-700: #0c3862;
+  --color-purple-800: #002b54;
+  --color-purple-900: #001d3a;
+  --color-purple-950: #001125;
+  --color-violet-500: #2d77ac;
+  --color-violet-600: #164a72;
+
+  /* --- Positive / capacity-available ramp: Palm and Fern.
+         Chadwick's palette has no emerald; its greens are yellow-green,
+         so "seats available" reads olive rather than emerald. --- */
+  --color-emerald-50: #f8faed;
+  --color-emerald-100: #eef4d5;
+  --color-emerald-200: #dfe5ae;
+  --color-emerald-300: #d9da55; /* Fern */
+  --color-emerald-400: #b0bc22; /* Palm */
+  --color-emerald-500: #97a31d;
+  --color-emerald-600: #7b8518;
+  --color-emerald-700: #5e6513;
+  --color-emerald-800: #454a0e;
+  --color-emerald-900: #2f3209;
+  --color-emerald-950: #1a1c05;
+
+  /* --- Attention ramp: Lemongrass and Bamboo through to Paprika and
+         Burnt Sienna. Used for featured sessions and urgent notices. --- */
+  --color-amber-50: #fefaec;
+  --color-amber-100: #fcf4ce;
+  --color-amber-200: #f2e18b; /* Lemongrass */
+  --color-amber-300: #e9d666; /* Bamboo */
+  --color-amber-400: #ee9a3f;
+  --color-amber-500: #f15d22; /* Paprika */
+  --color-amber-600: #d9531e; /* Burnt Sienna */
+  --color-amber-700: #b04318;
+  --color-amber-800: #853212;
+  --color-amber-900: #5a220c;
+  --color-amber-950: #331306;
+
+  /* --- Typography: Gill Sans Std is the playbook's primary face, with
+         Helvetica named as its sanctioned alternate when Gill Sans is
+         unavailable. Neither is a webfont, so this resolves to whichever
+         the viewer's device actually has. --- */
+  --font-sans:
+    "Gill Sans Std", "Gill Sans MT", "Gill Sans", Helvetica, "Helvetica Neue",
+    Arial, ui-sans-serif, system-ui, sans-serif;
+}

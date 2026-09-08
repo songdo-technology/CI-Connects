@@ -1,11 +1,11 @@
 import { Room, Track, Sponsor, UserProfile, Session, CommunityTopic, BroadcastAnnouncement } from '../types';
 
 export const INITIAL_TRACKS: Track[] = [
-  { id: 'track-eng', name: 'Engineering & EdTech Architecture', colorHex: '#2563EB', orderIndex: 1 },
-  { id: 'track-ai', name: 'AI Workflows & Safety', colorHex: '#7C3AED', orderIndex: 2 },
-  { id: 'track-lead', name: 'Leadership & School Culture', colorHex: '#059669', orderIndex: 3 },
-  { id: 'track-ped', name: 'Pedagogical Innovation', colorHex: '#D97706', orderIndex: 4 },
-  { id: 'track-well', name: 'Wellbeing & Inclusion', colorHex: '#DB2777', orderIndex: 5 },
+  { id: 'track-eng', name: 'Engineering & EdTech Architecture', colorHex: '#002B54', orderIndex: 1 },
+  { id: 'track-ai', name: 'AI Workflows & Safety', colorHex: '#2A6791', orderIndex: 2 },
+  { id: 'track-lead', name: 'Leadership & School Culture', colorHex: '#5E6513', orderIndex: 3 },
+  { id: 'track-ped', name: 'Pedagogical Innovation', colorHex: '#B04318', orderIndex: 4 },
+  { id: 'track-well', name: 'Wellbeing & Inclusion', colorHex: '#6B605A', orderIndex: 5 },
 ];
 
 export const INITIAL_ROOMS: Room[] = [
@@ -491,6 +491,6 @@ export const INITIAL_ANNOUNCEMENTS: BroadcastAnnouncement[] = [
 ];
 
 export const SAMPLE_CSV_TEMPLATE = `Title,Description,Date,StartTime,EndTime,Track,TrackColor,Room,RoomCapacity,SpeakerName,SpeakerEmail,SpeakerTitle
-"AI-Assisted Grading Workflows","Analyzing formative writing rubrics with local LLMs","2026-10-16","11:00 AM","12:15 PM","AI Workflows & Safety","#7C3AED","Innovation Design Lab 102",30,"Dr. Sarah Lin","slin@chadwickschool.org","CS Department Chair"
-"Mindful Leadership for Educators","Building resilient faculty teams in high-pressure school cultures","2026-10-16","01:45 PM","03:00 PM","Leadership & School Culture","#059669","Humanities Lecture Hall 301",55,"Prof. David Kim","dkim@chadwickschool.org","Ethics Lead"
-"Next-Gen Campus Network Security","Zero-trust architecture and 802.1X enterprise authentication","2026-10-17","10:30 AM","11:45 AM","Engineering & EdTech Architecture","#2563EB","Science & Engineering Hub 204",40,"Marcus Vance","marcus@vance-systems.io","Principal Architect"`;
+"AI-Assisted Grading Workflows","Analyzing formative writing rubrics with local LLMs","2026-10-16","11:00 AM","12:15 PM","AI Workflows & Safety","#2A6791","Innovation Design Lab 102",30,"Dr. Sarah Lin","slin@chadwickschool.org","CS Department Chair"
+"Mindful Leadership for Educators","Building resilient faculty teams in high-pressure school cultures","2026-10-16","01:45 PM","03:00 PM","Leadership & School Culture","#5E6513","Humanities Lecture Hall 301",55,"Prof. David Kim","dkim@chadwickschool.org","Ethics Lead"
+"Next-Gen Campus Network Security","Zero-trust architecture and 802.1X enterprise authentication","2026-10-17","10:30 AM","11:45 AM","Engineering & EdTech Architecture","#002B54","Science & Engineering Hub 204",40,"Marcus Vance","marcus@vance-systems.io","Principal Architect"`;

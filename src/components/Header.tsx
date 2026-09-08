@@ -115,16 +115,14 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
-                  CI Events
+                  CI Connects
                 </h1>
-                <span className="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-300">
+                <span className="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
                   Chadwick International
                 </span>
               </div>
-              <p className="text-xs text-slate-500 truncate flex items-center gap-1">
-                <span>Chadwick International Summit 2026</span>
-                <span className="text-slate-300">•</span>
-                <span className="text-slate-600 font-medium">Oct 16–17</span>
+              <p className="text-xs text-slate-500 truncate">
+                The Chadwick International Event Management Platform
               </p>
             </div>
           </div>

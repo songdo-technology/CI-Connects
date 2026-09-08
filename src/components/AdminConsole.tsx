@@ -191,7 +191,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
           newTracks.push({
             id: trackId,
             name: row.track,
-            colorHex: row.trackColor || '#2563EB',
+            colorHex: row.trackColor || '#002B54',
             orderIndex: tracks.length + newTracks.length + 1,
           });
         }

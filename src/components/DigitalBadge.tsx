@@ -110,7 +110,7 @@ export const DigitalBadge: React.FC<DigitalBadgeProps> = ({
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-blue-300" />
                 <span className="font-bold tracking-wider uppercase text-[11px] text-slate-200">
-                  Chadwick Summit 2026
+                  Chadwick International
                 </span>
               </div>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/15 backdrop-blur-md text-white border border-white/20">

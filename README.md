@@ -1,6 +1,6 @@
-# CI Events
+# CI Connects
 
-Conference and event management platform for **Chadwick International Summit 2026** —
+**The Chadwick International Event Management Platform** —
 multi-track scheduling, community networking, QR badge check-in, and an organizer console.
 
 ## Stack

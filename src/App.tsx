@@ -350,9 +350,9 @@ export default function App() {
       <footer className="bg-white border-t border-slate-200 py-6 text-xs text-slate-500 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-700">CI Events</span>
+            <span className="font-bold text-slate-700">CI Connects</span>
             <span>•</span>
-            <span>Eliminating commercial bloat for institutional conferences</span>
+            <span>The Chadwick International Event Management Platform</span>
           </div>
           <div className="flex items-center gap-4">
             <button
@@ -361,8 +361,6 @@ export default function App() {
             >
               Architectural Blueprint & Schema
             </button>
-            <span>•</span>
-            <span>Chadwick International Summit 2026</span>
           </div>
         </div>
       </footer>

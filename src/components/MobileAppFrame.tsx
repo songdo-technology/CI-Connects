@@ -76,7 +76,7 @@ export const MobileAppFrame: React.FC<MobileAppFrameProps> = ({
               </div>
               <div className="min-w-0">
                 <h2 className="text-xs font-bold text-slate-900 truncate">
-                  CI Events Pass
+                  CI Connects Pass
                 </h2>
                 <p className="text-[10px] text-slate-400 truncate">
                   {currentUser.fullName} ({currentUser.userType === 'internal_faculty' ? 'Faculty SSO' : 'Guest'})
