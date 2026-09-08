@@ -46,10 +46,22 @@ export class FirestoreStore implements DataStore {
         onChange(snap.docs.map((d) => ({ ...d.data(), id: d.id }) as CollectionTypes[K]));
       },
       (error) => {
-        // A rules rejection is the likely cause and is worth surfacing loudly:
-        // silently reporting an empty collection would look like missing data
-        // rather than a denied read.
-        console.error(`[firestore] subscription to "${key}" failed:`, error);
+        // A denied read must still resolve as a snapshot. Readiness is "every
+        // collection has reported", and a listener that only logs never
+        // reports — which hung the whole app on its loading gate before anyone
+        // had signed in, since five collections require auth to read.
+        //
+        // Empty is also the honest answer: permission-denied means nothing in
+        // here is visible to this caller. It is logged rather than swallowed,
+        // because an unexpected denial is a rules bug worth seeing.
+        if ((error as { code?: string }).code === 'permission-denied') {
+          console.info(
+            `[firestore] "${key}" not readable by the current user; treating as empty.`,
+          );
+        } else {
+          console.error(`[firestore] subscription to "${key}" failed:`, error);
+        }
+        onChange([]);
       },
     );
   }
