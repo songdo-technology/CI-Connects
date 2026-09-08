@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 // Only the event catalogue is still read directly; every other collection
 // now arrives through the store.
 import { EVENT_CONFIG, EVENTS } from './data/initialData';
@@ -37,6 +37,7 @@ import { RoomSignage } from './components/RoomSignage';
 import { EventsHub } from './components/EventsHub';
 import { useData } from './lib/data/DataProvider';
 import { FirstRunSetup } from './components/FirstRunSetup';
+import { useAuth } from './lib/AuthProvider';
 import { FeedbackView } from './components/FeedbackView';
 import { SignageDirectory } from './components/SignageDirectory';
 
@@ -88,6 +89,7 @@ export default function App() {
     initialEventSlug ?? EVENT_CONFIG.slug,
   );
   const [authSession, setAuthSession] = useState<AuthSession | null>(null);
+  const auth = useAuth();
 
   // UI Navigation State
   const [activeTab, setActiveTab] = useState<ActiveTab>('agenda');
@@ -144,6 +146,30 @@ export default function App() {
   );
   const currentUserId = currentUser?.id;
 
+  /**
+   * Mirrors the Firebase session into the app's own session.
+   *
+   * Without this, signing in with Google succeeds at the identity provider and
+   * then appears to do nothing: the persona-based `authSession` stays null, so
+   * the surface never leaves the public hub. Waits for `profileReady` because
+   * the portal reads a role, and the role lives in the Firestore profile that
+   * is written just after sign-in.
+   */
+  useEffect(() => {
+    if (!auth.live) return;
+    if (auth.status === 'signed_in' && auth.profileReady && auth.firebaseUser) {
+      setAuthSession((current) =>
+        current?.userId === auth.firebaseUser!.uid
+          ? current
+          : { userId: auth.firebaseUser!.uid, method: 'google_sso', signedInAt: now() },
+      );
+      setSurface((s) => (s === 'signin' ? 'portal' : s));
+    }
+    if (auth.status === 'signed_out') {
+      setAuthSession(null);
+    }
+  }, [auth.live, auth.status, auth.profileReady, auth.firebaseUser]);
+
   // ---------------------------------------------------------------- Auth
   const handleSignIn = (user: UserProfile, method: AuthMethod) => {
     setAuthSession({ userId: user.id, method, signedInAt: now() });
@@ -152,6 +178,7 @@ export default function App() {
   };
 
   const handleSignOut = () => {
+    if (auth.live) void auth.signOut();
     setAuthSession(null);
     // Back to the hub rather than the event page: signing out is a step away
     // from this event, not deeper into it.
@@ -451,8 +478,17 @@ export default function App() {
   // An empty Firestore is indistinguishable from a loading one to everything
   // below, so the first run is handled explicitly rather than left to hang on
   // the loading gate.
-  if (isRemote && ready && allUsers.length === 0) {
-    return <FirstRunSetup store={store} onDone={() => window.location.reload()} />;
+  //
+  // Emptiness is judged by `events`, not by `users`. Signing in provisions a
+  // user document, so the moment anyone authenticated the users collection was
+  // non-empty and this screen hid itself — leaving the app pointed at a
+  // catalogue with nothing in it. Only seeding creates events.
+  //
+  // ?setup=1 reopens it deliberately, so an administrator can reach the seeder
+  // once data exists without having to empty the database first.
+  const setupRequested = new URLSearchParams(window.location.search).get('setup') === '1';
+  if (isRemote && ready && (events.length === 0 || setupRequested)) {
+    return <FirstRunSetup store={store} onDone={() => { window.location.search = ''; }} />;
   }
 
   // Gate placed after every hook: returning earlier would change the hook
