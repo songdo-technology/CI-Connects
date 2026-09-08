@@ -1,5 +1,6 @@
 import {
-  GoogleAuthProvider, User, onAuthStateChanged, signInWithPopup, signOut,
+  GoogleAuthProvider, User, getRedirectResult, onAuthStateChanged,
+  signInWithPopup, signInWithRedirect, signOut,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ALLOWED_EMAIL_DOMAIN, db, firebaseAuth } from './firebase';
@@ -56,18 +57,64 @@ export function watchAuth(onChange: (state: AuthState) => void): () => void {
   );
 }
 
+/** Popup failures that mean "this environment cannot do popups", as opposed to
+ *  "the user closed it". Only the former should silently fall back. */
+const POPUP_UNAVAILABLE = new Set([
+  'auth/popup-blocked',
+  'auth/operation-not-supported-in-this-environment',
+  'auth/cancelled-popup-request',
+]);
+
 export async function signInWithGoogle(): Promise<void> {
   if (!firebaseAuth) throw new Error('Firebase is not configured.');
 
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ hd: ALLOWED_EMAIL_DOMAIN, prompt: 'select_account' });
 
-  const result = await signInWithPopup(firebaseAuth, provider);
+  let result;
+  try {
+    result = await signInWithPopup(firebaseAuth, provider);
+  } catch (e) {
+    const code = (e as { code?: string }).code ?? '';
+
+    // A blocked popup is not a failed sign-in, it is an environment that
+    // cannot show one — a popup blocker, or the webview a native app runs in.
+    // Redirect works everywhere popups do not, which matters because the iOS
+    // and Android builds will never have a popup available. Control leaves the
+    // page here; getRedirectResult() picks it up on the way back.
+    if (POPUP_UNAVAILABLE.has(code)) {
+      await signInWithRedirect(firebaseAuth, provider);
+      return;
+    }
+
+    // Closing the chooser is a deliberate choice, not an error worth shouting
+    // about.
+    if (code === 'auth/popup-closed-by-user') return;
+
+    throw e;
+  }
 
   if (!isAllowedDomain(result.user.email)) {
     // Sign straight back out. Leaving the session open would let a personal
     // Google account sit signed in against a school platform, even though the
     // rules would refuse it every read.
+    await signOut(firebaseAuth);
+    throw new Error(
+      `Sign-in is limited to @${ALLOWED_EMAIL_DOMAIN} accounts. ` +
+      `You signed in as ${result.user.email ?? 'an unknown account'}.`,
+    );
+  }
+}
+
+/**
+ * Completes a redirect sign-in after the browser returns to the page, and
+ * applies the same domain check the popup path does — a redirect that came
+ * back with a personal account must be rejected just as firmly.
+ */
+export async function completeRedirectSignIn(): Promise<void> {
+  if (!firebaseAuth) return;
+  const result = await getRedirectResult(firebaseAuth);
+  if (result && !isAllowedDomain(result.user.email)) {
     await signOut(firebaseAuth);
     throw new Error(
       `Sign-in is limited to @${ALLOWED_EMAIL_DOMAIN} accounts. ` +

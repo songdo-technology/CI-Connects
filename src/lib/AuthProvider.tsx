@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from 'firebase/auth';
 import {
-  AuthState, ensureUserDocument, signInWithGoogle, signOutUser, watchAuth,
+  AuthState, completeRedirectSignIn, ensureUserDocument, signInWithGoogle,
+  signOutUser, watchAuth,
 } from './auth';
 import { isFirebaseConfigured } from './firebase';
 
@@ -42,6 +43,14 @@ export const AuthProvider: React.FC<{
     error: null,
   });
   const [profileReady, setProfileReady] = useState(false);
+
+  // A redirect sign-in finishes on the next page load, not in the click that
+  // started it, so the result has to be claimed here before anything else.
+  useEffect(() => {
+    if (!live) return;
+    completeRedirectSignIn().catch((e: Error) =>
+      setState((s) => ({ ...s, status: 'error', error: e.message })));
+  }, [live]);
 
   useEffect(() => {
     if (!live) return;
