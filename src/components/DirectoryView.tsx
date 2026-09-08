@@ -12,19 +12,22 @@ import {
   Building2, 
   CheckCircle2, 
   Sparkles,
-  Lock
-} from 'lucide-react';
+  Lock, Linkedin } from 'lucide-react';
 import { UserProfile, AttendeeType } from '../types';
 
 interface DirectoryViewProps {
   profiles: UserProfile[];
   currentUser: UserProfile;
   onToggleDirectoryVisibility: () => void;
+  onMessage: (userId: string) => void;
+  onViewContactCard: (profile: UserProfile) => void;
 }
 
 export const DirectoryView: React.FC<DirectoryViewProps> = ({
   profiles,
   currentUser,
+  onMessage,
+  onViewContactCard,
   onToggleDirectoryVisibility,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -253,32 +256,50 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
                 )}
               </div>
 
-              {/* Direct Deep Links (Slack, Email) */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                <a
-                  href={`mailto:${profile.email}`}
-                  className="flex-1 py-1.5 px-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700 flex items-center justify-center gap-1.5 transition-colors"
-                  title={`Send email to ${profile.email}`}
+              {/* Contact routes: email, LinkedIn, and in-platform messaging */}
+              <div className="pt-3 border-t border-slate-100 space-y-2">
+                <button
+                  onClick={() => onMessage(profile.id)}
+                  className="w-full py-2 px-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 >
-                  <Mail className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Email</span>
-                </a>
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Message</span>
+                </button>
 
-                {profile.slackHandle ? (
+                <div className="flex items-center gap-2">
                   <a
-                    href={`slack://user?team=T01234567&id=${profile.id}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      alert(`Launching Slack direct message with ${profile.slackHandle} (simulated deep-link).`);
-                    }}
-                    className="flex-1 py-1.5 px-2.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-xs font-semibold text-indigo-700 flex items-center justify-center gap-1.5 transition-colors"
+                    href={`mailto:${profile.email}`}
+                    className="flex-1 py-1.5 px-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700 flex items-center justify-center gap-1.5 transition-colors"
+                    title={`Send email to ${profile.email}`}
                   >
-                    <MessageSquare className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>Slack DM</span>
+                    <Mail className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Email</span>
                   </a>
-                ) : (
-                  <span className="text-[11px] text-slate-400 italic">No Slack</span>
-                )}
+
+                  {profile.linkedInUrl ? (
+                    <a
+                      href={profile.linkedInUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 py-1.5 px-2.5 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 text-xs font-semibold text-blue-700 flex items-center justify-center gap-1.5 transition-colors"
+                      title={`Open ${profile.fullName}'s LinkedIn profile`}
+                    >
+                      <Linkedin className="w-3.5 h-3.5 text-blue-600" />
+                      <span>LinkedIn</span>
+                    </a>
+                  ) : (
+                    <span className="flex-1 text-center text-[11px] text-slate-400 italic py-1.5">
+                      No LinkedIn
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => onViewContactCard(profile)}
+                  className="w-full text-[11px] font-semibold text-slate-400 hover:text-blue-700 transition-colors cursor-pointer"
+                >
+                  View contact card
+                </button>
               </div>
 
             </div>

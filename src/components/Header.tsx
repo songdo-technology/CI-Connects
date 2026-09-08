@@ -1,21 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Calendar, 
-  QrCode, 
-  Users, 
-  MessageSquare, 
-  Award, 
-  ShieldCheck, 
-  Smartphone, 
-  Monitor, 
-  Layers, 
-  ChevronDown, 
-  Building2, 
-  BellRing, 
-  CheckCircle2, 
-  Sparkles,
-  ExternalLink
-} from 'lucide-react';
+import { Calendar, QrCode, Users, MessageSquare, Award, ShieldCheck, Smartphone, Monitor, Layers, ChevronDown, Building2, BellRing, CheckCircle2, Sparkles, ExternalLink, UtensilsCrossed, Send, LogOut } from 'lucide-react';
 import { ActiveTab, BroadcastAnnouncement, UserProfile } from '../types';
 
 interface HeaderProps {
@@ -29,11 +13,15 @@ interface HeaderProps {
   announcements: BroadcastAnnouncement[];
   onOpenArchitecture: () => void;
   bookmarkedCount: number;
+  unreadMessageCount: number;
+  onSignOut: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
+  unreadMessageCount,
+  onSignOut,
   currentUser,
   allUsers,
   onSwitchUser,
@@ -301,6 +289,19 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           <button
+            id="tab-dining"
+            onClick={() => setActiveTab('dining')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              activeTab === 'dining'
+                ? 'bg-white text-blue-700 shadow-xs border border-slate-200'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+            }`}
+          >
+            <UtensilsCrossed className="w-4 h-4 text-emerald-700" />
+            <span>Dining & Meals</span>
+          </button>
+
+          <button
             id="tab-community"
             onClick={() => setActiveTab('community')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
@@ -324,6 +325,24 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Users className="w-4 h-4 text-amber-600" />
             <span>Colleague Directory</span>
+          </button>
+
+          <button
+            id="tab-messages"
+            onClick={() => setActiveTab('messages')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              activeTab === 'messages'
+                ? 'bg-white text-blue-700 shadow-xs border border-slate-200'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+            }`}
+          >
+            <Send className="w-4 h-4 text-blue-600" />
+            <span>Messages</span>
+            {unreadMessageCount > 0 && (
+              <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-blue-600 text-white font-bold">
+                {unreadMessageCount}
+              </span>
+            )}
           </button>
 
           <button
@@ -355,6 +374,14 @@ export const Header: React.FC<HeaderProps> = ({
                 Admin
               </span>
             )}
+          </button>
+
+          <button
+            onClick={onSignOut}
+            className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-blue-700 hover:bg-slate-100/80 whitespace-nowrap transition-all cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Sign out</span>
           </button>
 
         </div>

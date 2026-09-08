@@ -1,6 +1,77 @@
 export type AttendeeType = 'internal_faculty' | 'internal_staff' | 'external_guest' | 'student';
 
-export type UserRole = 'attendee' | 'speaker' | 'organizer' | 'admin';
+export type UserRole = 'attendee' | 'speaker' | 'organizer' | 'admin' | 'security';
+
+/** How a person got into the platform. Chadwick staff use Workspace SSO;
+ *  external guests redeem the access code emailed to them with their invite. */
+export type AuthMethod = 'google_sso' | 'guest_code';
+
+export interface AuthSession {
+  userId: string;
+  method: AuthMethod;
+  signedInAt: string;
+}
+
+/** Catering options offered at each meal service. `dietary` drives the badge
+ *  chip so kitchen and service staff can read a preference at a glance. */
+export type DietaryTag =
+  | 'western'
+  | 'korean'
+  | 'vegetarian'
+  | 'vegan'
+  | 'halal'
+  | 'gluten_free'
+  | 'nut_free';
+
+export interface MealOption {
+  id: string;
+  label: string;
+  dietary: DietaryTag;
+  description: string;
+  /** Optional per-option cap; undefined means the option is uncapped. */
+  maxServings?: number;
+}
+
+export interface MealService {
+  id: string;
+  name: string;
+  type: 'breakfast' | 'lunch' | 'snack' | 'reception';
+  day: number;
+  dateStr: string;
+  startTime: string;
+  endTime: string;
+  startMinutes: number;
+  endMinutes: number;
+  location: string;
+  options: MealOption[];
+  /** userId -> mealOptionId. Kept here rather than on the profile so a
+   *  service can be reconciled against the kitchen's counts in one place. */
+  selections: Record<string, string>;
+}
+
+/** Written when a badge is scanned at a session door. Retained as the
+ *  attendance record of truth — who was where, and whether they belonged. */
+export interface AttendanceRecord {
+  id: string;
+  userId: string;
+  sessionId: string;
+  scannedAt: string;
+  location: string;
+  /** verified      - reserved for this session and scanned at its door
+   *  wrong_session - scanned at a session they hold no reservation for
+   *  walk_in       - admitted without a reservation, seats permitting */
+  status: 'verified' | 'wrong_session' | 'walk_in';
+  scannedBy: string;
+}
+
+export interface DirectMessage {
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  content: string;
+  createdAt: string;
+  read: boolean;
+}
 
 export interface UserProfile {
   id: string;
@@ -16,8 +87,16 @@ export interface UserProfile {
   isDirectoryVisible: boolean;
   checkedIn: boolean;
   checkedInAt?: string;
-  slackHandle?: string;
+  linkedInUrl?: string;
+  phone?: string;
   interests?: string[];
+  /** Standing dietary requirement, distinct from a per-service pick. */
+  dietaryTag?: DietaryTag;
+  dietaryNotes?: string;
+  /** Redeemed by external guests at sign-in; absent for SSO users. */
+  accessCode?: string;
+  /** Opt-in: allow the badge QR to hand over contact details when scanned. */
+  shareContactOnScan: boolean;
 }
 
 export interface Track {
@@ -33,6 +112,9 @@ export interface Room {
   capacity: number;
   floorLabel: string;
   building?: string;
+  /** Set once a room is matched to its Veracross Rooms & Resources record.
+   *  Unset means the row is still locally defined. */
+  veracrossResourceId?: string;
 }
 
 export interface Sponsor {
@@ -105,4 +187,36 @@ export interface BroadcastAnnouncement {
   active: boolean;
 }
 
-export type ActiveTab = 'agenda' | 'badge' | 'community' | 'directory' | 'admin' | 'luckydraw';
+export type ActiveTab =
+  | 'agenda'
+  | 'badge'
+  | 'dining'
+  | 'community'
+  | 'directory'
+  | 'messages'
+  | 'admin'
+  | 'luckydraw';
+
+/**
+ * Everything the public-facing event page renders. Kept as data so a new
+ * event is a content change, not a code change — the same portal can front
+ * KORCOS one term and a parent symposium the next.
+ */
+export interface EventConfig {
+  id: string;
+  name: string;
+  shortName: string;
+  tagline: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  dateLabel: string;
+  venueName: string;
+  venueAddress: string;
+  heroImageUrl: string;
+  registrationOpen: boolean;
+  registrationNote: string;
+  highlights: { label: string; value: string }[];
+  about: { heading: string; body: string }[];
+  faqs: { question: string; answer: string }[];
+}

@@ -1,4 +1,4 @@
-import { Room, Track, Sponsor, UserProfile, Session, CommunityTopic, BroadcastAnnouncement } from '../types';
+import { Room, Track, Sponsor, UserProfile, Session, CommunityTopic, BroadcastAnnouncement, MealService, AttendanceRecord, DirectMessage, EventConfig } from '../types';
 
 export const INITIAL_TRACKS: Track[] = [
   { id: 'track-eng', name: 'Engineering & EdTech Architecture', colorHex: '#002B54', orderIndex: 1 },
@@ -61,7 +61,9 @@ export const INITIAL_PROFILES: UserProfile[] = [
     isDirectoryVisible: true,
     checkedIn: true,
     checkedInAt: 'Oct 16, 2026 08:15 AM',
-    slackHandle: '@slin_stem',
+    linkedInUrl: 'https://www.linkedin.com/in/sarah-lin-cs',
+    dietaryTag: 'vegetarian',
+    shareContactOnScan: true,
     interests: ['AI in Education', 'Curriculum Design', 'Robotics'],
   },
   {
@@ -78,7 +80,9 @@ export const INITIAL_PROFILES: UserProfile[] = [
     isDirectoryVisible: true,
     checkedIn: true,
     checkedInAt: 'Oct 16, 2026 08:02 AM',
-    slackHandle: '@mvance',
+    linkedInUrl: 'https://www.linkedin.com/in/marcusvance',
+    dietaryTag: 'western',
+    shareContactOnScan: true,
     interests: ['PostgreSQL', 'Single Sign-On', 'Agentic Engineering'],
   },
   {
@@ -95,7 +99,9 @@ export const INITIAL_PROFILES: UserProfile[] = [
     isDirectoryVisible: true,
     checkedIn: true,
     checkedInAt: 'Oct 16, 2026 07:30 AM',
-    slackHandle: '@dnorman',
+    linkedInUrl: 'https://www.linkedin.com/in/deannorman',
+    dietaryTag: 'western',
+    shareContactOnScan: true,
     interests: ['Google Workspace Admin', 'Veracross SIS', 'Event Infrastructure'],
   },
   {
@@ -111,7 +117,9 @@ export const INITIAL_PROFILES: UserProfile[] = [
     bio: 'Examining academic integrity, cognitive load, and critical digital literacy in high school humanities.',
     isDirectoryVisible: true,
     checkedIn: false,
-    slackHandle: '@dkim_humanities',
+    linkedInUrl: 'https://www.linkedin.com/in/davidkim-humanities',
+    dietaryTag: 'korean',
+    shareContactOnScan: true,
     interests: ['Academic Integrity', 'AI Ethics', 'Philosophy'],
   },
   {
@@ -128,7 +136,9 @@ export const INITIAL_PROFILES: UserProfile[] = [
     isDirectoryVisible: true,
     checkedIn: true,
     checkedInAt: 'Oct 16, 2026 08:30 AM',
-    slackHandle: '@elena_rostova',
+    linkedInUrl: 'https://www.linkedin.com/in/elenarostova',
+    dietaryTag: 'vegan',
+    shareContactOnScan: true,
     interests: ['Cross-School Collaboration', 'Design Thinking'],
   },
   {
@@ -145,7 +155,9 @@ export const INITIAL_PROFILES: UserProfile[] = [
     isDirectoryVisible: false, // Opted out for privacy toggle demo!
     checkedIn: true,
     checkedInAt: 'Oct 16, 2026 07:45 AM',
-    slackHandle: '@jhayes_ops',
+    linkedInUrl: 'https://www.linkedin.com/in/jordanhayes-ops',
+    dietaryTag: 'gluten_free',
+    shareContactOnScan: false,
     interests: ['Audio Engineering', 'Live Streaming'],
   },
   {
@@ -162,7 +174,9 @@ export const INITIAL_PROFILES: UserProfile[] = [
     isDirectoryVisible: true,
     checkedIn: true,
     checkedInAt: 'Oct 16, 2026 08:22 AM',
-    slackHandle: '@mzhou_math',
+    linkedInUrl: 'https://www.linkedin.com/in/meilingzhou',
+    dietaryTag: 'vegetarian',
+    shareContactOnScan: true,
     interests: ['Math Modeling', 'Data Visualization'],
   },
   {
@@ -178,8 +192,28 @@ export const INITIAL_PROFILES: UserProfile[] = [
     bio: 'Senior student organizing high school robotics hackathons and student audio-visual support crew.',
     isDirectoryVisible: true,
     checkedIn: false,
-    slackHandle: '@cbennett',
+    linkedInUrl: 'https://www.linkedin.com/in/chloebennett',
+    dietaryTag: 'halal',
+    shareContactOnScan: true,
     interests: ['Student Leadership', 'Hackathons'],
+  },
+  {
+    id: 'usr-security-park',
+    email: 'security@chadwickschool.org',
+    fullName: 'Officer Jin-Ho Park',
+    title: 'Campus Security Lead',
+    department: 'Campus Safety & Operations',
+    organization: 'Chadwick International',
+    userType: 'internal_staff',
+    role: 'security',
+    avatarUrl: 'https://images.unsplash.com/photo-1600180758890-6b94519a8ba6?w=200&auto=format&fit=crop&q=80',
+    bio: 'Campus safety lead responsible for venue access control and visitor verification during school events.',
+    isDirectoryVisible: false,
+    checkedIn: true,
+    checkedInAt: 'Oct 16, 2026 06:45 AM',
+    dietaryTag: 'korean',
+    shareContactOnScan: false,
+    interests: ['Campus Safety', 'Access Control'],
   },
 ];
 
@@ -494,3 +528,220 @@ export const SAMPLE_CSV_TEMPLATE = `Title,Description,Date,StartTime,EndTime,Tra
 "AI-Assisted Grading Workflows","Analyzing formative writing rubrics with local LLMs","2026-10-16","11:00 AM","12:15 PM","AI Workflows & Safety","#2A6791","Innovation Design Lab 102",30,"Dr. Sarah Lin","slin@chadwickschool.org","CS Department Chair"
 "Mindful Leadership for Educators","Building resilient faculty teams in high-pressure school cultures","2026-10-16","01:45 PM","03:00 PM","Leadership & School Culture","#5E6513","Humanities Lecture Hall 301",55,"Prof. David Kim","dkim@chadwickschool.org","Ethics Lead"
 "Next-Gen Campus Network Security","Zero-trust architecture and 802.1X enterprise authentication","2026-10-17","10:30 AM","11:45 AM","Engineering & EdTech Architecture","#002B54","Science & Engineering Hub 204",40,"Marcus Vance","marcus@vance-systems.io","Principal Architect"`;
+
+
+/* ============================================================
+   Dining services. Options carry a DietaryTag so a selection can be
+   surfaced on the badge for catering staff without them having to look
+   anyone up.
+   ============================================================ */
+export const INITIAL_MEAL_SERVICES: MealService[] = [
+  {
+    id: 'meal-d1-coffee',
+    name: 'Morning Coffee & Pastries',
+    type: 'snack',
+    day: 1,
+    dateStr: 'Friday, Oct 16, 2026',
+    startTime: '08:00 AM',
+    endTime: '09:00 AM',
+    startMinutes: 480,
+    endMinutes: 540,
+    location: 'Grand Performing Arts Center — Foyer',
+    options: [
+      { id: 'opt-d1c-western', label: 'Western Pastries', dietary: 'western', description: 'Croissants, danishes, muffins, brewed coffee and tea.' },
+      { id: 'opt-d1c-korean', label: 'Korean Breakfast Bites', dietary: 'korean', description: 'Gyeranppang, rice cakes, barley tea.' },
+      { id: 'opt-d1c-gf', label: 'Gluten-Free Selection', dietary: 'gluten_free', description: 'Certified gluten-free baked goods, prepared on a separate line.', maxServings: 30 },
+    ],
+    selections: {},
+  },
+  {
+    id: 'meal-d1-lunch',
+    name: 'Day 1 Lunch',
+    type: 'lunch',
+    day: 1,
+    dateStr: 'Friday, Oct 16, 2026',
+    startTime: '12:15 PM',
+    endTime: '01:30 PM',
+    startMinutes: 735,
+    endMinutes: 810,
+    location: 'Dining Commons — Main Hall',
+    options: [
+      { id: 'opt-d1l-western', label: 'Western Hot Buffet', dietary: 'western', description: 'Roast chicken, herb potatoes, seasonal vegetables, garden salad.', maxServings: 180 },
+      { id: 'opt-d1l-korean', label: 'Korean Set Menu', dietary: 'korean', description: 'Bibimbap with assorted banchan and doenjang jjigae.', maxServings: 150 },
+      { id: 'opt-d1l-veg', label: 'Vegetarian Plate', dietary: 'vegetarian', description: 'Roasted vegetable orzo, halloumi skewers, lentil salad.', maxServings: 90 },
+      { id: 'opt-d1l-vegan', label: 'Vegan Plate', dietary: 'vegan', description: 'Chickpea tagine, herbed couscous, grilled seasonal vegetables.', maxServings: 45 },
+      { id: 'opt-d1l-halal', label: 'Halal Set Menu', dietary: 'halal', description: 'Halal-certified braised beef, saffron rice, cucumber salad.', maxServings: 40 },
+      { id: 'opt-d1l-gf', label: 'Gluten-Free Plate', dietary: 'gluten_free', description: 'Grilled salmon, quinoa pilaf, roasted root vegetables.', maxServings: 30 },
+    ],
+    selections: {
+      'usr-sarah-lin': 'opt-d1l-veg',
+      'usr-dean-norman': 'opt-d1l-western',
+      'usr-david-kim': 'opt-d1l-korean',
+      'usr-elena-rostova': 'opt-d1l-vegan',
+      'usr-chloe-bennett': 'opt-d1l-halal',
+    },
+  },
+  {
+    id: 'meal-d1-snack',
+    name: 'Afternoon Refreshments',
+    type: 'snack',
+    day: 1,
+    dateStr: 'Friday, Oct 16, 2026',
+    startTime: '03:00 PM',
+    endTime: '03:30 PM',
+    startMinutes: 900,
+    endMinutes: 930,
+    location: 'Innovation Design Lab — Atrium',
+    options: [
+      { id: 'opt-d1s-standard', label: 'Assorted Snacks', dietary: 'western', description: 'Fruit, biscuits, iced coffee and infused water.' },
+      { id: 'opt-d1s-nutfree', label: 'Nut-Free Selection', dietary: 'nut_free', description: 'Prepared and served on a dedicated nut-free station.', maxServings: 40 },
+    ],
+    selections: {},
+  },
+  {
+    id: 'meal-d2-lunch',
+    name: 'Day 2 Lunch',
+    type: 'lunch',
+    day: 2,
+    dateStr: 'Saturday, Oct 17, 2026',
+    startTime: '12:00 PM',
+    endTime: '01:15 PM',
+    startMinutes: 720,
+    endMinutes: 795,
+    location: 'Dining Commons — Main Hall',
+    options: [
+      { id: 'opt-d2l-western', label: 'Western Hot Buffet', dietary: 'western', description: 'Baked pasta, garlic focaccia, Caesar salad.', maxServings: 180 },
+      { id: 'opt-d2l-korean', label: 'Korean Set Menu', dietary: 'korean', description: 'Bulgogi, steamed rice, kimchi and seasonal banchan.', maxServings: 150 },
+      { id: 'opt-d2l-veg', label: 'Vegetarian Plate', dietary: 'vegetarian', description: 'Mushroom risotto, rocket and pear salad.', maxServings: 90 },
+      { id: 'opt-d2l-vegan', label: 'Vegan Plate', dietary: 'vegan', description: 'Tofu bibimbap with gochujang, no egg.', maxServings: 45 },
+      { id: 'opt-d2l-halal', label: 'Halal Set Menu', dietary: 'halal', description: 'Halal-certified lamb kofta, flatbread, tabbouleh.', maxServings: 40 },
+    ],
+    selections: { 'usr-sarah-lin': 'opt-d2l-veg' },
+  },
+  {
+    id: 'meal-d2-reception',
+    name: 'Closing Reception',
+    type: 'reception',
+    day: 2,
+    dateStr: 'Saturday, Oct 17, 2026',
+    startTime: '04:30 PM',
+    endTime: '06:00 PM',
+    startMinutes: 990,
+    endMinutes: 1080,
+    location: 'Grand Performing Arts Center — Terrace',
+    options: [
+      { id: 'opt-d2r-canape', label: 'Canapé Reception', dietary: 'western', description: 'Passed canapés, sparkling and soft drinks.' },
+      { id: 'opt-d2r-veg', label: 'Vegetarian Canapés', dietary: 'vegetarian', description: 'Dedicated vegetarian passing trays.', maxServings: 60 },
+      { id: 'opt-d2r-halal', label: 'Halal Canapés', dietary: 'halal', description: 'Halal-certified passing trays.', maxServings: 35 },
+    ],
+    selections: {},
+  },
+];
+
+/* Attendance is written by door scans. Seeded with a couple of records so the
+   organizer audit view has something to reconcile. */
+export const INITIAL_ATTENDANCE: AttendanceRecord[] = [
+  {
+    id: 'att-001',
+    userId: 'usr-sarah-lin',
+    sessionId: 'sess-01-keynote',
+    scannedAt: 'Oct 16, 2026 08:58 AM',
+    location: 'Grand Performing Arts Center (Floor 1 / Main Hall)',
+    status: 'verified',
+    scannedBy: 'usr-dean-norman',
+  },
+  {
+    id: 'att-002',
+    userId: 'usr-chloe-bennett',
+    sessionId: 'sess-01-keynote',
+    scannedAt: 'Oct 16, 2026 09:04 AM',
+    location: 'Grand Performing Arts Center (Floor 1 / Main Hall)',
+    status: 'walk_in',
+    scannedBy: 'usr-dean-norman',
+  },
+];
+
+export const INITIAL_MESSAGES: DirectMessage[] = [
+  {
+    id: 'msg-001',
+    fromUserId: 'usr-david-kim',
+    toUserId: 'usr-sarah-lin',
+    content: 'Sarah — enjoyed your framing on student AI agency. Could we compare notes on the Humanities rubric before your Friday session?',
+    createdAt: '2 hours ago',
+    read: false,
+  },
+  {
+    id: 'msg-002',
+    fromUserId: 'usr-elena-rostova',
+    toUserId: 'usr-sarah-lin',
+    content: 'Hello! Following up from the workshop — happy to share our district rollout deck if useful.',
+    createdAt: '5 hours ago',
+    read: true,
+  },
+];
+
+
+/* ============================================================
+   Public event page content. Swap this object to re-skin the public site
+   for a different event without touching the portal.
+   ============================================================ */
+export const EVENT_CONFIG: EventConfig = {
+  id: 'evt-korcos-2026',
+  name: 'KORCOS 2026 Autumn Conference',
+  shortName: 'KORCOS 2026',
+  tagline: 'Reclaiming the craft of teaching in an age of intelligent tools',
+  description:
+    'Two days of practitioner-led sessions for international school educators across Korea — on classroom technology, AI literacy, leadership, and student wellbeing. Hosted on campus at Chadwick International.',
+  startDate: '2026-10-16',
+  endDate: '2026-10-17',
+  dateLabel: 'Friday 16 – Saturday 17 October 2026',
+  venueName: 'Chadwick International, Songdo',
+  venueAddress: '45 Art center-daero 97beon-gil, Yeonsu-gu, Incheon, Republic of Korea',
+  heroImageUrl:
+    'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1600&auto=format&fit=crop&q=80',
+  registrationOpen: true,
+  registrationNote:
+    'Chadwick staff and students sign in with their school Google account. Visiting educators use the access code sent with their invitation.',
+  highlights: [
+    { label: 'Sessions', value: '40+' },
+    { label: 'Tracks', value: '5' },
+    { label: 'Schools represented', value: '25' },
+    { label: 'Days', value: '2' },
+  ],
+  about: [
+    {
+      heading: 'Built by practitioners, for practitioners',
+      body: 'Every session is led by someone who teaches, leads or supports learning day to day. No vendor keynotes, no product pitches — just the people doing the work, showing what actually holds up in a classroom.',
+    },
+    {
+      heading: 'Five tracks, one throughline',
+      body: 'From EdTech architecture to student wellbeing, each track approaches the same question from a different angle: how do we keep human judgement at the centre as our tools get more capable?',
+    },
+    {
+      heading: 'A campus built for it',
+      body: 'Sessions run across the Performing Arts Center, Innovation Design Lab and Humanities wing, with everything within a few minutes\' walk. Meals and refreshments are included for all registered attendees.',
+    },
+  ],
+  faqs: [
+    {
+      question: 'Who can attend?',
+      answer: 'Educators, school leaders and support staff from international and independent schools. Chadwick faculty, staff and student ambassadors attend as part of the host community.',
+    },
+    {
+      question: 'How do I sign in?',
+      answer: 'Chadwick community members use their @chadwickschool.org Google account. External attendees receive an access code by email once their registration is confirmed, and use it alongside their invitation email address.',
+    },
+    {
+      question: 'Are meals provided?',
+      answer: 'Yes. Lunch and refreshments are included both days. Once signed in you can pre-select your meal — including vegetarian, vegan, halal, gluten-free and Korean options — so catering can plan accurately.',
+    },
+    {
+      question: 'Do I need to reserve individual sessions?',
+      answer: 'Rooms have fixed capacity, so popular sessions do fill. Reserve your seat in the portal ahead of time; if a session is full you can join the waitlist and are promoted automatically when a seat frees up.',
+    },
+    {
+      question: 'Is there a record of what I attended?',
+      answer: 'Your badge is scanned at each session door, which produces a verified attendance record you can use for professional development reporting.',
+    },
+  ],
+};

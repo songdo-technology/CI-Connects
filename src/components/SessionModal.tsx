@@ -225,10 +225,15 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                     <p className="text-xs text-slate-500 font-medium">{speaker.title} • {speaker.organization}</p>
                     <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">{speaker.bio}</p>
                     
-                    {speaker.slackHandle && (
-                      <div className="mt-2 text-[11px] text-slate-400 font-mono">
-                        Slack: {speaker.slackHandle}
-                      </div>
+                    {speaker.linkedInUrl && (
+                      <a
+                        href={speaker.linkedInUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-blue-700 hover:text-blue-900"
+                      >
+                        LinkedIn profile
+                      </a>
                     )}
                   </div>
                 </div>

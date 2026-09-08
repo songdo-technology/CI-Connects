@@ -1,0 +1,429 @@
+import React, { useMemo, useState } from 'react';
+import {
+  Building2, CalendarDays, MapPin, ArrowRight, Clock, ChevronDown,
+  Users, Sparkles, LogIn,
+} from 'lucide-react';
+import { EventConfig, Session, Track, Room, UserProfile, Sponsor } from '../types';
+
+interface PublicEventPageProps {
+  event: EventConfig;
+  sessions: Session[];
+  tracks: Track[];
+  rooms: Room[];
+  profiles: UserProfile[];
+  sponsors: Sponsor[];
+  onSignIn: () => void;
+}
+
+/**
+ * The public, unauthenticated face of an event — what a prospective attendee
+ * sees before they have any credentials.
+ *
+ * Deliberately separate from the portal: this page is marketing and is safe to
+ * index and share, while everything behind sign-in is attendee data. All copy
+ * comes from EventConfig, so re-skinning it for the next event is a content
+ * change rather than a code change.
+ */
+export const PublicEventPage: React.FC<PublicEventPageProps> = ({
+  event, sessions, tracks, rooms, profiles, sponsors, onSignIn,
+}) => {
+  const [agendaDay, setAgendaDay] = useState(1);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  const speakers = useMemo(
+    () => profiles.filter((p) => p.role === 'speaker'),
+    [profiles],
+  );
+
+  const agendaForDay = useMemo(
+    () => sessions.filter((s) => s.day === agendaDay).sort((a, b) => a.startMinutes - b.startMinutes),
+    [sessions, agendaDay],
+  );
+
+  const days = useMemo(() => {
+    const seen: number[] = [];
+    for (const s of sessions) if (!seen.includes(s.day)) seen.push(s.day);
+    return seen.sort((a, b) => a - b);
+  }, [sessions]);
+
+  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+
+  const NAV = [
+    ['About', 'about'], ['Speakers', 'speakers'],
+    ['Agenda', 'agenda'], ['Venue', 'venue'], ['FAQ', 'faq'],
+  ] as const;
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* ---------------- Nav ---------------- */}
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shrink-0">
+              <Building2 className="w-4.5 h-4.5 text-blue-200" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-bold text-slate-900 truncate leading-tight">{event.shortName}</div>
+              <div className="text-[11px] text-slate-500 truncate">Chadwick International</div>
+            </div>
+          </div>
+
+          <nav className="hidden md:flex items-center gap-1">
+            {NAV.map(([label, id]) => (
+              <button
+                key={id}
+                onClick={() => scrollTo(id)}
+                className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-blue-700 transition-colors cursor-pointer"
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+
+          <button
+            onClick={onSignIn}
+            className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
+          >
+            <LogIn className="w-4 h-4" />
+            <span className="hidden sm:inline">Attendee sign in</span>
+            <span className="sm:hidden">Sign in</span>
+          </button>
+        </div>
+      </header>
+
+      {/* ---------------- Hero ---------------- */}
+      <section className="relative bg-blue-900 text-white overflow-hidden">
+        <div className="absolute inset-0">
+          <img src={event.heroImageUrl} alt="" className="w-full h-full object-cover opacity-25" />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/95 via-blue-800/90 to-blue-950/95" />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 lg:py-32">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm mb-6">
+              <Sparkles className="w-3.5 h-3.5 text-blue-200" />
+              <span className="text-xs font-semibold text-blue-100 tracking-wide">
+                Hosted at {event.venueName}
+              </span>
+            </div>
+
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.08] mb-5">
+              {event.name}
+            </h1>
+            <p className="text-xl sm:text-2xl text-blue-100/90 font-light leading-snug mb-7">
+              {event.tagline}
+            </p>
+
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-blue-100/80 mb-9">
+              <span className="flex items-center gap-2">
+                <CalendarDays className="w-4 h-4 text-blue-200" />
+                {event.dateLabel}
+              </span>
+              <span className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-blue-200" />
+                {event.venueName}
+              </span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={onSignIn}
+                className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl bg-white text-blue-800 font-bold hover:bg-blue-50 transition-colors cursor-pointer"
+              >
+                {event.registrationOpen ? 'Sign in to the attendee portal' : 'Registration closed'}
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => scrollTo('agenda')}
+                className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl bg-white/10 border border-white/25 text-white font-semibold hover:bg-white/20 transition-colors backdrop-blur-sm cursor-pointer"
+              >
+                Explore the agenda
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Highlights strip */}
+        <div className="relative border-t border-white/15 bg-blue-950/40 backdrop-blur-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+            {event.highlights.map((h) => (
+              <div key={h.label}>
+                <div className="text-2xl sm:text-3xl font-bold text-white">{h.value}</div>
+                <div className="text-xs text-blue-200/70 uppercase tracking-wide mt-0.5">{h.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------- About ---------------- */}
+      <section id="about" className="py-20 sm:py-24 bg-white scroll-mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl mb-14">
+            <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">About the conference</div>
+            <p className="text-2xl sm:text-3xl font-semibold text-slate-900 leading-snug">
+              {event.description}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
+            {event.about.map((block, i) => (
+              <div key={block.heading}>
+                <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-sm mb-4">
+                  {i + 1}
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2.5">{block.heading}</h3>
+                <p className="text-sm text-slate-600 leading-relaxed">{block.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------- Tracks ---------------- */}
+      <section className="py-16 bg-slate-50 border-y border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6">Programme tracks</h2>
+          <div className="flex flex-wrap gap-2.5">
+            {tracks.map((t) => (
+              <span
+                key={t.id}
+                className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
+                style={{ backgroundColor: t.colorHex }}
+              >
+                {t.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------- Speakers ---------------- */}
+      <section id="speakers" className="py-20 sm:py-24 bg-white scroll-mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">Speakers</div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3">
+            Led by people doing the work
+          </h2>
+          <p className="text-slate-500 max-w-2xl mb-12 leading-relaxed">
+            Every session is presented by a practising educator, school leader or
+            technologist — not a vendor.
+          </p>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {speakers.map((s) => (
+              <div key={s.id} className="group rounded-2xl border border-slate-200 overflow-hidden hover:border-blue-600 transition-colors">
+                <div className="aspect-[4/3] overflow-hidden bg-slate-100">
+                  <img
+                    src={s.avatarUrl}
+                    alt={s.fullName}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="p-5">
+                  <h3 className="font-bold text-slate-900 leading-tight">{s.fullName}</h3>
+                  <p className="text-sm text-blue-700 font-medium mt-0.5">{s.title}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{s.organization}</p>
+                  <p className="text-sm text-slate-600 leading-relaxed mt-3 line-clamp-3">{s.bio}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------- Agenda ---------------- */}
+      <section id="agenda" className="py-20 sm:py-24 bg-slate-50 border-y border-slate-200 scroll-mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">Agenda</div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-8">
+            Two days, five tracks
+          </h2>
+
+          <div className="flex items-center gap-2 mb-6">
+            {days.map((d) => {
+              const label = sessions.find((s) => s.day === d)?.dateStr ?? `Day ${d}`;
+              return (
+                <button
+                  key={d}
+                  onClick={() => setAgendaDay(d)}
+                  className={`px-5 py-2.5 rounded-xl text-sm font-semibold border transition-colors cursor-pointer ${
+                    d === agendaDay
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-slate-600 border-slate-200 hover:border-blue-600'
+                  }`}
+                >
+                  Day {d} · {label.replace(', 2026', '')}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="space-y-3">
+            {agendaForDay.map((s) => {
+              const track = tracks.find((t) => t.id === s.trackId);
+              const room = rooms.find((r) => r.id === s.roomId);
+              return (
+                <div key={s.id} className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col sm:flex-row gap-4">
+                  <div className="sm:w-40 shrink-0">
+                    <div className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      {s.startTime}
+                    </div>
+                    <div className="text-xs text-slate-400 mt-0.5 ml-5">to {s.endTime}</div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      {track && (
+                        <span
+                          className="px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white uppercase tracking-wide"
+                          style={{ backgroundColor: track.colorHex }}
+                        >
+                          {track.name}
+                        </span>
+                      )}
+                      {s.isFeatured && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 uppercase tracking-wide">
+                          Featured
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-bold text-slate-900 leading-snug mb-1.5">{s.title}</h3>
+                    <p className="text-sm text-slate-600 leading-relaxed line-clamp-2 mb-2">{s.description}</p>
+                    <div className="flex items-center gap-4 text-xs text-slate-400 flex-wrap">
+                      {room && (
+                        <span className="flex items-center gap-1.5">
+                          <MapPin className="w-3 h-3" />
+                          {room.name}
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1.5">
+                        <Users className="w-3 h-3" />
+                        {s.maxAttendees} seats
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 p-5 rounded-xl bg-blue-50 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <p className="text-sm text-blue-900 leading-relaxed">
+              Seats are limited per room. Sign in to reserve your place and build a
+              personal agenda.
+            </p>
+            <button
+              onClick={onSignIn}
+              className="shrink-0 inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
+            >
+              Reserve your seat
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------- Venue ---------------- */}
+      <section id="venue" className="py-20 sm:py-24 bg-white scroll-mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">Venue</div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">{event.venueName}</h2>
+            <p className="text-slate-600 leading-relaxed mb-6">{event.venueAddress}</p>
+            <div className="space-y-3">
+              {rooms.map((r) => (
+                <div key={r.id} className="flex items-center justify-between gap-4 py-3 border-b border-slate-100">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-slate-800 truncate">{r.name}</div>
+                    <div className="text-xs text-slate-400">{r.floorLabel}</div>
+                  </div>
+                  <span className="shrink-0 text-xs font-semibold text-slate-500">
+                    {r.capacity} seats
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-2xl overflow-hidden aspect-[4/3] bg-slate-100">
+            <img src={event.heroImageUrl} alt={event.venueName} className="w-full h-full object-cover" />
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------- Sponsors ---------------- */}
+      {sponsors.length > 0 && (
+        <section className="py-16 bg-slate-50 border-y border-slate-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-8 text-center">
+              Supported by
+            </h2>
+            <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6">
+              {sponsors.map((s) => (
+                <div key={s.id} className="text-center">
+                  <div className="text-lg font-bold text-slate-700">{s.name}</div>
+                  <div className="text-[11px] text-slate-400 uppercase tracking-wide">{s.tier}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ---------------- FAQ ---------------- */}
+      <section id="faq" className="py-20 sm:py-24 bg-white scroll-mt-16">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">FAQ</div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-10">Questions, answered</h2>
+
+          <div className="divide-y divide-slate-200 border-y border-slate-200">
+            {event.faqs.map((faq, i) => (
+              <div key={faq.question}>
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between gap-4 py-5 text-left cursor-pointer"
+                >
+                  <span className="font-semibold text-slate-900">{faq.question}</span>
+                  <ChevronDown
+                    className={`w-5 h-5 text-slate-400 shrink-0 transition-transform ${openFaq === i ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                {openFaq === i && (
+                  <p className="text-sm text-slate-600 leading-relaxed pb-5 -mt-1">{faq.answer}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------- Closing CTA ---------------- */}
+      <section className="py-20 bg-blue-600 text-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to join us?</h2>
+          <p className="text-blue-100/90 leading-relaxed mb-8">{event.registrationNote}</p>
+          <button
+            onClick={onSignIn}
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white text-blue-800 font-bold hover:bg-blue-50 transition-colors cursor-pointer"
+          >
+            Go to the attendee portal
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </section>
+
+      {/* ---------------- Footer ---------------- */}
+      <footer className="bg-slate-900 text-slate-400 py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+          <div className="flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-slate-500" />
+            <span className="font-semibold text-slate-300">CI Connects</span>
+            <span>·</span>
+            <span>The Chadwick International Event Management Platform</span>
+          </div>
+          <span>{event.venueName}</span>
+        </div>
+      </footer>
+    </div>
+  );
+};

@@ -1,22 +1,31 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  INITIAL_TRACKS, 
-  INITIAL_ROOMS, 
-  INITIAL_SPONSORS, 
-  INITIAL_PROFILES, 
-  INITIAL_SESSIONS, 
-  INITIAL_COMMUNITY_TOPICS, 
-  INITIAL_ANNOUNCEMENTS 
+import {
+  INITIAL_TRACKS,
+  INITIAL_ROOMS,
+  INITIAL_SPONSORS,
+  INITIAL_PROFILES,
+  INITIAL_SESSIONS,
+  INITIAL_COMMUNITY_TOPICS,
+  INITIAL_ANNOUNCEMENTS,
+  INITIAL_MEAL_SERVICES,
+  INITIAL_ATTENDANCE,
+  INITIAL_MESSAGES,
+  EVENT_CONFIG,
 } from './data/initialData';
-import { 
-  ActiveTab, 
-  Session, 
-  UserProfile, 
-  Track, 
-  Room, 
-  Sponsor, 
-  CommunityTopic, 
-  BroadcastAnnouncement 
+import {
+  ActiveTab,
+  Session,
+  UserProfile,
+  Track,
+  Room,
+  Sponsor,
+  CommunityTopic,
+  BroadcastAnnouncement,
+  MealService,
+  AttendanceRecord,
+  DirectMessage,
+  AuthSession,
+  AuthMethod,
 } from './types';
 import { Header } from './components/Header';
 import { AgendaView } from './components/AgendaView';
@@ -29,24 +38,67 @@ import { LuckyDraw } from './components/LuckyDraw';
 import { AdminConsole } from './components/AdminConsole';
 import { ArchitectureGuideModal } from './components/ArchitectureGuideModal';
 import { MobileAppFrame } from './components/MobileAppFrame';
+import { PublicEventPage } from './components/PublicEventPage';
+import { LandingPage } from './components/LandingPage';
+import { DiningView } from './components/DiningView';
+import { MessagesView } from './components/MessagesView';
+import { SessionDoorScanner } from './components/SessionDoorScanner';
+import { ContactCardModal } from './components/ContactCardModal';
+import { PrintableBadge } from './components/PrintableBadge';
+
+/** The three surfaces of the product: a public event site anyone can read, a
+ *  sign-in gate, and the authenticated attendee portal behind it. */
+type Surface = 'public' | 'signin' | 'portal';
+
+const now = () =>
+  new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
 export default function App() {
   // Application Data State
   const [allUsers, setAllUsers] = useState<UserProfile[]>(INITIAL_PROFILES);
-  const [currentUser, setCurrentUser] = useState<UserProfile>(INITIAL_PROFILES[0]); // Default to Dr. Sarah Lin (Faculty)
   const [sessions, setSessions] = useState<Session[]>(INITIAL_SESSIONS);
   const [tracks, setTracks] = useState<Track[]>(INITIAL_TRACKS);
   const [rooms, setRooms] = useState<Room[]>(INITIAL_ROOMS);
   const [sponsors] = useState<Sponsor[]>(INITIAL_SPONSORS);
   const [communityTopics, setCommunityTopics] = useState<CommunityTopic[]>(INITIAL_COMMUNITY_TOPICS);
   const [announcements, setAnnouncements] = useState<BroadcastAnnouncement[]>(INITIAL_ANNOUNCEMENTS);
+  const [mealServices, setMealServices] = useState<MealService[]>(INITIAL_MEAL_SERVICES);
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>(INITIAL_ATTENDANCE);
+  const [messages, setMessages] = useState<DirectMessage[]>(INITIAL_MESSAGES);
+
+  // Auth & surface routing
+  const [surface, setSurface] = useState<Surface>('public');
+  const [authSession, setAuthSession] = useState<AuthSession | null>(null);
 
   // UI Navigation State
   const [activeTab, setActiveTab] = useState<ActiveTab>('agenda');
   const [deviceMode, setDeviceMode] = useState<'desktop' | 'mobile'>('desktop');
   const [selectedSessionForModal, setSelectedSessionForModal] = useState<Session | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isDoorScannerOpen, setIsDoorScannerOpen] = useState(false);
   const [isArchitectureOpen, setIsArchitectureOpen] = useState(false);
+  const [isPrintBadgeOpen, setIsPrintBadgeOpen] = useState(false);
+  const [contactCardProfile, setContactCardProfile] = useState<UserProfile | null>(null);
+  const [pendingThreadUserId, setPendingThreadUserId] = useState<string | null>(null);
+
+  /** The signed-in user, resolved from the auth session rather than held
+   *  separately, so there is exactly one source of truth for identity. */
+  const currentUser = useMemo(
+    () => allUsers.find((u) => u.id === authSession?.userId) ?? allUsers[0],
+    [allUsers, authSession],
+  );
+
+  // ---------------------------------------------------------------- Auth
+  const handleSignIn = (user: UserProfile, method: AuthMethod) => {
+    setAuthSession({ userId: user.id, method, signedInAt: now() });
+    setActiveTab('agenda');
+    setSurface('portal');
+  };
+
+  const handleSignOut = () => {
+    setAuthSession(null);
+    setSurface('public');
+  };
 
   // Atomic Capacity Reservation & Waitlist Procedure
   const handleToggleReservation = (sessionId: string) => {
@@ -95,10 +147,10 @@ export default function App() {
           ...s,
           waitlistUserIds: [...s.waitlistUserIds, currentUser.id],
         } : s));
-        return { 
-          success: true, 
-          message: `Room capacity full (${session.maxAttendees} seats). Added to waitlist (#${session.waitlistUserIds.length + 1}).`, 
-          waitlisted: true 
+        return {
+          success: true,
+          message: `Room capacity full (${session.maxAttendees} seats). Added to waitlist (#${session.waitlistUserIds.length + 1}).`,
+          waitlisted: true
         };
       }
     }
@@ -112,26 +164,104 @@ export default function App() {
         return {
           ...u,
           checkedIn: nextStatus,
-          checkedInAt: nextStatus ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
+          checkedInAt: nextStatus ? now() : undefined,
         };
       }
       return u;
     }));
-
-    if (currentUser.id === userId) {
-      setCurrentUser(prev => ({
-        ...prev,
-        checkedIn: !prev.checkedIn,
-        checkedInAt: !prev.checkedIn ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
-      }));
-    }
   };
 
   // Directory Privacy Toggle for active user
   const handleToggleDirectoryVisibility = () => {
-    const nextVis = !currentUser.isDirectoryVisible;
-    setCurrentUser(prev => ({ ...prev, isDirectoryVisible: nextVis }));
-    setAllUsers(prev => prev.map(u => u.id === currentUser.id ? { ...u, isDirectoryVisible: nextVis } : u));
+    setAllUsers(prev => prev.map(u =>
+      u.id === currentUser.id ? { ...u, isDirectoryVisible: !u.isDirectoryVisible } : u
+    ));
+  };
+
+  /** Opt in or out of handing over contact details when the badge is scanned. */
+  const handleToggleContactSharing = () => {
+    setAllUsers(prev => prev.map(u =>
+      u.id === currentUser.id ? { ...u, shareContactOnScan: !u.shareContactOnScan } : u
+    ));
+  };
+
+  // ------------------------------------------------------------- Dining
+  const handleSelectMeal = (serviceId: string, optionId: string | null) => {
+    setMealServices(prev => prev.map(service => {
+      if (service.id !== serviceId) return service;
+      const next = { ...service.selections };
+      if (optionId === null) {
+        delete next[currentUser.id];
+      } else {
+        next[currentUser.id] = optionId;
+      }
+      return { ...service, selections: next };
+    }));
+  };
+
+  // --------------------------------------------------------- Attendance
+  /**
+   * Records a door scan. The status is derived, not chosen: a scan is
+   * `verified` only when the attendee actually holds a reservation for the
+   * session whose door they are standing at. Anyone reserved for a different
+   * session running at the same time is recorded as `wrong_session` rather
+   * than being silently admitted, which is what makes the resulting log
+   * usable as evidence of attendance.
+   */
+  const handleRecordAttendance = (userId: string, sessionId: string): AttendanceRecord => {
+    const session = sessions.find(s => s.id === sessionId);
+    const room = rooms.find(r => r.id === session?.roomId);
+    const isReservedHere = session?.reservedUserIds.includes(userId) ?? false;
+
+    const clashesElsewhere = sessions.some(s =>
+      s.id !== sessionId &&
+      s.day === session?.day &&
+      s.reservedUserIds.includes(userId) &&
+      s.startMinutes < (session?.endMinutes ?? 0) &&
+      s.endMinutes > (session?.startMinutes ?? 0)
+    );
+
+    const record: AttendanceRecord = {
+      id: `att-${Date.now()}`,
+      userId,
+      sessionId,
+      scannedAt: now(),
+      location: room ? `${room.name} (${room.floorLabel})` : 'Unknown location',
+      status: isReservedHere ? 'verified' : clashesElsewhere ? 'wrong_session' : 'walk_in',
+      scannedBy: currentUser.id,
+    };
+
+    setAttendance(prev => [record, ...prev]);
+
+    // A door scan also admits them to the venue if they were not already in.
+    setAllUsers(prev => prev.map(u =>
+      u.id === userId && !u.checkedIn ? { ...u, checkedIn: true, checkedInAt: record.scannedAt } : u
+    ));
+
+    return record;
+  };
+
+  // ----------------------------------------------------------- Messaging
+  const handleSendMessage = (toUserId: string, content: string) => {
+    setMessages(prev => [...prev, {
+      id: `msg-${Date.now()}`,
+      fromUserId: currentUser.id,
+      toUserId,
+      content,
+      createdAt: 'Just now',
+      read: false,
+    }]);
+  };
+
+  const handleMarkRead = (fromUserId: string) => {
+    setMessages(prev => prev.map(m =>
+      m.fromUserId === fromUserId && m.toUserId === currentUser.id ? { ...m, read: true } : m
+    ));
+  };
+
+  const handleOpenThread = (userId: string) => {
+    setPendingThreadUserId(userId);
+    setActiveTab('messages');
   };
 
   // Community Topic Handlers
@@ -153,7 +283,7 @@ export default function App() {
         const isRsvped = topic.rsvpUserIds.includes(currentUser.id);
         return {
           ...topic,
-          rsvpUserIds: isRsvped 
+          rsvpUserIds: isRsvped
             ? topic.rsvpUserIds.filter(id => id !== currentUser.id)
             : [...topic.rsvpUserIds, currentUser.id],
         };
@@ -232,9 +362,9 @@ export default function App() {
     };
   };
 
-  // Switch Active Persona
+  // Switch Active Persona (prototype affordance, not a real auth action)
   const handleSwitchUser = (user: UserProfile) => {
-    setCurrentUser(user);
+    setAuthSession({ userId: user.id, method: 'google_sso', signedInAt: now() });
   };
 
   // Active bookmarked sessions count for user
@@ -245,6 +375,54 @@ export default function App() {
   const reservedSessionsForUser = useMemo(() => {
     return sessions.filter(s => s.reservedUserIds.includes(currentUser.id));
   }, [sessions, currentUser.id]);
+
+  const unreadMessageCount = useMemo(
+    () => messages.filter(m => m.toUserId === currentUser.id && !m.read).length,
+    [messages, currentUser.id],
+  );
+
+  const myMealSelections = useMemo(
+    () => mealServices
+      .filter(s => s.selections[currentUser.id])
+      .map(s => ({
+        service: s,
+        option: s.options.find(o => o.id === s.selections[currentUser.id])!,
+      }))
+      .filter(x => x.option),
+    [mealServices, currentUser.id],
+  );
+
+  const myAttendance = useMemo(
+    () => attendance.filter(a => a.userId === currentUser.id),
+    [attendance, currentUser.id],
+  );
+
+  // ------------------------------------------------- Surface: public site
+  if (surface === 'public') {
+    return (
+      <PublicEventPage
+        event={EVENT_CONFIG}
+        sessions={sessions}
+        tracks={tracks}
+        rooms={rooms}
+        profiles={allUsers}
+        sponsors={sponsors}
+        onSignIn={() => setSurface('signin')}
+      />
+    );
+  }
+
+  // ---------------------------------------------------- Surface: sign-in
+  if (surface === 'signin' || !authSession) {
+    return (
+      <LandingPage
+        profiles={allUsers}
+        onSignIn={handleSignIn}
+        onBackToEvent={() => setSurface('public')}
+        eventName={EVENT_CONFIG.shortName}
+      />
+    );
+  }
 
   // Main Active Content
   const mainContent = (
@@ -268,6 +446,20 @@ export default function App() {
           onToggleCheckIn={handleToggleCheckIn}
           reservedSessions={reservedSessionsForUser}
           onOpenScanner={() => setIsScannerOpen(true)}
+          mealSelections={myMealSelections}
+          attendanceRecords={myAttendance}
+          sessions={sessions}
+          onToggleContactSharing={handleToggleContactSharing}
+          onOpenDoorScanner={() => setIsDoorScannerOpen(true)}
+          onOpenPrintBadge={() => setIsPrintBadgeOpen(true)}
+        />
+      )}
+
+      {activeTab === 'dining' && (
+        <DiningView
+          mealServices={mealServices}
+          currentUser={currentUser}
+          onSelectMeal={handleSelectMeal}
         />
       )}
 
@@ -287,6 +479,19 @@ export default function App() {
           profiles={allUsers}
           currentUser={currentUser}
           onToggleDirectoryVisibility={handleToggleDirectoryVisibility}
+          onMessage={handleOpenThread}
+          onViewContactCard={(p) => setContactCardProfile(p)}
+        />
+      )}
+
+      {activeTab === 'messages' && (
+        <MessagesView
+          messages={messages}
+          profiles={allUsers}
+          currentUser={currentUser}
+          initialThreadUserId={pendingThreadUserId}
+          onSendMessage={handleSendMessage}
+          onMarkRead={handleMarkRead}
         />
       )}
 
@@ -306,6 +511,8 @@ export default function App() {
           announcements={announcements}
           onBroadcastAnnouncement={handleBroadcastAnnouncement}
           onImportCsvSessions={handleImportCsvSessions}
+          mealServices={mealServices}
+          attendance={attendance}
         />
       )}
     </>
@@ -313,7 +520,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans antialiased selection:bg-blue-600 selection:text-white">
-      
+
       {/* Platform Header */}
       <Header
         activeTab={activeTab}
@@ -326,6 +533,8 @@ export default function App() {
         announcements={announcements}
         onOpenArchitecture={() => setIsArchitectureOpen(true)}
         bookmarkedCount={bookmarkedSessionsCount}
+        unreadMessageCount={unreadMessageCount}
+        onSignOut={handleSignOut}
       />
 
       {/* Main View Area */}
@@ -356,6 +565,13 @@ export default function App() {
           </div>
           <div className="flex items-center gap-4">
             <button
+              onClick={() => setSurface('public')}
+              className="text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
+            >
+              View public event page
+            </button>
+            <span>•</span>
+            <button
               onClick={() => setIsArchitectureOpen(true)}
               className="text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
             >
@@ -375,7 +591,7 @@ export default function App() {
         profiles={allUsers}
         currentUser={currentUser}
         onToggleReservation={handleToggleReservation}
-        onNavigateToCommunity={(tag) => {
+        onNavigateToCommunity={() => {
           setActiveTab('community');
         }}
       />
@@ -386,6 +602,39 @@ export default function App() {
         onClose={() => setIsScannerOpen(false)}
         profiles={allUsers}
         onCheckInUser={(userId) => handleToggleCheckIn(userId)}
+      />
+
+      {/* Session door scanner — verified attendance capture */}
+      <SessionDoorScanner
+        isOpen={isDoorScannerOpen}
+        onClose={() => setIsDoorScannerOpen(false)}
+        sessions={sessions}
+        rooms={rooms}
+        profiles={allUsers}
+        attendance={attendance}
+        currentUser={currentUser}
+        onRecordAttendance={handleRecordAttendance}
+      />
+
+      {/* Badge scan result — contact card or security verification */}
+      <ContactCardModal
+        profile={contactCardProfile}
+        onClose={() => setContactCardProfile(null)}
+        onMessage={handleOpenThread}
+        viewerIsSecurity={currentUser.role === 'security'}
+      />
+
+      {/* Print-ready lanyard badges, single or bulk */}
+      <PrintableBadge
+        isOpen={isPrintBadgeOpen}
+        onClose={() => setIsPrintBadgeOpen(false)}
+        event={EVENT_CONFIG}
+        profiles={allUsers}
+        currentUser={currentUser}
+        sessions={sessions}
+        rooms={rooms}
+        tracks={tracks}
+        sponsors={sponsors}
       />
 
       {/* Architectural Blueprint Modal */}

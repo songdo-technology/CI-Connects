@@ -1,0 +1,268 @@
+import React, { useState } from 'react';
+import { Building2, ArrowRight, Mail, KeyRound, AlertCircle, CalendarDays, Users, QrCode, UtensilsCrossed } from 'lucide-react';
+import { UserProfile, AuthMethod } from '../types';
+
+interface LandingPageProps {
+  profiles: UserProfile[];
+  onSignIn: (user: UserProfile, method: AuthMethod) => void;
+  onBackToEvent: () => void;
+  eventName: string;
+}
+
+/**
+ * Sign-in surface. Two doors into the same platform:
+ *
+ *  - Chadwick staff and students authenticate with Workspace SSO.
+ *  - External guests redeem the access code emailed with their invitation,
+ *    since they have no Chadwick account to sign in with.
+ *
+ * PROTOTYPE: no real identity provider is wired up yet. The SSO button
+ * resolves against the seeded directory and the guest form accepts any
+ * known guest email with the demo code. Replace both with Firebase Auth
+ * (Google provider + a custom-token or email-link flow) when the backend
+ * lands; this component's props are shaped so that swap is contained.
+ */
+const GUEST_DEMO_CODE = 'CI-2026';
+
+export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, onBackToEvent, eventName }) => {
+  const [mode, setMode] = useState<'choose' | 'guest'>('choose');
+  const [ssoPickerOpen, setSsoPickerOpen] = useState(false);
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestCode, setGuestCode] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const chadwickAccounts = profiles.filter((p) => p.email.endsWith('@chadwickschool.org'));
+  const guestAccounts = profiles.filter((p) => !p.email.endsWith('@chadwickschool.org'));
+
+  const handleGuestSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    const email = guestEmail.trim().toLowerCase();
+    if (!email) return setError('Enter the email address your invitation was sent to.');
+
+    if (email.endsWith('@chadwickschool.org')) {
+      return setError('That looks like a Chadwick address — please use "Continue with Chadwick Google" instead.');
+    }
+
+    const match = guestAccounts.find((p) => p.email.toLowerCase() === email);
+    if (!match) {
+      return setError('We could not find an invitation for that email address. Check the address, or contact the event organizers.');
+    }
+    if (guestCode.trim().toUpperCase() !== GUEST_DEMO_CODE) {
+      return setError('That access code is not valid for this event.');
+    }
+    onSignIn(match, 'guest_code');
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-100 flex flex-col lg:flex-row">
+      {/* ---------- Welcome panel ---------- */}
+      <div className="lg:w-[55%] bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 text-white px-6 sm:px-10 lg:px-16 py-12 lg:py-16 flex flex-col justify-center relative overflow-hidden">
+        <div className="absolute -right-24 -top-24 w-96 h-96 rounded-full bg-blue-400/10 blur-3xl pointer-events-none" />
+        <div className="absolute -left-16 bottom-0 w-72 h-72 rounded-full bg-blue-200/10 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 max-w-xl">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+              <Building2 className="w-6 h-6 text-blue-200" />
+            </div>
+            <span className="text-sm font-semibold tracking-wide text-blue-100 uppercase">
+              Chadwick International
+            </span>
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-5">
+            Welcome to <span className="text-blue-200">CI Connects</span>
+          </h1>
+
+          <p className="text-lg sm:text-xl text-blue-50/90 leading-relaxed mb-4">
+            Bringing our community together — our own event management platform,
+            built at Chadwick, for Chadwick.
+          </p>
+          <p className="text-sm text-blue-100/70 leading-relaxed mb-10">
+            Plan your schedule, reserve your seat, choose your meals, and meet the
+            people behind the work. Everything for the day, in one place.
+          </p>
+
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4 max-w-md">
+            {[
+              { icon: CalendarDays, label: 'Build your agenda' },
+              { icon: QrCode, label: 'Badge & check-in' },
+              { icon: UtensilsCrossed, label: 'Choose your meals' },
+              { icon: Users, label: 'Connect with colleagues' },
+            ].map(({ icon: Icon, label }) => (
+              <div key={label} className="flex items-center gap-2.5 text-sm text-blue-50/90">
+                <Icon className="w-4 h-4 text-blue-200 shrink-0" />
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ---------- Sign-in panel ---------- */}
+      <div className="lg:w-[45%] flex items-center justify-center px-6 sm:px-10 py-12 lg:py-16">
+        <div className="w-full max-w-md">
+          {mode === 'choose' ? (
+            <>
+              <button
+                onClick={onBackToEvent}
+                className="text-xs font-semibold text-slate-500 hover:text-blue-700 mb-5 cursor-pointer"
+              >
+                ← Back to {eventName}
+              </button>
+              <h2 className="text-2xl font-bold text-slate-900 mb-1.5">Sign in</h2>
+              <p className="text-sm text-slate-500 mb-8">
+                Use your Chadwick account, or the invitation sent to your email.
+              </p>
+
+              {/* Chadwick SSO */}
+              <button
+                onClick={() => setSsoPickerOpen((v) => !v)}
+                className="w-full flex items-center justify-between gap-3 px-5 py-4 rounded-xl bg-blue-600 text-white font-semibold shadow-sm hover:bg-blue-700 transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-md bg-white flex items-center justify-center text-[13px] font-bold text-blue-600 shrink-0">
+                    G
+                  </span>
+                  Continue with Chadwick Google
+                </span>
+                <ArrowRight className="w-4 h-4 shrink-0" />
+              </button>
+              <p className="text-[11px] text-slate-400 mt-2 px-1">
+                For staff, faculty and students with an @chadwickschool.org account.
+              </p>
+
+              {ssoPickerOpen && (
+                <div className="mt-3 border border-slate-200 rounded-xl bg-white overflow-hidden shadow-sm">
+                  <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
+                    Choose an account
+                  </div>
+                  {chadwickAccounts.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => onSignIn(p, 'google_sso')}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors text-left border-b border-slate-100 last:border-0 cursor-pointer"
+                    >
+                      <img src={p.avatarUrl} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-slate-800 truncate">{p.fullName}</div>
+                        <div className="text-xs text-slate-500 truncate">{p.email}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 my-7">
+                <div className="h-px bg-slate-200 flex-1" />
+                <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">or</span>
+                <div className="h-px bg-slate-200 flex-1" />
+              </div>
+
+              <button
+                onClick={() => setMode('guest')}
+                className="w-full flex items-center justify-between gap-3 px-5 py-4 rounded-xl bg-white border-2 border-slate-200 text-slate-800 font-semibold hover:border-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-3">
+                  <KeyRound className="w-5 h-5 text-slate-400 shrink-0" />
+                  I'm attending as a guest
+                </span>
+                <ArrowRight className="w-4 h-4 shrink-0" />
+              </button>
+              <p className="text-[11px] text-slate-400 mt-2 px-1">
+                Visiting for an event? Use the access code from your invitation email.
+              </p>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => { setMode('choose'); setError(null); }}
+                className="text-xs font-semibold text-slate-500 hover:text-blue-700 mb-5 cursor-pointer"
+              >
+                ← Back to sign-in options
+              </button>
+
+              <h2 className="text-2xl font-bold text-slate-900 mb-1.5">Guest access</h2>
+              <p className="text-sm text-slate-500 mb-7">
+                Enter the email your invitation was sent to, along with the access
+                code it contained.
+              </p>
+
+              <form onSubmit={handleGuestSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="guest-email" className="block text-xs font-semibold text-slate-600 mb-1.5">
+                    Invitation email
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      id="guest-email"
+                      type="email"
+                      value={guestEmail}
+                      onChange={(e) => setGuestEmail(e.target.value)}
+                      placeholder="you@yourschool.org"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="guest-code" className="block text-xs font-semibold text-slate-600 mb-1.5">
+                    Access code
+                  </label>
+                  <div className="relative">
+                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      id="guest-code"
+                      type="text"
+                      value={guestCode}
+                      onChange={(e) => setGuestCode(e.target.value)}
+                      placeholder="CI-XXXX"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-sm tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+                    />
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="flex items-start gap-2 px-3.5 py-3 rounded-lg bg-amber-50 border border-amber-200">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-900 leading-relaxed">{error}</p>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full px-5 py-3.5 rounded-xl bg-blue-600 text-white font-semibold shadow-sm hover:bg-blue-700 transition-colors cursor-pointer"
+                >
+                  Continue
+                </button>
+              </form>
+
+              <div className="mt-6 px-4 py-3 rounded-lg bg-slate-50 border border-slate-200">
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  <span className="font-semibold text-slate-700">Prototype:</span>{' '}
+                  try{' '}
+                  <code className="px-1 py-0.5 rounded bg-white border border-slate-200 text-slate-700">
+                    {guestAccounts[0]?.email}
+                  </code>{' '}
+                  with code{' '}
+                  <code className="px-1 py-0.5 rounded bg-white border border-slate-200 text-slate-700">
+                    {GUEST_DEMO_CODE}
+                  </code>
+                  .
+                </p>
+              </div>
+            </>
+          )}
+
+          <p className="text-[11px] text-slate-400 leading-relaxed mt-8 text-center">
+            Prototype build — sign-in is simulated and no credentials are collected
+            or transmitted.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};

@@ -15,7 +15,7 @@ import {
   ShieldCheck,
   Send
 } from 'lucide-react';
-import { Session, Track, Room, UserProfile, BroadcastAnnouncement } from '../types';
+import { Session, Track, Room, UserProfile, BroadcastAnnouncement, MealService, AttendanceRecord } from '../types';
 import { SAMPLE_CSV_TEMPLATE } from '../data/initialData';
 
 interface AdminConsoleProps {
@@ -31,6 +31,8 @@ interface AdminConsoleProps {
     roomsCount: number;
     tracksCount: number;
   };
+  mealServices: MealService[];
+  attendance: AttendanceRecord[];
 }
 
 interface ParsedRow {
@@ -215,9 +217,11 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             userType: row.speakerEmail.includes('@chadwickschool.org') ? 'internal_faculty' : 'external_guest',
             role: 'speaker',
             avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
-            bio: `${row.speakerName} presenting at KORCOS Summit.`,
+            bio: `${row.speakerName} presenting at this event.`,
             isDirectoryVisible: true,
             checkedIn: false,
+            // Contact sharing is opt-in; an imported speaker has not consented.
+            shareContactOnScan: false,
           });
         }
       }

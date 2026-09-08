@@ -1,36 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { 
-  ShieldCheck, 
-  CheckCircle2, 
-  Clock, 
-  Sparkles, 
-  Download, 
-  Share2, 
-  Scan, 
-  Camera, 
-  Building2, 
-  QrCode, 
-  AlertCircle,
-  ExternalLink,
-  RefreshCw
-} from 'lucide-react';
-import { UserProfile, Session } from '../types';
+import { DIETARY_META } from '../lib/dietary';
+import { ShieldCheck, CheckCircle2, Clock, Sparkles, Download, Share2, Scan, Camera, Building2, QrCode, AlertCircle, ExternalLink, RefreshCw, Printer, UtensilsCrossed, DoorOpen, ShieldOff } from 'lucide-react';
+import { UserProfile, Session, MealService, MealOption, AttendanceRecord } from '../types';
 
 interface DigitalBadgeProps {
   currentUser: UserProfile;
   onToggleCheckIn: (userId: string) => void;
   reservedSessions: Session[];
   onOpenScanner: () => void;
+  mealSelections: { service: MealService; option: MealOption }[];
+  attendanceRecords: AttendanceRecord[];
+  sessions: Session[];
+  onToggleContactSharing: () => void;
+  onOpenDoorScanner: () => void;
+  onOpenPrintBadge: () => void;
 }
 
 export const DigitalBadge: React.FC<DigitalBadgeProps> = ({
   currentUser,
   onToggleCheckIn,
   reservedSessions,
+  mealSelections,
+  attendanceRecords,
+  sessions,
+  onToggleContactSharing,
+  onOpenDoorScanner,
+  onOpenPrintBadge,
   onOpenScanner,
 }) => {
   const [copiedUuid, setCopiedUuid] = useState(false);
+
+  /* Held for the life of the mount; regenerating per render made the
+     footer token flicker on every state change. */
+  const sessionToken = useMemo(
+    () => Math.random().toString(36).substring(2, 8).toUpperCase(),
+    [],
+  );
 
   // Encode structured payload into dynamic QR Code
   const qrPayload = JSON.stringify({
@@ -269,13 +275,123 @@ export const DigitalBadge: React.FC<DigitalBadgeProps> = ({
               )}
             </div>
 
+
+            {/* Pre-selected meals, shown for catering staff at the counter */}
+            <div className="pt-3 border-t border-slate-100 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-slate-700 flex items-center gap-1.5">
+                  <UtensilsCrossed className="w-3.5 h-3.5 text-emerald-700" />
+                  Meal Selections:
+                </span>
+                <span className="text-slate-500 font-medium">{mealSelections.length} chosen</span>
+              </div>
+              {mealSelections.length === 0 ? (
+                <p className="text-xs text-slate-400 italic">
+                  No meals selected yet. Choose them under Dining &amp; Meals.
+                </p>
+              ) : (
+                <div className="space-y-1.5">
+                  {mealSelections.map(({ service, option }) => (
+                    <div key={service.id} className="text-xs bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center justify-between gap-2">
+                      <div className="truncate">
+                        <span className="font-bold text-slate-800">{service.name}:</span>{' '}
+                        <span className="text-slate-600">{option.label}</span>
+                      </div>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold shrink-0 border ${DIETARY_META[option.dietary].className}`}>
+                        {DIETARY_META[option.dietary].short}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Verified attendance — the record this badge produces */}
+            <div className="pt-3 border-t border-slate-100 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-slate-700">Verified Attendance:</span>
+                <span className="text-slate-500 font-medium">{attendanceRecords.length} scans</span>
+              </div>
+              {attendanceRecords.length === 0 ? (
+                <p className="text-xs text-slate-400 italic">
+                  No session scans recorded yet.
+                </p>
+              ) : (
+                <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
+                  {attendanceRecords.map(rec => {
+                    const sess = sessions.find(s => s.id === rec.sessionId);
+                    const tone = rec.status === 'verified'
+                      ? 'text-emerald-800 bg-emerald-50 border-emerald-300'
+                      : rec.status === 'walk_in'
+                        ? 'text-blue-700 bg-blue-50 border-blue-200'
+                        : 'text-amber-900 bg-amber-50 border-amber-300';
+                    return (
+                      <div key={rec.id} className="text-xs bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center justify-between gap-2">
+                        <div className="truncate">
+                          <span className="text-slate-600">{sess?.title ?? 'Unknown session'}</span>
+                          <span className="text-slate-400"> · {rec.scannedAt}</span>
+                        </div>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold shrink-0 border capitalize ${tone}`}>
+                          {rec.status.replace('_', ' ')}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Consent: does a peer scan hand over contact details */}
+            <div className="pt-3 border-t border-slate-100">
+              <button
+                onClick={onToggleContactSharing}
+                className={`w-full flex items-center gap-2.5 p-2.5 rounded-xl border transition-colors cursor-pointer text-left ${
+                  currentUser.shareContactOnScan
+                    ? 'bg-blue-50 border-blue-200'
+                    : 'bg-slate-50 border-slate-200'
+                }`}
+              >
+                {currentUser.shareContactOnScan
+                  ? <Share2 className="w-4 h-4 text-blue-600 shrink-0" />
+                  : <ShieldOff className="w-4 h-4 text-slate-400 shrink-0" />}
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-bold text-slate-800">
+                    {currentUser.shareContactOnScan ? 'Contact sharing is on' : 'Contact sharing is off'}
+                  </div>
+                  <div className="text-[11px] text-slate-500 leading-snug">
+                    {currentUser.shareContactOnScan
+                      ? 'Scanning your badge shares your email and LinkedIn.'
+                      : 'Your badge verifies identity only; no contact details are shared.'}
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Badge actions */}
+            <div className="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2">
+              <button
+                onClick={onOpenPrintBadge}
+                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
+              >
+                <Printer className="w-4 h-4" />
+                Print badge
+              </button>
+              <button
+                onClick={onOpenDoorScanner}
+                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 border-slate-200 text-slate-700 text-xs font-semibold hover:border-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+              >
+                <DoorOpen className="w-4 h-4" />
+                Door scanner
+              </button>
+            </div>
+
           </div>
 
           {/* Pass Footer Barcode & Security Strip */}
           <div className="p-3 bg-slate-100 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 font-mono">
-            <span>KORCOS-SECURE-OIDC</span>
-            <span>TOKEN: {Math.random().toString(36).substring(2, 8).toUpperCase()}</span>
-            <span>CHADWICK-INTL-2026</span>
+            <span>CI-CONNECTS-SECURE-OIDC</span>
+            <span>TOKEN: {sessionToken}</span>
+            <span>CHADWICK-INTL</span>
           </div>
 
         </div>
