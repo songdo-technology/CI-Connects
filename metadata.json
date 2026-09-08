@@ -1,0 +1,6 @@
+{
+  "name": "CI Events",
+  "description": "An institutional conference and event management platform combining multi-track scheduling with community networking, featuring Google Workspace SSO, atomic capacity reservations, QR badge check-in, community meetups, and CSV schedule ingestion.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
