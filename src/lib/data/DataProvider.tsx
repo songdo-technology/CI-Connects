@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { CollectionKey, CollectionTypes, COLLECTION_KEYS } from './schema';
 import { BatchOperation, DataStore } from './store';
+import { useAuthOptional } from '../AuthProvider';
 
 type Collections = { [K in CollectionKey]: CollectionTypes[K][] };
 
@@ -37,6 +38,13 @@ export const DataProvider: React.FC<{
   isRemote?: boolean;
   children: React.ReactNode;
 }> = ({ store, isRemote = false, children }) => {
+  // Firestore terminates a listener that hits permission-denied and never
+  // retries it. Collections requiring auth therefore stay dead after the user
+  // signs in, unless every subscription is torn down and re-opened against the
+  // new identity — which is what this key forces.
+  const auth = useAuthOptional();
+  const identity = auth?.firebaseUser?.uid ?? 'anonymous';
+
   const [collections, setCollections] = useState<Collections>(EMPTY);
   const [readyKeys, setReadyKeys] = useState<Set<CollectionKey>>(new Set());
 
@@ -46,6 +54,9 @@ export const DataProvider: React.FC<{
   storeRef.current = store;
 
   useEffect(() => {
+    // A change of identity invalidates what was readable, so start clean
+    // rather than leaving the previous user's snapshots on screen.
+    setReadyKeys(new Set());
     const unsubscribes = COLLECTION_KEYS.map((key) =>
       store.subscribe(key, (items) => {
         setCollections((prev) => ({ ...prev, [key]: items }));
@@ -53,7 +64,7 @@ export const DataProvider: React.FC<{
       }),
     );
     return () => { for (const off of unsubscribes) off(); };
-  }, [store]);
+  }, [store, identity]);
 
   const value = useMemo<DataContextValue>(() => ({
     ...collections,

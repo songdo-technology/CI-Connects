@@ -94,6 +94,12 @@ export const AuthProvider: React.FC<{
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+/** Returns null outside an AuthProvider rather than throwing, for consumers
+ *  that merely want to react to identity changes. */
+export function useAuthOptional(): AuthContextValue | null {
+  return useContext(AuthContext);
+}
+
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used inside an <AuthProvider>');

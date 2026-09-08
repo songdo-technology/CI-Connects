@@ -64,9 +64,6 @@ service cloud.firestore {
       return isAdmin()
         || (isOrganiser() && eventDoc(eventId).get('ownerId', '') == uid());
     }
-    function eventPublished(eventId) {
-      return eventDoc(eventId).get('status', 'published') == 'published';
-    }
 
     // ------------------------------------------------------------------ users
     match /users/{userId} {
@@ -76,9 +73,19 @@ service cloud.firestore {
       allow update: if isAdmin()
                     || (signedIn() && uid() == userId && unchanged(['role', 'id', 'email']));
 
-      // Self-provisioning on first sign-in, pinned to the caller's own
-      // identity. Everyone lands as an attendee; the bootstrap list is the one
-      // exception, and exists only so the first administrator can come to be.
+      // Two ways a user document comes into being.
+      //
+      // Organisers provision accounts for other people — visiting guests who
+      // have no Chadwick login, and the seeded sample directory. Only an admin
+      // may mint another administrator; an organiser inviting a guest must not
+      // be able to hand out their own level of access.
+      allow create: if isAdmin()
+                    || (isOrganiser() && request.resource.data.role != 'technical_admin');
+
+      // Or a person provisions themselves on first sign-in, pinned to their
+      // own identity. Everyone lands as an attendee; the bootstrap list is the
+      // single exception, and exists only so the first administrator can come
+      // to be.
       allow create: if signedIn()
                     && uid() == userId
                     && request.resource.data.email == request.auth.token.email
