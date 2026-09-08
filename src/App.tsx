@@ -1,31 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import {
-  INITIAL_TRACKS,
-  INITIAL_ROOMS,
-  INITIAL_SPONSORS,
-  INITIAL_PROFILES,
-  INITIAL_SESSIONS,
-  INITIAL_COMMUNITY_TOPICS,
-  INITIAL_ANNOUNCEMENTS,
-  INITIAL_MEAL_SERVICES,
-  INITIAL_ATTENDANCE,
-  INITIAL_MESSAGES,
-  INITIAL_FEEDBACK,
-  EVENT_CONFIG,
-  EVENTS,
-} from './data/initialData';
+// Only the event catalogue is still read directly; every other collection
+// now arrives through the store.
+import { EVENT_CONFIG, EVENTS } from './data/initialData';
 import {
   ActiveTab,
   Session,
   UserProfile,
   Track,
   Room,
-  Sponsor,
   CommunityTopic,
   BroadcastAnnouncement,
-  MealService,
   AttendanceRecord,
-  DirectMessage,
   FeedbackEntry,
   AuthSession,
   AuthMethod,
@@ -50,6 +35,7 @@ import { ContactCardModal } from './components/ContactCardModal';
 import { PrintableBadge } from './components/PrintableBadge';
 import { RoomSignage } from './components/RoomSignage';
 import { EventsHub } from './components/EventsHub';
+import { useData } from './lib/data/DataProvider';
 import { FeedbackView } from './components/FeedbackView';
 import { SignageDirectory } from './components/SignageDirectory';
 
@@ -62,18 +48,28 @@ const now = () =>
   new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
 export default function App() {
-  // Application Data State
-  const [allUsers, setAllUsers] = useState<UserProfile[]>(INITIAL_PROFILES);
-  const [sessions, setSessions] = useState<Session[]>(INITIAL_SESSIONS);
-  const [tracks, setTracks] = useState<Track[]>(INITIAL_TRACKS);
-  const [rooms, setRooms] = useState<Room[]>(INITIAL_ROOMS);
-  const [sponsors] = useState<Sponsor[]>(INITIAL_SPONSORS);
-  const [communityTopics, setCommunityTopics] = useState<CommunityTopic[]>(INITIAL_COMMUNITY_TOPICS);
-  const [announcements, setAnnouncements] = useState<BroadcastAnnouncement[]>(INITIAL_ANNOUNCEMENTS);
-  const [mealServices, setMealServices] = useState<MealService[]>(INITIAL_MEAL_SERVICES);
-  const [attendance, setAttendance] = useState<AttendanceRecord[]>(INITIAL_ATTENDANCE);
-  const [messages, setMessages] = useState<DirectMessage[]>(INITIAL_MESSAGES);
-  const [feedback, setFeedback] = useState<FeedbackEntry[]>(INITIAL_FEEDBACK);
+  // All application data comes from the store. Nothing below keeps a local
+  // copy: every mutation writes, and the screen updates when the subscription
+  // delivers the result. That is what makes the Firestore swap a one-line
+  // change in main.tsx rather than a rewrite of this file.
+  const {
+    users: allUsers,
+    events,
+    sessions,
+    tracks,
+    rooms,
+    sponsors,
+    mealServices,
+    announcements,
+    communityTopics,
+    attendance,
+    messages,
+    feedback,
+    create,
+    update,
+    batch,
+    ready,
+  } = useData();
 
   // Auth & surface routing
   /** Read once from the URL so /?event=<slug> is a real, shareable address
@@ -137,10 +133,13 @@ export default function App() {
 
   /** The signed-in user, resolved from the auth session rather than held
    *  separately, so there is exactly one source of truth for identity. */
-  const currentUser = useMemo(
+  /** Undefined until the store delivers. The render gate below gives every
+   *  consumer a non-null value; only the memos above it must guard. */
+  const currentUser: UserProfile | undefined = useMemo(
     () => allUsers.find((u) => u.id === authSession?.userId) ?? allUsers[0],
     [allUsers, authSession],
   );
+  const currentUserId = currentUser?.id;
 
   // ---------------------------------------------------------------- Auth
   const handleSignIn = (user: UserProfile, method: AuthMethod) => {
@@ -174,35 +173,31 @@ export default function App() {
         nextReserved.push(promotedUser);
       }
 
-      setSessions(prev => prev.map(s => s.id === sessionId ? {
-        ...s,
+      update('sessions', sessionId, {
         reservedUserIds: nextReserved,
         waitlistUserIds: nextWaitlist,
-      } : s));
+      });
 
       return { success: true, message: `Reservation cancelled for "${session.title}".` };
     } else if (isWaitlisted) {
       // Remove from waitlist
-      setSessions(prev => prev.map(s => s.id === sessionId ? {
-        ...s,
-        waitlistUserIds: s.waitlistUserIds.filter(id => id !== currentUser.id),
-      } : s));
+      update('sessions', sessionId, {
+        waitlistUserIds: session.waitlistUserIds.filter(id => id !== currentUser.id),
+      });
       return { success: true, message: `Removed from waitlist for "${session.title}".` };
     } else {
       // Attempt atomic reservation
       if (session.reservedUserIds.length < session.maxAttendees) {
-        setSessions(prev => prev.map(s => s.id === sessionId ? {
-          ...s,
-          reservedUserIds: [...s.reservedUserIds, currentUser.id],
-        } : s));
+        update('sessions', sessionId, {
+          reservedUserIds: [...session.reservedUserIds, currentUser.id],
+        });
         const roomName = rooms.find(r => r.id === session.roomId)?.name || 'Venue';
         return { success: true, message: `Seat confirmed for "${session.title}" in ${roomName}.` };
       } else {
         // Over capacity: place on atomic waitlist
-        setSessions(prev => prev.map(s => s.id === sessionId ? {
-          ...s,
-          waitlistUserIds: [...s.waitlistUserIds, currentUser.id],
-        } : s));
+        update('sessions', sessionId, {
+          waitlistUserIds: [...session.waitlistUserIds, currentUser.id],
+        });
         return {
           success: true,
           message: `Room capacity full (${session.maxAttendees} seats). Added to waitlist (#${session.waitlistUserIds.length + 1}).`,
@@ -214,45 +209,33 @@ export default function App() {
 
   // Check-In toggle handler
   const handleToggleCheckIn = (userId: string) => {
-    setAllUsers(prev => prev.map(u => {
-      if (u.id === userId) {
-        const nextStatus = !u.checkedIn;
-        return {
-          ...u,
-          checkedIn: nextStatus,
-          checkedInAt: nextStatus ? now() : undefined,
-        };
-      }
-      return u;
-    }));
+    const user = allUsers.find(u => u.id === userId);
+    if (!user) return;
+    const nextStatus = !user.checkedIn;
+    update('users', userId, {
+      checkedIn: nextStatus,
+      checkedInAt: nextStatus ? now() : undefined,
+    });
   };
 
   // Directory Privacy Toggle for active user
   const handleToggleDirectoryVisibility = () => {
-    setAllUsers(prev => prev.map(u =>
-      u.id === currentUser.id ? { ...u, isDirectoryVisible: !u.isDirectoryVisible } : u
-    ));
+    update('users', currentUser.id, { isDirectoryVisible: !currentUser.isDirectoryVisible });
   };
 
   /** Opt in or out of handing over contact details when the badge is scanned. */
   const handleToggleContactSharing = () => {
-    setAllUsers(prev => prev.map(u =>
-      u.id === currentUser.id ? { ...u, shareContactOnScan: !u.shareContactOnScan } : u
-    ));
+    update('users', currentUser.id, { shareContactOnScan: !currentUser.shareContactOnScan });
   };
 
   // ------------------------------------------------------------- Dining
   const handleSelectMeal = (serviceId: string, optionId: string | null) => {
-    setMealServices(prev => prev.map(service => {
-      if (service.id !== serviceId) return service;
-      const next = { ...service.selections };
-      if (optionId === null) {
-        delete next[currentUser.id];
-      } else {
-        next[currentUser.id] = optionId;
-      }
-      return { ...service, selections: next };
-    }));
+    const service = mealServices.find(s => s.id === serviceId);
+    if (!service) return;
+    const selections = { ...service.selections };
+    if (optionId === null) delete selections[currentUser.id];
+    else selections[currentUser.id] = optionId;
+    update('mealServices', serviceId, { selections });
   };
 
   // --------------------------------------------------------- Attendance
@@ -287,32 +270,40 @@ export default function App() {
       scannedBy: currentUser.id,
     };
 
-    setAttendance(prev => [record, ...prev]);
-
-    // A door scan also admits them to the venue if they were not already in.
-    setAllUsers(prev => prev.map(u =>
-      u.id === userId && !u.checkedIn ? { ...u, checkedIn: true, checkedInAt: record.scannedAt } : u
-    ));
+    // One batch: a scan that recorded attendance but failed to admit the
+    // person would leave the door staff looking at a contradiction.
+    const scanned = allUsers.find(u => u.id === userId);
+    batch([
+      { op: 'create', key: 'attendance', item: record },
+      ...(scanned && !scanned.checkedIn
+        ? [{ op: 'update' as const, key: 'users' as const, id: userId,
+             patch: { checkedIn: true, checkedInAt: record.scannedAt } }]
+        : []),
+    ]);
 
     return record;
   };
 
   // ----------------------------------------------------------- Messaging
   const handleSendMessage = (toUserId: string, content: string) => {
-    setMessages(prev => [...prev, {
+    create('messages', {
       id: `msg-${Date.now()}`,
       fromUserId: currentUser.id,
       toUserId,
       content,
       createdAt: 'Just now',
       read: false,
-    }]);
+    });
   };
 
   const handleMarkRead = (fromUserId: string) => {
-    setMessages(prev => prev.map(m =>
-      m.fromUserId === fromUserId && m.toUserId === currentUser.id ? { ...m, read: true } : m
-    ));
+    const unread = messages.filter(
+      m => m.fromUserId === fromUserId && m.toUserId === currentUser.id && !m.read,
+    );
+    if (unread.length === 0) return;
+    batch(unread.map(m => ({
+      op: 'update' as const, key: 'messages' as const, id: m.id, patch: { read: true },
+    })));
   };
 
   const handleOpenThread = (userId: string) => {
@@ -324,14 +315,14 @@ export default function App() {
   const handleSubmitFeedback = (
     entry: Omit<FeedbackEntry, 'id' | 'userId' | 'submittedAt'>,
   ) => {
-    setFeedback(prev => [{
+    create('feedback', {
       ...entry,
       id: `fb-${Date.now()}`,
       userId: currentUser.id,
       submittedAt: new Date().toLocaleString([], {
         month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
       }),
-    }, ...prev]);
+    });
   };
 
   // Community Topic Handlers
@@ -344,31 +335,26 @@ export default function App() {
       replies: [],
       rsvpUserIds: newTopicData.category === 'Informal Meetups' ? [currentUser.id] : [],
     };
-    setCommunityTopics(prev => [newTopic, ...prev]);
+    create('communityTopics', newTopic);
   };
 
   const handleToggleRsvp = (topicId: string) => {
-    setCommunityTopics(prev => prev.map(topic => {
-      if (topic.id === topicId) {
-        const isRsvped = topic.rsvpUserIds.includes(currentUser.id);
-        return {
-          ...topic,
-          rsvpUserIds: isRsvped
-            ? topic.rsvpUserIds.filter(id => id !== currentUser.id)
-            : [...topic.rsvpUserIds, currentUser.id],
-        };
-      }
-      return topic;
-    }));
+    const topic = communityTopics.find(x => x.id === topicId);
+    if (!topic) return;
+    const isRsvped = topic.rsvpUserIds.includes(currentUser.id);
+    update('communityTopics', topicId, {
+      rsvpUserIds: isRsvped
+        ? topic.rsvpUserIds.filter(id => id !== currentUser.id)
+        : [...topic.rsvpUserIds, currentUser.id],
+    });
   };
 
   const handleAddReply = (topicId: string, replyText: string) => {
-    setCommunityTopics(prev => prev.map(topic => {
-      if (topic.id === topicId) {
-        return {
-          ...topic,
-          replies: [
-            ...topic.replies,
+    const topic = communityTopics.find(x => x.id === topicId);
+    if (!topic) return;
+    update('communityTopics', topicId, {
+      replies: [
+        ...topic.replies,
             {
               id: `rep-${Date.now()}`,
               authorName: currentUser.fullName,
@@ -377,20 +363,14 @@ export default function App() {
               content: replyText,
               createdAt: 'Just now',
             },
-          ],
-        };
-      }
-      return topic;
-    }));
+      ],
+    });
   };
 
   const handleToggleLike = (topicId: string) => {
-    setCommunityTopics(prev => prev.map(topic => {
-      if (topic.id === topicId) {
-        return { ...topic, likesCount: topic.likesCount + 1 };
-      }
-      return topic;
-    }));
+    const topic = communityTopics.find(x => x.id === topicId);
+    if (!topic) return;
+    update('communityTopics', topicId, { likesCount: topic.likesCount + 1 });
   };
 
   // Emergency Broadcast Broadcaster
@@ -403,7 +383,7 @@ export default function App() {
       timestamp: 'Just now',
       active: true,
     };
-    setAnnouncements(prev => [newAnn, ...prev]);
+    create('announcements', newAnn);
   };
 
   // CSV Batch Ingestion Handler
@@ -413,16 +393,14 @@ export default function App() {
     newRooms: Room[],
     newProfiles: UserProfile[]
   ) => {
-    if (newTracks.length > 0) {
-      setTracks(prev => [...prev, ...newTracks]);
-    }
-    if (newRooms.length > 0) {
-      setRooms(prev => [...prev, ...newRooms]);
-    }
-    if (newProfiles.length > 0) {
-      setAllUsers(prev => [...prev, ...newProfiles]);
-    }
-    setSessions(prev => [...prev, ...newSessions]);
+    // A spreadsheet import is one action from the organiser's point of view,
+    // so it lands as one batch rather than four partial writes.
+    batch([
+      ...newTracks.map(x => ({ op: 'create' as const, key: 'tracks' as const, item: x })),
+      ...newRooms.map(x => ({ op: 'create' as const, key: 'rooms' as const, item: x })),
+      ...newProfiles.map(x => ({ op: 'create' as const, key: 'users' as const, item: x })),
+      ...newSessions.map(x => ({ op: 'create' as const, key: 'sessions' as const, item: x })),
+    ]);
 
     return {
       insertedSessionsCount: newSessions.length,
@@ -439,33 +417,51 @@ export default function App() {
 
   // Active bookmarked sessions count for user
   const bookmarkedSessionsCount = useMemo(() => {
-    return sessions.filter(s => s.reservedUserIds.includes(currentUser.id)).length;
-  }, [sessions, currentUser.id]);
+    return sessions.filter(s => currentUserId && s.reservedUserIds.includes(currentUserId)).length;
+  }, [sessions, currentUserId]);
 
   const reservedSessionsForUser = useMemo(() => {
-    return sessions.filter(s => s.reservedUserIds.includes(currentUser.id));
-  }, [sessions, currentUser.id]);
+    return sessions.filter(s => currentUserId && s.reservedUserIds.includes(currentUserId));
+  }, [sessions, currentUserId]);
 
   const unreadMessageCount = useMemo(
-    () => messages.filter(m => m.toUserId === currentUser.id && !m.read).length,
-    [messages, currentUser.id],
+    () => messages.filter(m => m.toUserId === currentUserId && !m.read).length,
+    [messages, currentUserId],
   );
 
   const myMealSelections = useMemo(
     () => mealServices
-      .filter(s => s.selections[currentUser.id])
+      .filter(s => currentUserId && s.selections[currentUserId])
       .map(s => ({
         service: s,
-        option: s.options.find(o => o.id === s.selections[currentUser.id])!,
+        option: s.options.find(o => o.id === s.selections[currentUserId!])!,
       }))
       .filter(x => x.option),
-    [mealServices, currentUser.id],
+    [mealServices, currentUserId],
   );
 
   const myAttendance = useMemo(
-    () => attendance.filter(a => a.userId === currentUser.id),
-    [attendance, currentUser.id],
+    () => attendance.filter(a => a.userId === currentUserId),
+    [attendance, currentUserId],
   );
+
+  // Gate placed after every hook: returning earlier would change the hook
+  // count between the loading and loaded renders, which React rejects.
+  // Subscriptions attach in an effect, so the first render has empty
+  // collections. Everything below assumes data is present — currentUser falls
+  // back to allUsers[0] — so hold rendering until the store has delivered.
+  // This is not a workaround for the in-memory store: Firestore has the same
+  // shape, only slower, so the gate has to exist either way.
+  if (!ready || !currentUser) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 rounded-xl bg-blue-600 mx-auto mb-4 animate-pulse" />
+          <p className="text-sm text-slate-500">Loading CI Connects…</p>
+        </div>
+      </div>
+    );
+  }
 
   // ------------------------------------------------------ Surface: signage
   // Read straight from the URL rather than from state: a CI Vision Live Cast
