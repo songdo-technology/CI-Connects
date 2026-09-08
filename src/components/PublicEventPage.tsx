@@ -37,8 +37,11 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
   const [agendaDay, setAgendaDay] = useState(1);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+  // Confirmed speakers first; sample entries trail so the real programme leads.
   const speakers = useMemo(
-    () => profiles.filter((p) => p.role === 'speaker'),
+    () => profiles
+      .filter((p) => p.role === 'speaker')
+      .sort((a, b) => Number(a.isPlaceholder ?? false) - Number(b.isPlaceholder ?? false)),
     [profiles],
   );
 
@@ -250,23 +253,36 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3">
             Led by people doing the work
           </h2>
-          <p className="text-slate-500 max-w-2xl mb-12 leading-relaxed">
+          <p className="text-slate-500 max-w-2xl mb-4 leading-relaxed">
             Every session is presented by a practising educator, school leader or
             technologist — not a vendor.
           </p>
+          {speakers.some((s) => s.isPlaceholder) && (
+            <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3.5 py-2.5 max-w-2xl mb-12">
+              Entries marked <strong>Sample</strong> are placeholders. Replace them
+              with the confirmed speakers for this event.
+            </p>
+          )}
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {speakers.map((s) => (
               <div key={s.id} className="group rounded-2xl border border-slate-200 overflow-hidden hover:border-blue-600 transition-colors">
-                <div className="aspect-[4/3] overflow-hidden bg-slate-100">
+                <div className="aspect-[4/3] overflow-hidden bg-slate-100 flex items-center justify-center">
                   <img
                     src={s.avatarUrl}
-                    alt={s.fullName}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    alt=""
+                    className="w-24 h-24 rounded-2xl object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
                 <div className="p-5">
-                  <h3 className="font-bold text-slate-900 leading-tight">{s.fullName}</h3>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-bold text-slate-900 leading-tight">{s.fullName}</h3>
+                    {s.isPlaceholder && (
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+                        Sample
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-blue-700 font-medium mt-0.5">{s.title}</p>
                   <p className="text-xs text-slate-400 mt-0.5">{s.organization}</p>
                   <p className="text-sm text-slate-600 leading-relaxed mt-3 line-clamp-3">{s.bio}</p>

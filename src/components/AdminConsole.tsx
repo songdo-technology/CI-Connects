@@ -18,6 +18,7 @@ import {
 import { Session, Track, Room, UserProfile, BroadcastAnnouncement, MealService, AttendanceRecord, EventConfig, FeedbackEntry } from '../types';
 import { SAMPLE_CSV_TEMPLATE } from '../data/initialData';
 import { SignageControl } from './SignageControl';
+import { initialsAvatar } from '../lib/avatar';
 import { FeedbackReport } from './FeedbackReport';
 
 interface AdminConsoleProps {
@@ -224,7 +225,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             organization: 'Chadwick International',
             userType: row.speakerEmail.includes('@chadwickschool.org') ? 'internal_faculty' : 'external_guest',
             role: 'speaker',
-            avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+            avatarUrl: initialsAvatar(row.speakerName),
             bio: `${row.speakerName} presenting at this event.`,
             isDirectoryVisible: true,
             checkedIn: false,

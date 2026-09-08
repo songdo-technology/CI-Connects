@@ -127,6 +127,9 @@ export interface UserProfile {
   accessCode?: string;
   /** Opt-in: allow the badge QR to hand over contact details when scanned. */
   shareContactOnScan: boolean;
+  /** Sample entry to be replaced per event. Surfaces a visible marker on the
+   *  public speaker card so placeholder copy is never mistaken for a booking. */
+  isPlaceholder?: boolean;
 }
 
 export interface Track {
