@@ -22,7 +22,7 @@ interface LandingPageProps {
  * (Google provider + a custom-token or email-link flow) when the backend
  * lands; this component's props are shaped so that swap is contained.
  */
-const GUEST_DEMO_CODE = 'CI-2026';
+const GUEST_DEMO_CODE = 'CI-DEMO';
 
 export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, onBackToEvent, eventName }) => {
   const [mode, setMode] = useState<'choose' | 'guest'>('choose');

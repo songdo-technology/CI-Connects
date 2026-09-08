@@ -123,11 +123,11 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
         index: i,
         title: title || 'Untitled Session',
         description: description || '',
-        date: date || '2026-10-16',
+        date: date || event.startDate,
         startTime: startTime || '09:00 AM',
         endTime: endTime || '10:15 AM',
         track: track || 'General',
-        trackColor: trackColor || '#2563EB',
+        trackColor: trackColor || '#002B54',
         room: room || 'Main Hall',
         roomCapacity: capNum,
         speakerName: speakerName || 'Staff Presenter',
@@ -236,16 +236,23 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
       }
 
       // 4. Session
-      const isDay2 = row.date.includes('17');
+      // Day is derived by comparing the row's date to the event's own start
+      // and end dates. The previous check sniffed the string for '17', which
+      // silently put every imported session on Day 1 once the dates moved.
+      const isDay2 = row.date.trim() === event.endDate && event.endDate !== event.startDate;
+      const dayDate = new Date(`${isDay2 ? event.endDate : event.startDate}T00:00:00`);
+      const dayLabel = dayDate.toLocaleDateString('en-US', {
+        weekday: 'long', month: 'short', day: 'numeric', year: 'numeric',
+      });
       newSessions.push({
         id: `sess-imported-${Date.now()}-${idx}`,
-        eventId: 'evt-mission-conference',
+        eventId: event.id,
         roomId: roomId!,
         trackId: trackId!,
         title: row.title,
         description: row.description || 'Imported via master conference spreadsheet.',
         day: isDay2 ? 2 : 1,
-        dateStr: isDay2 ? 'Saturday, Oct 17, 2026' : 'Friday, Oct 16, 2026',
+        dateStr: dayLabel,
         startTime: row.startTime,
         endTime: row.endTime,
         startMinutes: 660 + (idx * 30),

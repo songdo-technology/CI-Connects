@@ -295,6 +295,10 @@ export interface EventConfig {
    *  are showcase entries with a landing page only. */
   hasPortal?: boolean;
   highlights?: { label: string; value: string }[];
+  /** Named leads for workshop-style events, where who is running it is the
+   *  main reason to attend. Distinct from session speakers, which only the
+   *  full-programme events carry. */
+  presenters?: { name: string; role: string; note?: string }[];
   about?: { heading: string; body: string }[];
   /** Recorded after the fact, shown on past-event cards. */
   outcomes?: { label: string; value: string }[];

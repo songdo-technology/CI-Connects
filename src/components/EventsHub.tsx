@@ -86,7 +86,16 @@ export const EventsHub: React.FC<EventsHubProps> = ({ events, onOpenEvent, onSig
         <h3 className="text-lg font-bold text-slate-900 leading-snug mb-2 group-hover:text-blue-700 transition-colors">
           {e.name}
         </h3>
-        <p className="text-sm text-slate-600 leading-relaxed mb-4 line-clamp-3">{e.summary}</p>
+        <p className="text-sm text-slate-600 leading-relaxed mb-3 line-clamp-3">{e.summary}</p>
+
+        {!!e.presenters?.length && (
+          <div className="text-xs text-slate-500 mb-3">
+            <span className="text-slate-400">Led by </span>
+            <span className="font-semibold text-slate-700">
+              {e.presenters.map((pr) => pr.name).join(', ')}
+            </span>
+          </div>
+        )}
 
         {past && e.outcomes ? (
           <div className="mt-auto pt-3 border-t border-slate-100 flex flex-wrap gap-x-5 gap-y-1">
@@ -155,7 +164,7 @@ export const EventsHub: React.FC<EventsHubProps> = ({ events, onOpenEvent, onSig
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm mb-6">
                 <Sparkles className="w-3.5 h-3.5 text-blue-200" />
-                <span className="text-xs font-semibold text-blue-100 tracking-wide">Next up</span>
+                <span className="text-xs font-semibold text-blue-100 tracking-wide">Our flagship gathering</span>
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.08] mb-4">
                 {featured.name}

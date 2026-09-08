@@ -88,7 +88,7 @@ export const DiningView: React.FC<DiningViewProps> = ({ mealServices, currentUse
                   : 'bg-white text-slate-600 border-slate-200 hover:border-blue-600 hover:text-blue-700'
               }`}
             >
-              Day {d}: {label.replace(', 2026', '')}
+              Day {d}: {label.replace(/,\s*\d{4}$/, '')}
             </button>
           );
         })}

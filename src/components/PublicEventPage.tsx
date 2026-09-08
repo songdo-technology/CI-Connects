@@ -61,6 +61,7 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
   const NAV = ([
     event.about?.length ? ['About', 'about'] : null,
     hasProgramme ? ['Speakers', 'speakers'] : null,
+    event.presenters?.length ? ['Led by', 'presenters'] : null,
     hasProgramme ? ['Agenda', 'agenda'] : null,
     ['Venue', 'venue'],
     sponsors.length ? ['Sponsors', 'sponsors'] : null,
@@ -292,6 +293,36 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
           </div>
         </div>
       </section>
+      )}
+
+      {/* ---------------- Led by ----------------
+          Workshop-style events have no session programme, but who is running
+          them is the main reason to attend, so they get their own block. */}
+      {!!event.presenters?.length && (
+        <section id="presenters" className="py-20 sm:py-24 bg-white scroll-mt-16">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">
+              Led by
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-10">
+              {event.presenters.length === 1 ? 'Your facilitator' : 'Your facilitators'}
+            </h2>
+            <div className="space-y-4">
+              {event.presenters.map((pr) => (
+                <div key={pr.name} className="flex items-start gap-5 rounded-2xl border border-slate-200 p-6">
+                  <div className="w-16 h-16 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-xl font-bold shrink-0">
+                    {pr.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('')}
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-xl font-bold text-slate-900 leading-tight">{pr.name}</h3>
+                    <p className="text-sm text-blue-700 font-medium mt-0.5">{pr.role}</p>
+                    {pr.note && <p className="text-sm text-slate-500 mt-2 leading-relaxed">{pr.note}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       )}
 
       {/* ---------------- Agenda ---------------- */}
