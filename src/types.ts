@@ -1,6 +1,13 @@
 export type AttendeeType = 'internal_faculty' | 'internal_staff' | 'external_guest' | 'student';
 
-export type UserRole = 'attendee' | 'speaker' | 'organizer' | 'admin' | 'security';
+/** Role names are stable identifiers stored in Firestore and matched by the
+ *  security rules — renaming one is a data migration, not a label change. */
+export type UserRole =
+  | 'technical_admin'
+  | 'event_organizer'
+  | 'speaker'
+  | 'front_desk'
+  | 'attendee';
 
 /** How a person got into the platform. Chadwick staff use Workspace SSO;
  *  external guests redeem the access code emailed to them with their invite. */

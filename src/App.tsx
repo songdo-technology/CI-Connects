@@ -750,7 +750,7 @@ export default function App() {
         profile={contactCardProfile}
         onClose={() => setContactCardProfile(null)}
         onMessage={handleOpenThread}
-        viewerIsSecurity={currentUser.role === 'security'}
+        viewerIsSecurity={currentUser.role === 'front_desk'}
       />
 
       {/* Print-ready lanyard badges, single or bulk */}

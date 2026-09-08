@@ -13,6 +13,7 @@ import {
   CheckCircle2, 
   Sparkles,
   Lock, Linkedin } from 'lucide-react';
+import { can } from '../lib/permissions';
 import { UserProfile, AttendeeType } from '../types';
 
 interface DirectoryViewProps {
@@ -40,7 +41,7 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
     // Privacy check: If not visible, only organizers/admins or the user themselves can see it,
     // otherwise it's hidden from the public roster
     const isSelf = profile.id === currentUser.id;
-    const isAdmin = currentUser.role === 'organizer' || currentUser.role === 'admin';
+    const isAdmin = can(currentUser, 'users:view_all');
     if (!profile.isDirectoryVisible && !isSelf && !isAdmin) {
       return false;
     }

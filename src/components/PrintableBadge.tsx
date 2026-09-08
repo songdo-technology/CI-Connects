@@ -59,11 +59,11 @@ const splitName = (fullName: string) => {
 };
 
 const ROLE_BAND: Record<UserProfile['role'], { label: string; bg: string }> = {
-  attendee:  { label: 'ATTENDEE',  bg: '#002b54' },
-  speaker:   { label: 'SPEAKER',   bg: '#b04318' },
-  organizer: { label: 'ORGANIZER', bg: '#5e6513' },
-  admin:     { label: 'ORGANIZER', bg: '#5e6513' },
-  security:  { label: 'SECURITY',  bg: '#6b605a' },
+  attendee:        { label: 'ATTENDEE',  bg: '#002b54' },
+  speaker:         { label: 'SPEAKER',   bg: '#b04318' },
+  event_organizer: { label: 'ORGANISER', bg: '#5e6513' },
+  technical_admin: { label: 'ORGANISER', bg: '#5e6513' },
+  front_desk:      { label: 'FRONT DESK', bg: '#6b605a' },
 };
 
 export const PrintableBadge: React.FC<PrintableBadgeProps> = ({

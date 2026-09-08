@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, QrCode, Users, MessageSquare, Award, ShieldCheck, Smartphone, Monitor, Layers, ChevronDown, Building2, BellRing, CheckCircle2, Sparkles, ExternalLink, UtensilsCrossed, Send, LogOut, Globe, Sun } from 'lucide-react';
+import { can, ROLE_LABEL } from '../lib/permissions';
 import { ActiveTab, BroadcastAnnouncement, UserProfile } from '../types';
 
 interface HeaderProps {
@@ -191,7 +192,7 @@ export const Header: React.FC<HeaderProps> = ({
                     {currentUser.fullName}
                   </div>
                   <div className="text-[10px] text-slate-500 truncate leading-tight">
-                    {currentUser.userType === 'external_guest' ? 'External Guest' : currentUser.role === 'organizer' ? 'Admin' : 'Faculty'}
+                    {ROLE_LABEL[currentUser.role]}
                   </div>
                 </div>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -398,7 +399,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Award className="w-4 h-4 text-amber-400" />
             <span>Organizer Console & CSV</span>
-            {currentUser.role === 'organizer' && (
+            {can(currentUser, 'events:edit_own') && (
               <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-amber-400/20 text-amber-300 font-bold uppercase tracking-wider">
                 Admin
               </span>

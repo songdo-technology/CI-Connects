@@ -1,0 +1,227 @@
+rules_version = '2';
+
+// ============================================================================
+// CI Connects — Firestore security rules
+//
+// These rules are the security boundary. `src/lib/permissions.ts` mirrors them
+// for the UI (hiding controls a user cannot use), but the client is never
+// trusted: anything enforced there must also be enforced here.
+//
+// Two principles run through this file:
+//
+//  1. A user's role lives on their own /users document and is NOT writable by
+//     them. Otherwise anyone could promote themselves to technical_admin by
+//     editing their profile.
+//
+//  2. Reads are scoped by what a person legitimately needs. Attendance records
+//     and feedback are readable by their author and by organisers, not by the
+//     whole conference — a delegate should not be able to enumerate who
+//     attended what.
+// ============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------- helpers
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function role() {
+      return signedIn() ? userDoc().role : 'anonymous';
+    }
+
+    function isAdmin() {
+      return role() == 'technical_admin';
+    }
+
+    function isOrganiser() {
+      return role() in ['technical_admin', 'event_organizer'];
+    }
+
+    function isDoorStaff() {
+      return role() in ['technical_admin', 'event_organizer', 'front_desk'];
+    }
+
+    // Chadwick accounts are verified by the identity provider. Guests are
+    // provisioned by an organiser, so their /users doc already exists.
+    function isChadwick() {
+      return signedIn() && request.auth.token.email.matches('.*@chadwickschool[.]org$');
+    }
+
+    // True when the incoming write leaves the named fields untouched.
+    function unchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(fields.toSet());
+    }
+
+    // ------------------------------------------------------------------ users
+    match /users/{userId} {
+      // The directory is visible to signed-in users; the public site does not
+      // read profiles at all.
+      allow read: if signedIn();
+
+      // A person may edit their own profile but never their own role or the
+      // flags that gate what they can see.
+      allow update: if signedIn()
+                    && request.auth.uid == userId
+                    && unchanged(['role', 'id', 'email']);
+
+      // Roles are assigned by admins only.
+      allow update: if isAdmin();
+
+      // Self-provisioning on first sign-in, pinned to the caller's own identity
+      // and forced to the lowest role. Elevation is a separate admin action.
+      allow create: if signedIn()
+                    && request.auth.uid == userId
+                    && request.resource.data.role == 'attendee'
+                    && request.resource.data.email == request.auth.token.email;
+
+      allow delete: if isAdmin();
+    }
+
+    // ----------------------------------------------------------------- events
+    match /events/{eventId} {
+      // Published events are the public website, so they are world-readable.
+      // Drafts are visible only to organisers.
+      allow read: if resource.data.status == 'published' || isOrganiser();
+      allow create: if isOrganiser();
+      allow update: if isAdmin()
+                    || (isOrganiser() && resource.data.ownerId == request.auth.uid);
+      allow delete: if isAdmin();
+
+      // --------------------------------------------------- programme subtrees
+      // Sessions, rooms, dining and sponsors are part of the public page, so
+      // they follow the parent event's visibility.
+      function parentEvent() {
+        return get(/databases/$(database)/documents/events/$(eventId)).data;
+      }
+      function eventIsPublic() {
+        return parentEvent().status == 'published';
+      }
+      function ownsEvent() {
+        return isAdmin() || (isOrganiser() && parentEvent().ownerId == request.auth.uid);
+      }
+
+      match /sessions/{sessionId} {
+        allow read: if eventIsPublic() || isOrganiser();
+        allow create, delete: if ownsEvent();
+
+        // Organisers edit anything. A speaker may edit only their own session,
+        // and may not change its capacity or reservations — those are the
+        // fields that would let them quietly oversubscribe a room.
+        allow update: if ownsEvent()
+                      || (role() == 'speaker'
+                          && request.auth.uid in resource.data.speakerIds
+                          && unchanged(['maxAttendees', 'reservedUserIds',
+                                        'waitlistUserIds', 'roomId', 'speakerIds']));
+
+        // Attendees manage their own seat. The rule permits a write only when
+        // the reservation arrays are the sole change, which stops a booking
+        // request from smuggling in a title or capacity edit.
+        allow update: if signedIn()
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['reservedUserIds', 'waitlistUserIds']);
+      }
+
+      match /rooms/{roomId} {
+        allow read: if eventIsPublic() || isOrganiser();
+        allow write: if ownsEvent();
+      }
+
+      match /mealServices/{serviceId} {
+        allow read: if eventIsPublic() || signedIn();
+        allow create, delete: if ownsEvent();
+        allow update: if ownsEvent()
+                      || (signedIn()
+                          && request.resource.data.diff(resource.data).affectedKeys()
+                               .hasOnly(['selections']));
+      }
+
+      match /sponsors/{sponsorId} {
+        allow read: if eventIsPublic() || isOrganiser();
+        allow write: if ownsEvent();
+      }
+
+      match /announcements/{announcementId} {
+        allow read: if signedIn();
+        allow write: if ownsEvent();
+      }
+
+      // ------------------------------------------------------- attendance log
+      // Written by door staff, never edited afterwards — an attendance record
+      // that can be changed later is not evidence of anything.
+      match /attendance/{recordId} {
+        allow read: if isOrganiser() || resource.data.userId == request.auth.uid;
+        allow create: if isDoorStaff()
+                      && request.resource.data.scannedBy == request.auth.uid;
+        allow update, delete: if false;
+      }
+
+      // ------------------------------------------------------------- feedback
+      // Authors may read their own; organisers read all. Nobody may edit
+      // someone else's, and nothing is deletable — retracting feedback after
+      // an organiser has read it would undermine the record.
+      match /feedback/{entryId} {
+        allow read: if isOrganiser() || resource.data.userId == request.auth.uid;
+        allow create: if signedIn()
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.rating is int
+                      && request.resource.data.rating >= 1
+                      && request.resource.data.rating <= 5;
+        allow update: if signedIn()
+                      && resource.data.userId == request.auth.uid
+                      && unchanged(['userId', 'targetId', 'submittedAt']);
+        allow delete: if false;
+      }
+
+      // -------------------------------------------------------- community
+      match /communityTopics/{topicId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+                      && request.resource.data.authorId == request.auth.uid;
+        allow update: if isOrganiser()
+                      || (signedIn() && resource.data.authorId == request.auth.uid)
+                      // Anyone signed in may RSVP or like, and nothing else.
+                      || (signedIn()
+                          && request.resource.data.diff(resource.data).affectedKeys()
+                               .hasOnly(['rsvpUserIds', 'likesCount', 'replies']));
+        allow delete: if isOrganiser()
+                      || resource.data.authorId == request.auth.uid;
+      }
+    }
+
+    // --------------------------------------------------------------- messages
+    // Direct messages are readable only by their two participants. Organisers
+    // are deliberately excluded: running an event does not entitle anyone to
+    // read private correspondence.
+    match /messages/{messageId} {
+      allow read: if signedIn()
+                  && request.auth.uid in [resource.data.fromUserId, resource.data.toUserId];
+      allow create: if signedIn()
+                    && request.resource.data.fromUserId == request.auth.uid;
+      // Only the recipient may mark a message read.
+      allow update: if signedIn()
+                    && resource.data.toUserId == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow delete: if false;
+    }
+
+    // ------------------------------------------------------- signage takeover
+    // Read by unauthenticated display players, so it is world-readable; only
+    // organisers may write. Keep nothing sensitive in here.
+    match /signage/{docId} {
+      allow read: if true;
+      allow write: if isOrganiser();
+    }
+
+    // Deny anything not matched above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

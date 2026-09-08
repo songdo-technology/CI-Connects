@@ -135,7 +135,7 @@ export const SessionDoorScanner: React.FC<SessionDoorScannerProps> = ({
               </span>
             </div>
             <div className="grid sm:grid-cols-2 gap-2">
-              {profiles.filter((p) => p.role !== 'security').map((p) => {
+              {profiles.filter((p) => p.role !== 'front_desk').map((p) => {
                 const alreadyScanned = scansForThisDoor.some((a) => a.userId === p.id);
                 const isReserved = doorSession?.reservedUserIds.includes(p.id);
                 return (
