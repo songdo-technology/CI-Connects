@@ -60,7 +60,7 @@ export const CommunityBoard: React.FC<CommunityBoardProps> = ({
     if (!newTitle.trim() || !newContent.trim()) return;
 
     onAddTopic({
-      eventId: 'evt-korcos-2026',
+      eventId: 'evt-ci-conference',
       authorId: currentUser.id,
       authorName: currentUser.fullName,
       authorEmail: currentUser.email,

@@ -233,7 +233,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
       const isDay2 = row.date.includes('17');
       newSessions.push({
         id: `sess-imported-${Date.now()}-${idx}`,
-        eventId: 'evt-korcos-2026',
+        eventId: 'evt-ci-conference',
         roomId: roomId!,
         trackId: trackId!,
         title: row.title,

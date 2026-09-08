@@ -200,7 +200,7 @@ export type ActiveTab =
 /**
  * Everything the public-facing event page renders. Kept as data so a new
  * event is a content change, not a code change — the same portal can front
- * KORCOS one term and a parent symposium the next.
+ * the annual conference one term and a parent symposium the next.
  */
 export interface EventConfig {
   id: string;
@@ -216,6 +216,9 @@ export interface EventConfig {
   heroImageUrl: string;
   registrationOpen: boolean;
   registrationNote: string;
+  /** Marks demo/scaffold content. Surfaces a visible badge on the public page
+   *  so a sample event is never mistaken for a real announced one. */
+  isTemplate?: boolean;
   highlights: { label: string; value: string }[];
   about: { heading: string; body: string }[];
   faqs: { question: string; answer: string }[];

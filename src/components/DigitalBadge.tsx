@@ -41,7 +41,7 @@ export const DigitalBadge: React.FC<DigitalBadgeProps> = ({
   // Encode structured payload into dynamic QR Code
   const qrPayload = JSON.stringify({
     type: 'EVENT_BADGE_PASS_V1',
-    event: 'korcos-summit-2026',
+    event: 'ci-conference-2026',
     userId: currentUser.id,
     email: currentUser.email,
     name: currentUser.fullName,

@@ -63,7 +63,14 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
               <Building2 className="w-4.5 h-4.5 text-blue-200" />
             </div>
             <div className="min-w-0">
-              <div className="text-sm font-bold text-slate-900 truncate leading-tight">{event.shortName}</div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-slate-900 truncate leading-tight">{event.shortName}</span>
+                {event.isTemplate && (
+                  <span className="hidden sm:inline shrink-0 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+                    Template
+                  </span>
+                )}
+              </div>
               <div className="text-[11px] text-slate-500 truncate">Chadwick International</div>
             </div>
           </div>
@@ -91,6 +98,21 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
         </div>
       </header>
 
+      {/* Template notice — deliberately above the hero, so it is read before
+          the event content rather than discovered afterwards. */}
+      {event.isTemplate && (
+        <div className="bg-amber-100 border-b border-amber-300 px-4 sm:px-6 lg:px-8 py-2.5">
+          <div className="max-w-7xl mx-auto flex items-center gap-2.5 text-xs text-amber-900">
+            <Sparkles className="w-3.5 h-3.5 shrink-0" />
+            <span>
+              <strong>Sample event template.</strong> Content here is illustrative,
+              showing how a Chadwick event appears in CI Connects. Replace the
+              event configuration to publish a real one.
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* ---------------- Hero ---------------- */}
       <section className="relative bg-blue-900 text-white overflow-hidden">
         <div className="absolute inset-0">
@@ -110,7 +132,7 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.08] mb-5">
               {event.name}
             </h1>
-            <p className="text-xl sm:text-2xl text-blue-100/90 font-light leading-snug mb-7">
+            <p className="text-2xl sm:text-3xl text-blue-100 font-light leading-snug mb-7 italic">
               {event.tagline}
             </p>
 

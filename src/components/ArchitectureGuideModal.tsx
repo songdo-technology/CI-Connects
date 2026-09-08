@@ -112,7 +112,7 @@ export const ArchitectureGuideModal: React.FC<ArchitectureGuideModalProps> = ({
                   Deconstructing Sched & Whova to Eliminate Commercial Bloat
                 </h3>
                 <p className="text-xs text-indigo-800 leading-relaxed">
-                  Commercial platforms bundle monetization engines, payment gateways, sponsor lead traps, and push ads designed for trade shows. For an internal or educational summit (like KORCOS or Chadwick), these introduce friction and privacy concerns.
+                  Commercial platforms bundle monetization engines, payment gateways, sponsor lead traps, and push ads designed for trade shows. For an internal or educational conference, these introduce friction and privacy concerns.
                 </p>
               </div>
 
@@ -273,7 +273,7 @@ export const ArchitectureGuideModal: React.FC<ArchitectureGuideModalProps> = ({
         {/* Footer */}
         <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
           <span className="text-xs text-slate-500">
-            Chadwick School / KORCOS Summit Architecture
+            Chadwick International Conference Architecture
           </span>
           <button
             onClick={onClose}
