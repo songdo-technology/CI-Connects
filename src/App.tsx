@@ -548,6 +548,7 @@ export default function App() {
           onImportCsvSessions={handleImportCsvSessions}
           mealServices={mealServices}
           attendance={attendance}
+          event={EVENT_CONFIG}
         />
       )}
     </>
@@ -570,6 +571,7 @@ export default function App() {
         bookmarkedCount={bookmarkedSessionsCount}
         unreadMessageCount={unreadMessageCount}
         onSignOut={handleSignOut}
+        onViewPublicPage={() => setSurface('public')}
       />
 
       {/* Main View Area */}

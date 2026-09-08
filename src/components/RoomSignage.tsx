@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Session, Room, Track, UserProfile, EventConfig, Sponsor } from '../types';
+import {
+  SignageBroadcast, subscribeBroadcast, appliesToRoom, BROADCAST_KIND_META,
+} from '../lib/signage';
 
 interface RoomSignageProps {
   event: EventConfig;
@@ -40,11 +43,15 @@ export const RoomSignage: React.FC<RoomSignageProps> = ({
   event, room, sessions, tracks, profiles, sponsors, simulatedMinutes = null,
 }) => {
   const [now, setNow] = useState(() => new Date());
+  const [broadcast, setBroadcast] = useState<SignageBroadcast | null>(null);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 15_000);
     return () => clearInterval(id);
   }, []);
+
+  // Organizer takeovers arrive here; they override the room's own content.
+  useEffect(() => subscribeBroadcast(setBroadcast), []);
 
   const minutes = simulatedMinutes ?? toMinutes(now);
 
@@ -72,6 +79,60 @@ export const RoomSignage: React.FC<RoomSignageProps> = ({
         ((minutes - current.startMinutes) / (current.endMinutes - current.startMinutes)) * 100))
     : 0;
   const minutesLeft = current ? Math.max(0, current.endMinutes - minutes) : 0;
+
+  const takeover = appliesToRoom(broadcast, room.id) ? broadcast : null;
+
+  if (takeover) {
+    const meta = BROADCAST_KIND_META[takeover.kind];
+    return (
+      <div
+        className="min-h-screen w-full flex flex-col"
+        style={{ background: meta.bg, color: meta.fg }}
+      >
+        <div className="px-12 py-8 flex items-center justify-between shrink-0 border-b border-white/15">
+          <div className="min-w-0">
+            <div className="text-sm font-bold tracking-[0.3em] uppercase" style={{ color: meta.accent }}>
+              {meta.label}
+            </div>
+            <div className="text-3xl font-bold truncate mt-1">{room.name}</div>
+          </div>
+          <div className="text-5xl font-bold tabular-nums shrink-0">{fmtClock(now)}</div>
+        </div>
+
+        <div className="flex-1 flex flex-col justify-center px-12 py-10 min-h-0">
+          <h1 className="text-6xl xl:text-7xl 2xl:text-8xl font-bold leading-[1.05] tracking-tight mb-8">
+            {takeover.title}
+          </h1>
+          {takeover.message && (
+            <p className="text-3xl xl:text-4xl leading-snug max-w-6xl" style={{ color: meta.accent }}>
+              {takeover.message}
+            </p>
+          )}
+        </div>
+
+        {/* The room's own programme still shows underneath, so a takeover
+            never leaves someone unable to tell what is happening here. */}
+        {current && (
+          <div className="px-12 py-6 border-t border-white/15 flex items-center justify-between gap-8 shrink-0">
+            <div className="min-w-0">
+              <div className="text-sm font-bold tracking-widest uppercase opacity-60">
+                In this room now
+              </div>
+              <div className="text-2xl font-bold truncate mt-0.5">{current.title}</div>
+            </div>
+            <div className="text-xl font-semibold opacity-70 shrink-0">
+              {current.startTime} – {current.endTime}
+            </div>
+          </div>
+        )}
+
+        <div className="px-12 py-4 bg-black/25 text-base opacity-60 flex items-center justify-between shrink-0">
+          <span>{event.name}</span>
+          <span>CI Connects · powered by CI Vision</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full bg-slate-950 text-white flex flex-col overflow-hidden">

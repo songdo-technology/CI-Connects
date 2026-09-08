@@ -15,8 +15,9 @@ import {
   ShieldCheck,
   Send
 } from 'lucide-react';
-import { Session, Track, Room, UserProfile, BroadcastAnnouncement, MealService, AttendanceRecord } from '../types';
+import { Session, Track, Room, UserProfile, BroadcastAnnouncement, MealService, AttendanceRecord, EventConfig } from '../types';
 import { SAMPLE_CSV_TEMPLATE } from '../data/initialData';
+import { SignageControl } from './SignageControl';
 
 interface AdminConsoleProps {
   sessions: Session[];
@@ -33,6 +34,7 @@ interface AdminConsoleProps {
   };
   mealServices: MealService[];
   attendance: AttendanceRecord[];
+  event: EventConfig;
 }
 
 interface ParsedRow {
@@ -54,7 +56,8 @@ interface ParsedRow {
 }
 
 export const AdminConsole: React.FC<AdminConsoleProps> = ({
-  sessions,
+  
+  event,sessions,
   tracks,
   rooms,
   profiles,
@@ -62,7 +65,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
   onBroadcastAnnouncement,
   onImportCsvSessions,
 }) => {
-  const [activeTab, setActiveTab] = useState<'import' | 'broadcast' | 'capacity'>('import');
+  const [activeTab, setActiveTab] = useState<'import' | 'broadcast' | 'capacity' | 'signage'>('import');
   const [csvContent, setCsvContent] = useState<string>(SAMPLE_CSV_TEMPLATE);
   const [parsedRows, setParsedRows] = useState<ParsedRow[]>([]);
   const [importReport, setImportReport] = useState<{
@@ -306,6 +309,14 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
           >
             Capacity Audit
           </button>
+          <button
+            onClick={() => setActiveTab('signage')}
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+              activeTab === 'signage' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Digital Signage
+          </button>
         </div>
       </div>
 
@@ -531,6 +542,10 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             )}
           </form>
         </div>
+      )}
+
+      {activeTab === 'signage' && (
+        <SignageControl event={event} rooms={rooms} sessions={sessions} />
       )}
 
       {/* Tab 3: Capacity Audit */}

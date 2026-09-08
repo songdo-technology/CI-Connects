@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, QrCode, Users, MessageSquare, Award, ShieldCheck, Smartphone, Monitor, Layers, ChevronDown, Building2, BellRing, CheckCircle2, Sparkles, ExternalLink, UtensilsCrossed, Send, LogOut } from 'lucide-react';
+import { Calendar, QrCode, Users, MessageSquare, Award, ShieldCheck, Smartphone, Monitor, Layers, ChevronDown, Building2, BellRing, CheckCircle2, Sparkles, ExternalLink, UtensilsCrossed, Send, LogOut, Globe } from 'lucide-react';
 import { ActiveTab, BroadcastAnnouncement, UserProfile } from '../types';
 
 interface HeaderProps {
@@ -15,6 +15,7 @@ interface HeaderProps {
   bookmarkedCount: number;
   unreadMessageCount: number;
   onSignOut: () => void;
+  onViewPublicPage: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -22,6 +23,7 @@ export const Header: React.FC<HeaderProps> = ({
   setActiveTab,
   unreadMessageCount,
   onSignOut,
+  onViewPublicPage,
   currentUser,
   allUsers,
   onSwitchUser,
@@ -96,7 +98,11 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between h-16 gap-3">
           
           {/* Brand & Event Identity */}
-          <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={onViewPublicPage}
+            title="Back to the public event page"
+            className="flex items-center gap-3 min-w-0 text-left rounded-xl hover:opacity-80 transition-opacity cursor-pointer"
+          >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-slate-900 via-indigo-950 to-blue-900 flex items-center justify-center text-white shadow-md shadow-slate-900/10 shrink-0">
               <Building2 className="w-5 h-5 text-blue-300" />
             </div>
@@ -113,7 +119,7 @@ export const Header: React.FC<HeaderProps> = ({
                 The Chadwick International Event Management Platform
               </p>
             </div>
-          </div>
+          </button>
 
           {/* Prototype Controls: View Mode & Persona Switcher */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -147,6 +153,16 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>Mobile App</span>
               </button>
             </div>
+
+            {/* Return to the public-facing event site */}
+            <button
+              onClick={onViewPublicPage}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+              title="Back to the public event page"
+            >
+              <Globe className="w-3.5 h-3.5 text-blue-600" />
+              <span className="hidden sm:inline">Event Page</span>
+            </button>
 
             {/* Architecture Blueprint Button */}
             <button
