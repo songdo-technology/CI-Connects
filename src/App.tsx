@@ -14,6 +14,8 @@ import {
   FeedbackEntry,
   AuthSession,
   AuthMethod,
+  UserRole,
+  EventConfig,
 } from './types';
 import { Header } from './components/Header';
 import { AgendaView } from './components/AgendaView';
@@ -38,6 +40,8 @@ import { EventsHub } from './components/EventsHub';
 import { useData } from './lib/data/DataProvider';
 import { FirstRunSetup } from './components/FirstRunSetup';
 import { useAuth } from './lib/AuthProvider';
+import { AdminPanel } from './components/admin/AdminPanel';
+import { can } from './lib/permissions';
 import { FeedbackView } from './components/FeedbackView';
 import { SignageDirectory } from './components/SignageDirectory';
 
@@ -69,6 +73,7 @@ export default function App() {
     feedback,
     create,
     update,
+    remove,
     batch,
     ready,
     isRemote,
@@ -99,6 +104,7 @@ export default function App() {
   const [isDoorScannerOpen, setIsDoorScannerOpen] = useState(false);
   const [isArchitectureOpen, setIsArchitectureOpen] = useState(false);
   const [isPrintBadgeOpen, setIsPrintBadgeOpen] = useState(false);
+  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [contactCardProfile, setContactCardProfile] = useState<UserProfile | null>(null);
   const [pendingThreadUserId, setPendingThreadUserId] = useState<string | null>(null);
 
@@ -341,6 +347,22 @@ export default function App() {
     setActiveTab('messages');
   };
 
+  // -------------------------------------------------- Administration
+  const handleChangeRole = async (userId: string, role: UserRole) => {
+    await update('users', userId, { role });
+  };
+
+  const handleSaveEvent = async (event: EventConfig, isNew: boolean) => {
+    // Ownership is stamped on creation and never rewritten: reassigning an
+    // event by editing it would be a silent transfer of control.
+    if (isNew) await create('events', { ...event, ownerId: event.ownerId || currentUser.id });
+    else await update('events', event.id, event);
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    await remove('events', eventId);
+  };
+
   // ------------------------------------------------------- Feedback
   const handleSubmitFeedback = (
     entry: Omit<FeedbackEntry, 'id' | 'userId' | 'submittedAt'>,
@@ -498,7 +520,7 @@ export default function App() {
   // back to allUsers[0] — so hold rendering until the store has delivered.
   // This is not a workaround for the in-memory store: Firestore has the same
   // shape, only slower, so the gate has to exist either way.
-  if (!ready || !currentUser) {
+  if (!ready) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
@@ -542,6 +564,29 @@ export default function App() {
     }
   }
 
+  // ------------------------------------------------- Surface: admin panel
+  if (isAdminPanelOpen && can(currentUser, 'events:create')) {
+    return (
+      <AdminPanel
+        currentUser={currentUser}
+        users={allUsers}
+        events={events}
+        counts={{
+          users: allUsers.length, events: events.length, sessions: sessions.length,
+          tracks: tracks.length, rooms: rooms.length, sponsors: sponsors.length,
+          mealServices: mealServices.length, announcements: announcements.length,
+          communityTopics: communityTopics.length, attendance: attendance.length,
+          messages: messages.length, feedback: feedback.length,
+        }}
+        isRemote={isRemote}
+        onClose={() => setIsAdminPanelOpen(false)}
+        onChangeRole={handleChangeRole}
+        onSaveEvent={handleSaveEvent}
+        onDeleteEvent={handleDeleteEvent}
+      />
+    );
+  }
+
   // ------------------------------------------------------- Surface: hub
   if (surface === 'hub') {
     return (
@@ -578,6 +623,21 @@ export default function App() {
         onBackToEvent={() => setSurface(activeEvent.hasPortal ? 'event' : 'hub')}
         eventName={activeEvent.shortName}
       />
+    );
+  }
+
+  // Everything below is the authenticated portal, which reads a role and a
+  // profile. Anonymous visitors never reach here — the public surfaces above
+  // return first — but a signed-in user whose profile has not yet arrived
+  // would, so hold rather than render against a missing user.
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 rounded-xl bg-blue-600 mx-auto mb-4 animate-pulse" />
+          <p className="text-sm text-slate-500">Preparing your profile…</p>
+        </div>
+      </div>
     );
   }
 
@@ -706,6 +766,7 @@ export default function App() {
         unreadMessageCount={unreadMessageCount}
         onSignOut={handleSignOut}
         onViewPublicPage={() => { setSurface('event'); window.scrollTo(0, 0); }}
+        onOpenAdmin={() => setIsAdminPanelOpen(true)}
       />
 
       {/* Main View Area */}

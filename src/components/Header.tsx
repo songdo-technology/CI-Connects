@@ -17,6 +17,7 @@ interface HeaderProps {
   unreadMessageCount: number;
   onSignOut: () => void;
   onViewPublicPage: () => void;
+  onOpenAdmin: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -25,6 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
   unreadMessageCount,
   onSignOut,
   onViewPublicPage,
+  onOpenAdmin,
   currentUser,
   allUsers,
   onSwitchUser,
@@ -154,6 +156,19 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>Mobile App</span>
               </button>
             </div>
+
+            {/* Administration — platform-level, distinct from the Organizer
+                Console, which is about running an event in progress. */}
+            {can(currentUser, 'events:create') && (
+              <button
+                onClick={onOpenAdmin}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Administration"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Admin</span>
+              </button>
+            )}
 
             {/* Return to the public-facing event site */}
             <button
