@@ -1,0 +1,6 @@
+# Cloudflare Pages configuration for CI Events.
+# Static SPA today; when Firebase is wired in it stays a static deploy,
+# since Firebase is reached directly from the browser SDK.
+name = "ci-events"
+compatibility_date = "2026-09-08"
+pages_build_output_dir = "dist"

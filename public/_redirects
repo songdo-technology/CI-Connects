@@ -1,0 +1,3 @@
+# SPA fallback: serve index.html for any unmatched path so client-side
+# routing and deep links work once routes are added.
+/*  /index.html  200
