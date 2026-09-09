@@ -3,6 +3,7 @@ import { User } from 'firebase/auth';
 import {
   AuthState, completeGuestSignIn, completeRedirectSignIn, ensureUserDocument,
   isGuestLinkInUrl, pendingGuestEmail, sendGuestSignInLink, signInWithGoogle,
+  describeAuthProblem,
   signOutUser, watchAuth,
 } from './auth';
 import { isFirebaseConfigured } from './firebase';
@@ -103,7 +104,7 @@ export const AuthProvider: React.FC<{
       try {
         await signInWithGoogle();
       } catch (e) {
-        setState((s) => ({ ...s, status: 'error', error: (e as Error).message }));
+        setState((s) => ({ ...s, status: 'error', error: describeAuthProblem(e) }));
       }
     },
     signOut: async () => {
@@ -114,7 +115,7 @@ export const AuthProvider: React.FC<{
       try {
         await sendGuestSignInLink(email);
       } catch (e) {
-        setState((s) => ({ ...s, status: 'error', error: (e as Error).message }));
+        setState((s) => ({ ...s, status: 'error', error: describeAuthProblem(e) }));
         throw e;
       }
     },
@@ -125,7 +126,7 @@ export const AuthProvider: React.FC<{
         await completeGuestSignIn(email);
         setGuestLinkPending(false);
       } catch (e) {
-        setState((s) => ({ ...s, status: 'error', error: (e as Error).message }));
+        setState((s) => ({ ...s, status: 'error', error: describeAuthProblem(e) }));
         throw e;
       }
     },

@@ -149,6 +149,66 @@ const PENDING_EMAIL_KEY = 'ci-connects:pending-email';
  * confirmation, not the security — a six-character code cannot be checked in a
  * browser without publishing every code to it.
  */
+
+/**
+ * Turns a Firebase auth error into something a person can act on.
+ *
+ * The SDK's own message is "Firebase: Error (auth/operation-not-allowed)." —
+ * accurate, and useless to whoever is standing at a registration desk. Every
+ * case below is a real configuration mistake this project can hit, so each one
+ * names the console setting to change rather than the code that failed.
+ */
+export function describeAuthProblem(e: unknown): string {
+  const code = (e as { code?: string })?.code ?? '';
+  const host = typeof window !== 'undefined' ? window.location.hostname : 'this domain';
+
+  switch (code) {
+    case 'auth/operation-not-allowed':
+      return 'Email link sign-in is not switched on for this project yet. In the Firebase console: '
+        + 'Authentication → Sign-in method → Email/Password → tick "Email link (passwordless sign-in)" → Save.';
+
+    case 'auth/unauthorized-continue-uri':
+    case 'auth/invalid-continue-uri':
+      return `Firebase will not send a sign-in link back to ${host}. Add it under `
+        + 'Authentication → Settings → Authorized domains. Note that each Cloudflare preview '
+        + 'deploy has its own subdomain and is not covered by the main one.';
+
+    case 'auth/unauthorized-domain':
+      return `${host} is not an authorised domain for this Firebase project. Add it under `
+        + 'Authentication → Settings → Authorized domains.';
+
+    case 'auth/invalid-email':
+      return 'That does not look like an email address.';
+
+    case 'auth/user-disabled':
+      return 'That account has been disabled. Ask an organiser to re-enable it.';
+
+    case 'auth/invalid-action-code':
+      return 'This sign-in link has already been used. Request a new one — links are single-use.';
+
+    case 'auth/expired-action-code':
+      return 'This sign-in link has expired. Request a new one.';
+
+    case 'auth/too-many-requests':
+    case 'auth/quota-exceeded':
+      return 'Too many sign-in attempts from here. Wait a few minutes and try again.';
+
+    case 'auth/network-request-failed':
+      return 'Could not reach Firebase. Check the connection and try again.';
+
+    case 'auth/popup-blocked':
+    case 'auth/popup-closed-by-user':
+    case 'auth/cancelled-popup-request':
+      return 'The sign-in window was blocked or closed. Try again and allow the popup.';
+
+    default:
+      // Strip the "Firebase: " wrapper so the remaining sentence at least reads
+      // as English, and keep the code — it is what a search engine needs.
+      return (e as Error)?.message?.replace(/^Firebase:\s*/, '')
+        ?? 'Sign-in failed. Try again.';
+  }
+}
+
 export async function sendGuestSignInLink(email: string): Promise<void> {
   if (!firebaseAuth) throw new Error('Firebase is not configured.');
   const normalised = email.trim().toLowerCase();
