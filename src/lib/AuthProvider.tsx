@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { User } from 'firebase/auth';
 import {
   AuthState, authSettled, completeGuestSignIn, completeRedirectSignIn, ensureUserDocument,
+  createPasswordAccount, signInWithPassword, sendPasswordReset,
   isGuestLinkInUrl, pendingGuestEmail, sendGuestSignInLink, signInWithGoogle,
   describeAuthProblem,
   signOutUser, watchAuth,
@@ -20,9 +21,13 @@ interface AuthContextValue {
   error: string | null;
   /** Set once the signed-in account has a Firestore profile. */
   profileReady: boolean;
-  signIn: () => Promise<void>;
+  signIn: (scope?: 'chadwick' | 'any') => Promise<void>;
   signOut: () => Promise<void>;
   clearError: () => void;
+  /** Creates a password account for somebody outside the school. */
+  createAccount: (email: string, password: string, fullName: string) => Promise<void>;
+  signInWithPassword: (email: string, password: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   /** Emails a one-tap sign-in link to a guest. */
   sendGuestLink: (email: string) => Promise<void>;
   /** True when the page was opened from one of those links. */
@@ -154,10 +159,10 @@ export const AuthProvider: React.FC<{
     firebaseUser: state.user,
     error: state.error,
     profileReady,
-    signIn: async () => {
+    signIn: async (scope: 'chadwick' | 'any' = 'chadwick') => {
       clearFailure();
       try {
-        await signInWithGoogle();
+        await signInWithGoogle(undefined, scope);
       } catch (e) {
         setState((s) => ({ ...s, status: 'error', error: describeAuthProblem(e) }));
       }
@@ -174,6 +179,21 @@ export const AuthProvider: React.FC<{
         setState((s) => ({ ...s, status: 'error', error: describeAuthProblem(e) }));
         throw e;
       }
+    },
+    createAccount: async (email: string, password: string, fullName: string) => {
+      clearFailure();
+      try { await createPasswordAccount(email, password, fullName); }
+      catch (e) { fail(describeAuthProblem(e)); throw e; }
+    },
+    signInWithPassword: async (email: string, password: string) => {
+      clearFailure();
+      try { await signInWithPassword(email, password); }
+      catch (e) { fail(describeAuthProblem(e)); throw e; }
+    },
+    resetPassword: async (email: string) => {
+      clearFailure();
+      try { await sendPasswordReset(email); }
+      catch (e) { fail(describeAuthProblem(e)); throw e; }
     },
     guestLinkPending,
     guestEmailHint: pendingGuestEmail(),

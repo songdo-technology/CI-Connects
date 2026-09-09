@@ -375,6 +375,11 @@ export default function App() {
         claimedAt: now(), claimedByUid: currentUser.id,
       });
     }
+    // A confirmed place is what opens the directory. Holding an account is
+    // not, or self-registration would publish every colleague to the internet.
+    if (!currentUser.hasEventAccess) {
+      await update('users', currentUser.id, { hasEventAccess: true });
+    }
     return null;
   };
 

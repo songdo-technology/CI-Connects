@@ -34,6 +34,27 @@ service cloud.firestore {
     function role()      { return signedIn() && hasProfile() ? userDoc().role : 'anonymous'; }
 
     function isAdmin()     { return role() == 'technical_admin'; }
+
+    /** A Chadwick Workspace account, judged from the verified token. */
+    function isInternal() {
+      return signedIn()
+        && request.auth.token.email is string
+        && request.auth.token.email.matches('.*@chadwickschool[.]org');
+    }
+
+    /**
+     * Somebody who has actually been given a place at an event.
+     *
+     * Set when an invitation is claimed. Anyone may hold an account — that is
+     * what makes materials and certificates reachable — but holding one is not
+     * the same as being part of the community, and the directory should not
+     * open to the entire internet the moment self-registration does.
+     */
+    function hasEventAccess() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(uid()))
+        && get(/databases/$(database)/documents/users/$(uid())).data.get('hasEventAccess', false) == true;
+    }
     function isOrganiser() { return role() in ['technical_admin', 'event_organizer']; }
     function isDoorStaff() { return role() in ['technical_admin', 'event_organizer', 'front_desk']; }
 
@@ -66,7 +87,21 @@ service cloud.firestore {
 
     // ------------------------------------------------------------------ users
     match /users/{userId} {
-      allow read: if signedIn();
+      // One profile at a time: needed to name a session's speaker, or to show
+      // who sent a message.
+      allow get: if signedIn();
+
+      /**
+       * The whole directory, which is a different question.
+       *
+       * Open registration means anybody in the world can hold an account, and
+       * allowing every account to enumerate this collection would publish the
+       * name, title, organisation and email of every member of staff to
+       * whoever signed up this morning. Reading the directory belongs to
+       * people who are part of the community: Chadwick accounts, organisers,
+       * and guests who have claimed a place at an event.
+       */
+      allow list: if isInternal() || isOrganiser() || hasEventAccess();
 
       // Own profile, but never own role. Admins may change anything.
       allow update: if isAdmin()

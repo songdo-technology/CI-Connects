@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { Building2, ArrowRight, Mail, KeyRound, AlertCircle, CalendarDays, Users, QrCode, UtensilsCrossed } from 'lucide-react';
+import {
+  Building2, ArrowRight, Mail, KeyRound, AlertCircle, CalendarDays, Users,
+  QrCode, UtensilsCrossed, Chrome,
+} from 'lucide-react';
 import { UserProfile, AuthMethod } from '../types';
 import { useAuth } from '../lib/AuthProvider';
 import { ALLOWED_EMAIL_DOMAIN as ALLOWED_DOMAIN } from '../lib/firebase';
@@ -29,7 +32,11 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, onBack, backLabel }) => {
   const auth = useAuth();
-  const [mode, setMode] = useState<'choose' | 'guest'>('choose');
+  const [mode, setMode] = useState<'choose' | 'guest' | 'password'>('choose');
+  /** Signing in to an account they have, or making one. */
+  const [passwordMode, setPasswordMode] = useState<'in' | 'up'>('up');
+  const [pw, setPw] = useState({ email: '', password: '', fullName: '' });
+  const [reset, setReset] = useState(false);
   const [ssoPickerOpen, setSsoPickerOpen] = useState(false);
   const [guestEmail, setGuestEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +46,35 @@ export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, on
 
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  const handlePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    const email = pw.email.trim().toLowerCase();
+    if (!email.includes('@')) return setError('Enter a valid email address.');
+    if (email.endsWith(`@${ALLOWED_DOMAIN}`)) {
+      return setError('That is a Chadwick address — use "Continue with Chadwick Google" instead.');
+    }
+    if (passwordMode === 'up') {
+      if (!pw.fullName.trim()) return setError('Enter your name — it appears on your badge.');
+      if (pw.password.length < 8) return setError('Use at least eight characters.');
+    }
+    setBusy(true);
+    try {
+      if (passwordMode === 'up') await auth.createAccount(email, pw.password, pw.fullName);
+      else await auth.signInWithPassword(email, pw.password);
+    } catch { /* the message is already on screen via auth.error */ }
+    finally { setBusy(false); }
+  };
+
+  const handleReset = async () => {
+    const email = pw.email.trim().toLowerCase();
+    if (!email.includes('@')) return setError('Enter your email address first.');
+    setBusy(true);
+    try { await auth.resetPassword(email); setReset(true); }
+    catch { /* surfaced via auth.error */ }
+    finally { setBusy(false); }
+  };
 
   const handleGuestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,23 +213,126 @@ export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, on
 
               <div className="flex items-center gap-3 my-7">
                 <div className="h-px bg-slate-200 flex-1" />
-                <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">or</span>
+                <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">
+                  Not at Chadwick?
+                </span>
                 <div className="h-px bg-slate-200 flex-1" />
               </div>
 
-              <button
-                onClick={() => setMode('guest')}
-                className="w-full flex items-center justify-between gap-3 px-5 py-4 rounded-xl bg-white border-2 border-slate-200 text-slate-800 font-semibold hover:border-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
-              >
-                <span className="flex items-center gap-3">
-                  <KeyRound className="w-5 h-5 text-slate-400 shrink-0" />
-                  Continue with email
-                </span>
-                <ArrowRight className="w-4 h-4 shrink-0" />
-              </button>
-              <p className="text-[11px] text-slate-400 mt-2 px-1">
-                Visiting for an event? Use the access code from your invitation email.
+              {/* Three routes rather than one, because the group outside the
+                  school is not uniform: some have a Google account and some
+                  work somewhere that does not use one, and telling a teacher
+                  to open an account with a company in order to read a set of
+                  slides is a strange thing for a school to require. */}
+              <div className="space-y-2">
+                {([
+                  ['google', 'Continue with a personal Google account', Chrome,
+                   () => void auth.signIn('any')],
+                  ['password', 'Create an account with a password', KeyRound,
+                   () => { setMode('password'); setPasswordMode('up'); }],
+                  ['link', 'Email me a sign-in link instead', Mail,
+                   () => setMode('guest')],
+                ] as const).map(([key, label, Icon, run]) => (
+                  <button
+                    key={key}
+                    onClick={run}
+                    className="w-full flex items-center justify-between gap-3 px-5 py-3.5 rounded-xl bg-white border-2 border-slate-200 text-slate-800 text-sm font-semibold hover:border-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+                  >
+                    <span className="flex items-center gap-3 text-left">
+                      <Icon className="w-4.5 h-4.5 text-slate-400 shrink-0" />
+                      {label}
+                    </span>
+                    <ArrowRight className="w-4 h-4 shrink-0" />
+                  </button>
+                ))}
+              </div>
+
+              <p className="text-[11px] text-slate-400 mt-3 px-1 leading-relaxed">
+                An account is free and gets you a profile, the materials from events you
+                attend, and your certificates. Registering for a particular conference
+                needs an invitation code, which you redeem once you are in.
               </p>
+            </>
+          ) : mode === 'password' ? (
+            <>
+              <button
+                onClick={() => { setMode('choose'); setReset(false); }}
+                className="text-xs font-semibold text-slate-500 hover:text-blue-700 mb-5 cursor-pointer"
+              >
+                ← Back
+              </button>
+              <h2 className="text-2xl font-bold text-slate-900 mb-1.5">
+                {passwordMode === 'up' ? 'Create your account' : 'Sign in'}
+              </h2>
+              <p className="text-sm text-slate-500 mb-6">
+                {passwordMode === 'up'
+                  ? 'Free, and yours to keep — your profile, certificates and the materials from anything you attend.'
+                  : 'Welcome back.'}
+              </p>
+
+              <form onSubmit={handlePassword} className="space-y-4">
+                {passwordMode === 'up' && (
+                  <div>
+                    <label htmlFor="pw-name" className="block text-xs font-semibold text-slate-600 mb-1.5">
+                      Full name
+                    </label>
+                    <input id="pw-name" value={pw.fullName}
+                           onChange={(e) => setPw({ ...pw, fullName: e.target.value })}
+                           placeholder="Jenny Lee"
+                           className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                  </div>
+                )}
+                <div>
+                  <label htmlFor="pw-email" className="block text-xs font-semibold text-slate-600 mb-1.5">
+                    Email
+                  </label>
+                  <input id="pw-email" type="email" value={pw.email}
+                         onChange={(e) => setPw({ ...pw, email: e.target.value })}
+                         placeholder="you@yourschool.org"
+                         className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                </div>
+                <div>
+                  <label htmlFor="pw-pass" className="block text-xs font-semibold text-slate-600 mb-1.5">
+                    Password
+                  </label>
+                  <input id="pw-pass" type="password" value={pw.password}
+                         onChange={(e) => setPw({ ...pw, password: e.target.value })}
+                         placeholder={passwordMode === 'up' ? 'At least eight characters' : ''}
+                         className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                </div>
+
+                {(error || auth.error) && (
+                  <div className="flex items-start gap-2 px-3.5 py-3 rounded-lg bg-amber-50 border border-amber-200">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-900 leading-relaxed">{error ?? auth.error}</p>
+                  </div>
+                )}
+                {reset && (
+                  <p className="text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg px-3.5 py-3">
+                    If that address has an account, a reset link is on its way.
+                  </p>
+                )}
+
+                <button type="submit" disabled={busy}
+                        className="w-full px-5 py-3.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors cursor-pointer">
+                  {busy ? 'Working…' : passwordMode === 'up' ? 'Create account' : 'Sign in'}
+                </button>
+              </form>
+
+              <div className="flex items-center justify-between gap-3 mt-4">
+                <button
+                  onClick={() => { setPasswordMode(passwordMode === 'up' ? 'in' : 'up'); setError(null); }}
+                  className="text-xs font-semibold text-blue-700 hover:underline cursor-pointer"
+                >
+                  {passwordMode === 'up' ? 'I already have an account' : 'Create an account instead'}
+                </button>
+                {passwordMode === 'in' && (
+                  <button onClick={handleReset}
+                          className="text-xs text-slate-500 hover:text-blue-700 cursor-pointer">
+                    Forgotten password?
+                  </button>
+                )}
+              </div>
             </>
           ) : (
             <>

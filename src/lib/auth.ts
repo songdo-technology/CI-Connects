@@ -2,6 +2,8 @@ import {
   GoogleAuthProvider, User, getRedirectResult, isSignInWithEmailLink,
   onAuthStateChanged, sendSignInLinkToEmail, signInWithEmailLink,
   signInWithPopup, signInWithRedirect, signOut,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  sendPasswordResetEmail, sendEmailVerification, updateProfile,
 } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { Invite } from '../types';
@@ -114,7 +116,22 @@ function assertAllowedAccount(user: User): void {
   );
 }
 
-export async function signInWithGoogle(eventSlug?: string): Promise<void> {
+/**
+ * Google sign-in.
+ *
+ * `scope: 'chadwick'` hints the school's Workspace domain and refuses anything
+ * else — the route for staff and students, who should never be asked to make
+ * an account. `scope: 'any'` accepts a personal account, which is how somebody
+ * outside the school gets a profile, their certificates and the materials from
+ * events they attended.
+ *
+ * The domain check belongs to the first route only. Applying it to both was
+ * what made an external account impossible to hold.
+ */
+export async function signInWithGoogle(
+  eventSlug?: string,
+  scope: 'chadwick' | 'any' = 'chadwick',
+): Promise<void> {
   if (!firebaseAuth) throw new Error('Firebase is not configured.');
 
   // Recorded before anything can navigate away: the redirect fallback below
@@ -127,7 +144,9 @@ export async function signInWithGoogle(eventSlug?: string): Promise<void> {
   );
 
   const provider = new GoogleAuthProvider();
-  provider.setCustomParameters({ hd: ALLOWED_EMAIL_DOMAIN, prompt: 'select_account' });
+  provider.setCustomParameters(scope === 'chadwick'
+    ? { hd: ALLOWED_EMAIL_DOMAIN, prompt: 'select_account' }
+    : { prompt: 'select_account' });
 
   let result;
   try {
@@ -168,15 +187,59 @@ export async function signInWithGoogle(eventSlug?: string): Promise<void> {
     throw e;
   }
 
-  try {
-    assertAllowedAccount(result.user);
-  } catch (e) {
-    // Sign straight back out. Leaving the session open would let a personal
-    // Google account sit signed in against a school platform, even though the
-    // rules would refuse it every read.
-    await signOut(firebaseAuth);
-    throw e;
+  if (scope === 'chadwick') {
+    try {
+      assertAllowedAccount(result.user);
+    } catch (e) {
+      // Somebody who reached for the Chadwick button with a personal account
+      // is told so rather than silently admitted as a guest, because they
+      // expect their school profile and would not notice the difference until
+      // something they should be able to see was missing.
+      await signOut(firebaseAuth);
+      throw e;
+    }
   }
+}
+
+/* --------------------------------------------------- email and password */
+
+/**
+ * A password account, for people with no Google account at all.
+ *
+ * Offered because requiring one excludes a real group — some schools and
+ * districts do not use Google, and telling a teacher to create an account with
+ * a company in order to read a set of slides is a strange thing for a school
+ * to do.
+ */
+export async function createPasswordAccount(
+  email: string, password: string, fullName: string,
+): Promise<void> {
+  if (!firebaseAuth) throw new Error('Firebase is not configured.');
+  const address = email.trim().toLowerCase();
+  if (isAllowedDomain(address)) {
+    throw new Error(
+      'Chadwick accounts sign in with Google — there is no password to create. '
+      + 'Use "Continue with Chadwick Google" above.',
+    );
+  }
+  const credential = await createUserWithEmailAndPassword(firebaseAuth, address, password);
+  if (fullName.trim()) {
+    await updateProfile(credential.user, { displayName: fullName.trim() });
+  }
+  // Sent but not enforced: somebody who mistyped their address should find
+  // that out now, and blocking access to public materials over an unclicked
+  // link would be a poor trade.
+  try { await sendEmailVerification(credential.user); } catch { /* non-fatal */ }
+}
+
+export async function signInWithPassword(email: string, password: string): Promise<void> {
+  if (!firebaseAuth) throw new Error('Firebase is not configured.');
+  await signInWithEmailAndPassword(firebaseAuth, email.trim().toLowerCase(), password);
+}
+
+export async function sendPasswordReset(email: string): Promise<void> {
+  if (!firebaseAuth) throw new Error('Firebase is not configured.');
+  await sendPasswordResetEmail(firebaseAuth, email.trim().toLowerCase());
 }
 
 /**
@@ -419,6 +482,10 @@ export async function ensureUserDocument(user: User): Promise<UserRole> {
     isDirectoryVisible: true,
     checkedIn: false,
     shareContactOnScan: false,
+    // Chadwick accounts and anybody arriving on an invitation are part of the
+    // community from the start. A self-registered account is not yet, and
+    // becomes so when it redeems a code.
+    hasEventAccess: isAllowedDomain(email) || Boolean(invite),
     ...(invite ? { accessCode: invite.accessCode } : {}),
   };
 

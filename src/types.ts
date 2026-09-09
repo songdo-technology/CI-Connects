@@ -135,6 +135,15 @@ export interface UserProfile {
   avatarUrl: string;
   bio: string;
   isDirectoryVisible: boolean;
+  /**
+   * Whether this person has a confirmed place at an event.
+   *
+   * Anyone may hold an account — that is what makes materials and certificates
+   * reachable — but holding one is not the same as being part of the
+   * community. The rules read this to decide who may see the directory, so it
+   * is set when an invitation is claimed rather than when an account is made.
+   */
+  hasEventAccess?: boolean;
   checkedIn: boolean;
   checkedInAt?: string;
   linkedInUrl?: string;
