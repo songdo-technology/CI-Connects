@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   ShieldCheck, CalendarPlus, Database, X, Cloud, CloudOff, ExternalLink,
   CalendarDays, DoorOpen, UtensilsCrossed, Handshake, Gift, Wallet, UserPlus, ClipboardCheck,
-  FileSpreadsheet,
+  FileSpreadsheet, Inbox,
 } from 'lucide-react';
 import {
   EventConfig, UserProfile, UserRole, Session, Track, Room, MealService, Sponsor,
@@ -17,6 +17,7 @@ import { AdminRooms, AdminDining, AdminSponsors } from './AdminResources';
 import { AdminPrizes, AdminCosts } from './AdminOperations';
 import { AdminGuests } from './AdminGuests';
 import { AdminImport } from './AdminImport';
+import { AdminProposals } from './AdminProposals';
 import { AdminAttendance } from './AdminAttendance';
 
 interface AdminPanelProps {
@@ -58,7 +59,7 @@ interface AdminPanelProps {
 
 type Section =
   | 'people' | 'events' | 'programme' | 'rooms' | 'dining' | 'sponsors'
-  | 'prizes' | 'costs' | 'guests' | 'attendance' | 'import' | 'system';
+  | 'prizes' | 'costs' | 'guests' | 'attendance' | 'import' | 'proposals' | 'system';
 
 /**
  * Administration console.
@@ -86,6 +87,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const sections = ([
     mayManageEvents && ['events', 'Events', CalendarPlus],
     can(currentUser, 'sessions:edit_any') && ['programme', 'Programme', CalendarDays],
+    can(currentUser, 'sessions:edit_any') && ['proposals', 'Proposals', Inbox],
     mayManageEvents && ['import', 'Import', FileSpreadsheet],
     can(currentUser, 'rooms:manage') && ['rooms', 'Rooms', DoorOpen],
     can(currentUser, 'dining:manage') && ['dining', 'Dining', UtensilsCrossed],
@@ -171,6 +173,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         {section === 'sponsors' && (
           <AdminSponsors sponsors={sponsors}
                          onSave={onSaveSponsor} onDelete={onDeleteSponsor} />
+        )}
+
+        {section === 'proposals' && (
+          <AdminProposals
+            sessions={sessions} rooms={rooms} tracks={tracks} users={users}
+            events={events} currentUser={currentUser} onCommit={onBulkImport}
+          />
         )}
 
         {section === 'import' && (

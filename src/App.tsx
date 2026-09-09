@@ -49,6 +49,7 @@ import { takeSignInIntent, hasSignInIntent, clearSignInIntent } from './lib/sign
 import { isGuestLinkInUrl } from './lib/auth';
 import { FeedbackView } from './components/FeedbackView';
 import { SignageDirectory } from './components/SignageDirectory';
+import { ProposeSession } from './components/ProposeSession';
 
 /** The public surfaces of the product: a hub listing every event Chadwick
  *  runs, one page per event, a sign-in gate, and the attendee portal behind
@@ -876,6 +877,17 @@ export default function App() {
           initialThreadUserId={pendingThreadUserId}
           onSendMessage={handleSendMessage}
           onMarkRead={handleMarkRead}
+        />
+      )}
+
+      {activeTab === 'propose' && (
+        <ProposeSession
+          currentUser={viewUser}
+          sessions={sessions}
+          tracks={tracks}
+          events={allEvents}
+          rooms={rooms}
+          onSubmit={(session) => create('sessions', session)}
         />
       )}
 

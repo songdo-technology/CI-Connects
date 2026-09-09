@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, QrCode, Users, MessageSquare, Award, ShieldCheck, Smartphone, Monitor, Layers, ChevronDown, Building2, BellRing, CheckCircle2, Sparkles, ExternalLink, UtensilsCrossed, Send, LogOut, Globe, Sun, UserRound, LayoutGrid } from 'lucide-react';
+import { Calendar, QrCode, Users, MessageSquare, Award, ShieldCheck, Smartphone, Monitor, Layers, ChevronDown, Building2, BellRing, CheckCircle2, Sparkles, ExternalLink, UtensilsCrossed, Send, LogOut, Globe, Sun, UserRound, LayoutGrid, Presentation } from 'lucide-react';
 import { can, ROLE_LABEL } from '../lib/permissions';
 import { UserRole } from '../types';
 import { ActiveTab, BroadcastAnnouncement, UserProfile } from '../types';
@@ -437,6 +437,24 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             )}
           </button>
+
+          {/* Only for people who present. An attendee has nothing to propose,
+              and a tab that does nothing for most of the room is clutter. */}
+          {(currentUser.role === 'speaker' || currentUser.role === 'event_organizer'
+            || currentUser.role === 'technical_admin') && (
+            <button
+              id="tab-propose"
+              onClick={() => setActiveTab('propose')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                activeTab === 'propose'
+                  ? 'bg-white text-blue-700 shadow-xs border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+              }`}
+            >
+              <Presentation className="w-4 h-4 text-slate-500" />
+              <span>My Sessions</span>
+            </button>
+          )}
 
           <button
             id="tab-profile"

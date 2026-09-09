@@ -224,6 +224,38 @@ export interface Session {
   materials?: SessionMaterial[];
   isFeatured?: boolean;
   tags: string[];
+
+  /**
+   * Where this session is in the proposal pipeline.
+   *
+   * Absent means an organiser created it directly and it is simply on the
+   * programme — every existing row keeps working untouched. A speaker's own
+   * submission starts as `proposed`, becomes `approved` when an organiser
+   * accepts it, and only then is it eligible to be given a room and a time.
+   *
+   * Declined proposals are kept rather than deleted: a speaker who submitted
+   * in good faith is owed a visible answer, not a disappearance.
+   */
+  status?: 'proposed' | 'approved' | 'declined';
+  /** Uid of the speaker who submitted it. */
+  proposedBy?: string;
+  submittedAt?: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  /** The organiser's note back to the speaker, shown on their proposal. */
+  reviewNote?: string;
+  /** What the speaker asked for, before a slot exists. Kept separate from the
+   *  scheduled times so re-running the scheduler never loses the request. */
+  requestedMinutes?: number;
+  /** Day the speaker cannot attend, honoured by the scheduler where possible. */
+  unavailableDays?: number[];
+}
+
+/** A period the programme can place a session in. */
+export interface ScheduleSlot {
+  day: number;
+  startMinutes: number;
+  endMinutes: number;
 }
 
 export interface SessionMaterial {
@@ -282,6 +314,7 @@ export type ActiveTab =
   | 'directory'
   | 'messages'
   | 'profile'
+  | 'propose'
   | 'feedback'
   | 'admin'
   | 'luckydraw';
