@@ -70,6 +70,15 @@ export interface AttendanceRecord {
    *  walk_in       - admitted without a reservation, seats permitting */
   status: 'verified' | 'wrong_session' | 'walk_in';
   scannedBy: string;
+  /**
+   * When they scanned out, on events that ask people to.
+   *
+   * Absent means either that this event does not require it, or that somebody
+   * left without scanning. Those are different situations and the reports say
+   * which, because "no record of them leaving" must not silently become "they
+   * stayed to the end" on a document claiming professional learning hours.
+   */
+  leftAt?: string;
 }
 
 /**
@@ -464,6 +473,16 @@ export interface EventConfig {
    * a certificate that means nothing devalues the ones that do.
    */
   certificate?: CertificateDesign;
+  /**
+   * Ask people to scan out of sessions as well as in.
+   *
+   * Off by default, because it doubles the queue at every door and most events
+   * do not need it. Worth turning on when hours are being certified and
+   * somebody has to be able to say that attendance was full rather than
+   * partial — with it on, a session's hours come from the time actually spent
+   * in the room instead of the time it was scheduled for.
+   */
+  requireScanOut?: boolean;
   /** Drafts are visible only to organisers; published events are the public
    *  website. Absent is treated as published, so existing rows keep working. */
   status?: 'draft' | 'published';

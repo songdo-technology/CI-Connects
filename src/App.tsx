@@ -46,7 +46,7 @@ import { MyProfile } from './components/MyProfile';
 import { GuestLinkReturn } from './components/GuestLinkReturn';
 import { can } from './lib/permissions';
 import { profileGaps } from './lib/profileCompleteness';
-import { takeSignInIntent, hasSignInIntent, clearSignInIntent } from './lib/signInIntent';
+import { takeSignInIntent, hasSignInIntent, clearSignInIntent, markSignInIntent } from './lib/signInIntent';
 import { isGuestLinkInUrl } from './lib/auth';
 import { lookupDocFor } from './lib/inviteCodes';
 import { FeedbackView } from './components/FeedbackView';
@@ -55,11 +55,13 @@ import { ProposeSession } from './components/ProposeSession';
 import { AdminDashboard } from './components/AdminDashboard';
 import { VerifyCertificate } from './components/VerifyCertificate';
 import { MyCertificates } from './components/MyCertificates';
+import { GateStation } from './components/GateStation';
+import { SelfCheckIn } from './components/SelfCheckIn';
 
 /** The public surfaces of the product: a hub listing every event Chadwick
  *  runs, one page per event, a sign-in gate, and the attendee portal behind
  *  it. Signage resolves ahead of all of them, straight from the URL. */
-type Surface = 'hub' | 'event' | 'signin' | 'portal' | 'dashboard';
+type Surface = 'hub' | 'event' | 'signin' | 'portal' | 'dashboard' | 'gate';
 
 const now = () =>
   new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -125,6 +127,9 @@ export default function App() {
     initialEventSlug ?? EVENT_CONFIG.slug,
   );
   const [authSession, setAuthSession] = useState<AuthSession | null>(null);
+  /** Set when someone scanned a station's code with their own phone. */
+  const [checkInToken, setCheckInToken] = useState<string | null>(
+    () => new URLSearchParams(window.location.search).get('checkin'));
   /** Set when the page was opened from a certificate's QR or printed code. */
   const [verifyCode, setVerifyCode] = useState<string | null>(
     () => new URLSearchParams(window.location.search).get('verify'));
@@ -300,8 +305,13 @@ export default function App() {
    * demo build kept sending organisers into a conference portal after the
    * live one had stopped.
    */
-  const homeSurfaceFor = (user: UserProfile, eventInMind: boolean): Surface =>
-    (can(user, 'events:create') && !eventInMind ? 'dashboard' : 'portal');
+  const homeSurfaceFor = (user: UserProfile, eventInMind: boolean): Surface => {
+    // Front desk staff have exactly one job and it is not browsing a
+    // programme. Sending them anywhere else means a queue waits while
+    // somebody finds the scanner.
+    if (user.role === 'front_desk') return 'gate';
+    return can(user, 'events:create') && !eventInMind ? 'dashboard' : 'portal';
+  };
 
   const handleSignIn = (user: UserProfile, method: AuthMethod) => {
     setAuthSession({ userId: user.id, method, signedInAt: now() });
@@ -702,6 +712,37 @@ export default function App() {
     );
   }
 
+  /**
+   * Somebody scanned a check-in code with their own phone.
+   *
+   * Their own session does the authenticating — the station is a screen and
+   * is trusted for nothing. Signed out, they are sent to sign in and the token
+   * survives the trip, because being bounced to a front page while standing at
+   * a door with a queue behind you is the whole failure this replaces.
+   */
+  if (checkInToken !== null) {
+    return (
+      <SelfCheckIn
+        token={checkInToken}
+        currentUser={authSession ? currentUser : null}
+        events={allEvents}
+        sessions={sessions}
+        rooms={rooms}
+        attendance={attendance}
+        onCheckInToVenue={(userId) => update('users', userId, { checkedIn: true })}
+        onRecordAttendance={handleRecordAttendance}
+        onRecordDeparture={(recordId) => update('attendance', recordId, { leftAt: now() })}
+        onSignIn={() => { markSignInIntent(); setEnteringPortal(true); setSurface('signin'); }}
+        onDone={() => {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('checkin');
+          window.history.replaceState({}, '', url.toString());
+          setCheckInToken(null);
+        }}
+      />
+    );
+  }
+
   // Subscriptions attach in an effect, so the first render has empty
   // collections. Everything below assumes data is present — currentUser falls
   // back to allUsers[0] — so hold rendering until the store has delivered.
@@ -831,6 +872,27 @@ export default function App() {
     );
   }
 
+  // ------------------------------------------------------ Surface: gate
+  if (surface === 'gate' && authSession && can(viewUser, 'attendance:scan')) {
+    return (
+      <GateStation
+        currentUser={viewUser}
+        events={allEvents}
+        sessions={sessions}
+        rooms={rooms}
+        profiles={allUsers}
+        invites={invites}
+        attendance={attendance}
+        mealServices={mealServices}
+        onCheckInToVenue={(userId) => update('users', userId, { checkedIn: true })}
+        onRecordAttendance={handleRecordAttendance}
+        onRecordDeparture={(recordId) =>
+          update('attendance', recordId, { leftAt: now() })}
+        onSignOut={handleSignOut}
+      />
+    );
+  }
+
   // ------------------------------------------------- Surface: dashboard
   if (surface === 'dashboard' && authSession && can(viewUser, 'events:create')) {
     return (
@@ -854,6 +916,7 @@ export default function App() {
           }}
           onOpenPublicPage={openEvent}
           onOpenHub={openHub}
+          onOpenGate={() => setSurface('gate')}
           onSignOut={handleSignOut}
         />
         {isAdminPanelOpen && (

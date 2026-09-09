@@ -424,6 +424,7 @@ export const AdminEvents: React.FC<AdminEventsProps> = ({
           <div className="flex flex-wrap gap-4 pt-1">
             {([
               ['registrationOpen', 'Registration open'],
+              ['requireScanOut', 'Ask people to scan out of sessions'],
               ['isFeatured', 'Feature on the hub'],
               ['isTemplate', 'Mark as sample/template'],
             ] as const).map(([key, label]) => (

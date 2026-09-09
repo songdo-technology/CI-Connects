@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import {
   Building2, LogOut, Plus, FileSpreadsheet, Inbox, UserPlus, Settings2,
   CalendarDays, Users, Ticket, AlertTriangle, ArrowRight, Check, Eye,
-  Presentation, DoorOpen, Sparkles,
+  Presentation, DoorOpen, Sparkles, ScanLine,
 } from 'lucide-react';
 import {
   EventConfig, Session, Room, UserProfile, Invite, AttendanceRecord,
@@ -24,6 +24,8 @@ interface AdminDashboardProps {
   onOpenEventPortal: (slug: string) => void;
   onOpenPublicPage: (slug: string) => void;
   onOpenHub: () => void;
+  /** Organisers cover the gate too, especially in the first hour. */
+  onOpenGate: () => void;
   onSignOut: () => void;
 }
 
@@ -62,7 +64,7 @@ const Tile: React.FC<{
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   currentUser, events, sessions, rooms, users, invites, attendance,
   isTechnical, isRemote, onOpenAdmin, onOpenEventPortal, onOpenPublicPage,
-  onOpenHub, onSignOut,
+  onOpenHub, onOpenGate, onSignOut,
 }) => {
   const real = events.filter((e) => !e.isTemplate);
   const samples = events.filter((e) => e.isTemplate);
@@ -142,6 +144,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     { icon: FileSpreadsheet, label: 'Import data', run: () => onOpenAdmin() },
     { icon: Inbox, label: 'Proposals', run: () => onOpenAdmin() },
     { icon: UserPlus, label: 'Guests', run: () => onOpenAdmin() },
+    { icon: ScanLine, label: 'Open the gate scanner', run: onOpenGate },
     { icon: Settings2, label: 'Full admin panel', run: () => onOpenAdmin() },
   ];
 
