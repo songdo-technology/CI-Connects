@@ -5,7 +5,7 @@ import {
   FileText, Lightbulb, Compass, ChevronDown, Users, Globe2, School, Presentation,
   CalendarClock, CalendarCheck2,
 } from 'lucide-react';
-import { EventConfig, EventCategory, Session, eventStatus, registrationState } from '../types';
+import { EventConfig, EventCategory, Session, UserProfile, eventStatus, registrationState } from '../types';
 import { EventCarousel } from './EventCarousel';
 import { EventCalendar } from './EventCalendar';
 import { EventRecapModal } from './EventRecapModal';
@@ -15,6 +15,13 @@ import { heroStats } from '../lib/eventStats';
 
 interface EventsHubProps {
   events: EventConfig[];
+  /** Who is signed in, if anyone. The front door has to say so: a page that
+   *  offers to sign you in when you already are makes people click it to find
+   *  out, and land somewhere they did not ask for. */
+  signedInAs: UserProfile | null;
+  /** True when that person can run events, so the door names where it goes. */
+  isOrganiser: boolean;
+  onOpenPortal: () => void;
   /** Only used to count the programme when a past event recorded no figure
    *  of its own. */
   sessions: Session[];
@@ -52,7 +59,9 @@ const CATEGORY_STYLE: Record<EventCategory, string> = {
   Student:    'bg-blue-400 text-blue-950',
 };
 
-export const EventsHub: React.FC<EventsHubProps> = ({ events, sessions, onOpenEvent, onSignIn }) => {
+export const EventsHub: React.FC<EventsHubProps> = ({
+  events, sessions, signedInAs, isOrganiser, onOpenPortal, onOpenEvent, onSignIn,
+}) => {
   const [filter, setFilter] = useState<'all' | EventCategory>('all');
   const [layout, setLayout] = useState<'cards' | 'calendar'>('cards');
   /** A completed event opened for its write-up, without leaving the hub. */
@@ -222,14 +231,31 @@ export const EventsHub: React.FC<EventsHubProps> = ({ events, sessions, onOpenEv
               <div className="text-[11px] text-slate-500 truncate">Chadwick International Events</div>
             </div>
           </div>
-          <button
-            onClick={onSignIn}
-            className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
-          >
-            <LogIn className="w-4 h-4" />
-            <span className="hidden sm:inline">Attendee sign in</span>
-            <span className="sm:hidden">Sign in</span>
-          </button>
+          {signedInAs ? (
+            <button
+              onClick={onOpenPortal}
+              className="shrink-0 flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
+            >
+              <img src={signedInAs.avatarUrl} alt=""
+                   className="w-7 h-7 rounded-lg object-cover shrink-0" />
+              <span className="text-left leading-tight">
+                <span className="block text-[10px] font-normal text-blue-200">
+                  {isOrganiser ? 'Signed in — manage' : 'Signed in'}
+                </span>
+                <span className="block">{signedInAs.preferredName || signedInAs.fullName.split(' ')[0]}</span>
+              </span>
+              <ArrowRight className="w-4 h-4 text-blue-200 shrink-0" />
+            </button>
+          ) : (
+            <button
+              onClick={onSignIn}
+              className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
+            >
+              <LogIn className="w-4 h-4" />
+              <span className="hidden sm:inline">Attendee sign in</span>
+              <span className="sm:hidden">Sign in</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -290,11 +316,13 @@ export const EventsHub: React.FC<EventsHubProps> = ({ events, sessions, onOpenEv
                 Explore events
               </button>
               <button
-                onClick={onSignIn}
+                onClick={signedInAs ? onOpenPortal : onSignIn}
                 className="inline-flex items-center gap-2 px-7 py-4 rounded-xl border-2 border-white/30 text-white font-bold hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <LogIn className="w-4 h-4" />
-                Sign in to register
+                {signedInAs
+                  ? (isOrganiser ? 'Manage events' : 'Open my portal')
+                  : 'Sign in to register'}
               </button>
             </div>
 

@@ -18,6 +18,7 @@ import { AdminPrizes, AdminCosts } from './AdminOperations';
 import { AdminGuests } from './AdminGuests';
 import { AdminImport } from './AdminImport';
 import { AdminProposals } from './AdminProposals';
+import { AdminReset } from './AdminReset';
 import { AdminAttendance } from './AdminAttendance';
 
 interface AdminPanelProps {
@@ -55,6 +56,10 @@ interface AdminPanelProps {
   onDeleteInvite: (id: string) => Promise<void> | void;
   /** Applies a whole spreadsheet as one write. */
   onBulkImport: (ops: BatchOperation[]) => Promise<void>;
+  communityTopics: { id: string }[];
+  messages: { id: string }[];
+  feedback: { id: string }[];
+  announcements: { id: string }[];
 }
 
 type Section =
@@ -78,7 +83,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onSaveSession, onDeleteSession, onSaveRoom, onDeleteRoom,
   onSaveMeal, onDeleteMeal, onSaveSponsor, onDeleteSponsor,
   onSavePrize, onDeletePrize, onSaveCost, onDeleteCost, onSaveInvite, onDeleteInvite,
-  onBulkImport,
+  onBulkImport, communityTopics, messages, feedback, announcements,
 }) => {
   const mayManageRoles = can(currentUser, 'users:manage_roles');
   const mayManageEvents = can(currentUser, 'events:create');
@@ -211,6 +216,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         )}
 
         {section === 'system' && (
+          <>
+            <div className="mb-6">
+              <AdminReset
+                currentUser={currentUser} events={events} sessions={sessions}
+                tracks={tracks} rooms={rooms} sponsors={sponsors}
+                mealServices={mealServices} users={users} invites={invites}
+                prizes={prizes} costs={costs} attendance={attendance}
+                communityTopics={communityTopics} messages={messages}
+                feedback={feedback} announcements={announcements}
+                onCommit={onBulkImport}
+              />
+            </div>
           <div className="space-y-5">
             <div className="bg-white rounded-2xl border border-slate-200 p-5">
               <div className="flex items-center gap-2.5 mb-4">
@@ -266,6 +283,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
             )}
           </div>
+          </>
         )}
       </main>
     </div>

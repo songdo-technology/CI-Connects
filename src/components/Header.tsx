@@ -19,14 +19,10 @@ interface HeaderProps {
   /** How many profile fields other people can see are still empty. */
   profileGapCount: number;
   onSignOut: () => void;
-  onViewPublicPage: () => void;
   /** The platform's front door. The brand block goes here, because a logo
    *  reading "CI Connects" that lands on one conference is a lie about where
    *  it goes. */
   onGoHome: () => void;
-  /** The event this portal is scoped to, so the link to its public page can
-   *  say which page that is. */
-  eventName: string;
   onOpenAdmin: () => void;
   realRole: UserRole;
   previewRole: UserRole | null;
@@ -39,9 +35,7 @@ export const Header: React.FC<HeaderProps> = ({
   unreadMessageCount,
   profileGapCount,
   onSignOut,
-  onViewPublicPage,
   onGoHome,
-  eventName,
   onOpenAdmin,
   realRole,
   previewRole,
@@ -218,11 +212,10 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             )}
 
-            {/* Two exits, each named after where it goes.
-                "Event Page" said what kind of thing it was, not which one, so
-                people reached for it wanting the platform's front page and
-                landed on a single conference. A label that names its
-                destination cannot be misread. */}
+            {/* One exit. Two — a hub link beside a link to the current event —
+                read as alternatives, and people reached for the wrong one
+                expecting the front page. The event's own public page is a
+                click from the hub, which is where they were trying to go. */}
             <button
               onClick={onGoHome}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
@@ -230,15 +223,6 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <LayoutGrid className="w-3.5 h-3.5 text-blue-600" />
               <span className="hidden sm:inline">All events</span>
-            </button>
-
-            <button
-              onClick={onViewPublicPage}
-              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 transition-colors cursor-pointer max-w-[12rem]"
-              title={`Open the public page for ${eventName}`}
-            >
-              <Globe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              <span className="truncate">{eventName}</span>
             </button>
 
             {/* Architecture Blueprint Button */}

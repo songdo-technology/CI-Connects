@@ -748,6 +748,10 @@ export default function App() {
         invites={invites}
         attendance={attendance}
         onBulkImport={(ops) => batch(ops)}
+        communityTopics={communityTopics}
+        messages={messages}
+        feedback={feedback}
+        announcements={announcements}
         onSaveInvite={saver('invites')}
         onDeleteInvite={remover('invites')}
       />
@@ -760,6 +764,14 @@ export default function App() {
       <EventsHub
         events={allEvents}
         sessions={sessions}
+        signedInAs={authSession ? currentUser : null}
+        isOrganiser={Boolean(authSession) && can(currentUser, 'events:create')}
+        onOpenPortal={() => {
+          // Straight to what they manage. An organiser arriving from the front
+          // page is going to work, not browsing the catalogue they just left.
+          if (can(currentUser, 'events:create')) setIsAdminPanelOpen(true);
+          setSurface('portal');
+        }}
         onOpenEvent={openEvent}
         onSignIn={openSignIn}
       />
@@ -961,9 +973,7 @@ export default function App() {
         unreadMessageCount={unreadMessageCount}
         profileGapCount={profileGaps(currentUser).length}
         onSignOut={handleSignOut}
-        onViewPublicPage={() => { setSurface('event'); window.scrollTo(0, 0); }}
         onGoHome={openHub}
-        eventName={activeEvent.shortName}
         onOpenAdmin={() => setIsAdminPanelOpen(true)}
         realRole={currentUser.role}
         previewRole={previewRole}
