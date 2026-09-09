@@ -1,14 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Users, Building2, Globe2 } from 'lucide-react';
+import { Users, Building2, Handshake, Globe2 } from 'lucide-react';
 
 /**
  * What the name means, made literal.
  *
  * "CI Connects" is a claim, and a claim on a landing page is worth very little
- * unless you can see it. Three circles of connection — our own community, the
- * wider Chadwick family, the world — are drawn as one diagram that rearranges
- * itself as you move between them, so the three readings of the name are one
- * continuous idea rather than three slogans.
+ * unless you can see it. Four circles of connection — our own community, the
+ * wider Chadwick family, educators across Korea, the world — are drawn as one
+ * diagram that rearranges itself as you move between them, so the readings of
+ * the name are one continuous idea rather than four slogans.
+ *
+ * The rings are evenly spaced and strictly widening. That ordering is the
+ * argument: each circle contains the one before it, so reaching further out
+ * never means leaving home.
  *
  * It advances on its own until touched, then stops for good: someone who has
  * chosen a panel is reading it, and moving it out from under them is the whole
@@ -17,6 +21,7 @@ import { Users, Building2, Globe2 } from 'lucide-react';
 
 interface Mode {
   id: string;
+  /** The chip label. Short, because four of them share one row. */
   short: string;
   icon: React.ElementType;
   /** Completes the sentence "CI Connects…". */
@@ -30,38 +35,49 @@ interface Mode {
 const MODES: Mode[] = [
   {
     id: 'each-other',
-    short: 'with each other',
+    short: 'Each other',
     icon: Users,
     headline: 'with each other',
     body: 'Every gathering starts at home — faculty, students and families finding '
       + 'each other across divisions, subjects and years.',
     count: 12,
-    radius: 74,
+    radius: 70,
   },
   {
     id: 'chadwick',
-    short: 'with Chadwick Schools',
+    short: 'Chadwick Schools',
     icon: Building2,
     headline: 'with Chadwick Schools',
     body: 'Songdo and Palos Verdes share a founder, a mission and a set of values. '
       + 'Our events are where that becomes practice rather than history.',
     count: 4,
-    radius: 108,
+    radius: 95,
+  },
+  {
+    id: 'korea',
+    short: 'Educators in Korea',
+    icon: Handshake,
+    headline: 'with educators across Korea',
+    body: 'Schools across the country, and work with the Ministry of Education — '
+      + 'including workshops delivered at the Incheon Metropolitan Office of '
+      + 'Education, alongside local teachers.',
+    count: 10,
+    radius: 120,
   },
   {
     id: 'world',
-    short: 'with the global community',
+    short: 'The global community',
     icon: Globe2,
     headline: 'with the global community',
-    body: 'Educators, schools and partners from across Korea and around the world, '
+    body: 'And beyond that: educators, schools and partners from around the world, '
       + 'convened here in Songdo.',
-    count: 16,
-    radius: 140,
+    count: 18,
+    radius: 144,
   },
 ];
 
 /** Every satellite slot that any mode can use, so nodes move rather than pop. */
-const MAX_NODES = 16;
+const MAX_NODES = 18;
 const CYCLE_MS = 5200;
 
 export const ConnectsStatement: React.FC = () => {
@@ -175,7 +191,7 @@ export const ConnectsStatement: React.FC = () => {
       {/* ---------- The sentence ---------- */}
       <div className="text-center mt-2">
         {/* Fixed height so the buttons below never jump between panels. */}
-        <div className="min-h-[6.5rem]">
+        <div className="min-h-[8rem]">
           <p className="text-lg sm:text-xl font-bold text-white mb-2">
             <span className="text-blue-200/70 font-normal">CI Connects </span>
             {mode.headline}
@@ -185,8 +201,11 @@ export const ConnectsStatement: React.FC = () => {
           </p>
         </div>
 
+        {/* A 2x2 grid rather than a wrapping row: four chips in the hero's
+            narrower column wrap to four separate lines, which reads as a list
+            of unrelated links instead of one set of choices. */}
         <div
-          className="flex flex-wrap items-center justify-center gap-2 mt-4"
+          className="grid grid-cols-2 gap-2 mt-5 max-w-sm mx-auto"
           role="tablist"
           aria-label="What CI Connects means"
         >
@@ -198,7 +217,7 @@ export const ConnectsStatement: React.FC = () => {
                 role="tab"
                 aria-selected={i === active}
                 onClick={() => choose(i)}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                   i === active
                     ? 'bg-white text-blue-700 border-white'
                     : 'bg-white/5 text-blue-100 border-white/20 hover:bg-white/10'
