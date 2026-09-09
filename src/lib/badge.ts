@@ -161,12 +161,28 @@ export const LANYARD_SIZES: LanyardSize[] = [
 export function badgeScale(size: LanyardSize) {
   const w = size.width;
   return {
-    /** Largest first-name size that still fits the card, in inches. */
-    firstNameMax: w * 0.30,
+    /**
+     * Ceiling for the first name, in inches. Only a ceiling: PrintableBadge
+     * measures each name and steps down from here until it fits on one line,
+     * so this can be set for the shortest name rather than the longest.
+     *
+     * Bounded by height as well as width. Width alone let a short name on a
+     * wide card grow tall enough to push the QR code off the bottom, where
+     * the card's overflow quietly cut it off — a badge that cannot be scanned
+     * and does not look broken until somebody is standing at the door with it.
+     */
+    firstNameMax: Math.min(w * 0.42, size.height * 0.145),
     qr: Math.min(w * 0.42, size.height * 0.22),
     padding: w * 0.055,
     bandFont: Math.max(5, w * 2.1),
     metaFont: Math.max(5, w * 2.4),
+    /**
+     * A photo costs about 0.6in of height. On the credit-card sizes that is
+     * the difference between the QR code being on the card and being clipped
+     * off the bottom of it, and a badge that cannot be scanned is worse than
+     * one without a face on it.
+     */
+    showPhoto: size.height >= 4,
     /** Small cards cannot carry a session list without becoming unreadable. */
     showSessions: size.width >= 3.4 && size.height >= 5,
     showDietary: size.height >= 3.3,

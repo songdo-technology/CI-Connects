@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { User } from 'firebase/auth';
 import {
   AuthState, completeGuestSignIn, completeRedirectSignIn, ensureUserDocument,
@@ -55,6 +55,26 @@ export const AuthProvider: React.FC<{
   const [profileReady, setProfileReady] = useState(false);
   const [guestLinkPending, setGuestLinkPending] = useState(false);
 
+  /**
+   * Why the last attempt failed, held outside the auth state.
+   *
+   * Every rejection path signs the user back out first, which makes
+   * onAuthStateChanged fire with null, which used to overwrite the whole state
+   * — reason included. The visitor was returned to a blank sign-in form with
+   * nothing on it, so a refusal was indistinguishable from a page that had
+   * simply reloaded. That is the "it just loops back" bug: the app knew
+   * exactly what was wrong and threw the explanation away.
+   */
+  const failure = useRef<string | null>(null);
+
+  const fail = (message: string) => {
+    failure.current = message;
+    setState((s) => ({ ...s, status: 'error', error: message }));
+  };
+
+  /** Called when the visitor starts a fresh attempt. */
+  const clearFailure = () => { failure.current = null; };
+
   // A sign-in link lands as a fresh page load carrying credentials in the URL,
   // so this has to be detected before anything renders a sign-in form.
   useEffect(() => {
@@ -66,15 +86,19 @@ export const AuthProvider: React.FC<{
   // started it, so the result has to be claimed here before anything else.
   useEffect(() => {
     if (!live) return;
-    completeRedirectSignIn().catch((e: Error) =>
-      setState((s) => ({ ...s, status: 'error', error: e.message })));
+    completeRedirectSignIn().catch((e: Error) => fail(e.message));
   }, [live]);
 
   useEffect(() => {
     if (!live) return;
     return watchAuth((next) => {
-      setState(next);
+      // A sign-out this app triggered to enforce a rule must not erase the
+      // reason it did so.
+      setState(next.status === 'signed_out' && failure.current
+        ? { ...next, status: 'error', error: failure.current }
+        : next);
       if (next.status !== 'signed_in') setProfileReady(false);
+      if (next.status === 'signed_in') failure.current = null;
     });
   }, [live]);
 
@@ -97,12 +121,8 @@ export const AuthProvider: React.FC<{
         // reaching here means something is actually wrong. Say what, rather
         // than returning the visitor to a sign-in form that looks like their
         // attempt was simply ignored.
-        setState((s) => ({
-          ...s,
-          status: 'error',
-          error: `Signed in, but your profile could not be set up: ${e.message} `
-            + 'Try again, and tell songdo-technology@chadwickschool.org if it persists.',
-        }));
+        fail(`Signed in, but your profile could not be set up: ${e.message} `
+          + 'Try again, and tell songdo-technology@chadwickschool.org if it persists.');
       });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -115,6 +135,7 @@ export const AuthProvider: React.FC<{
     error: state.error,
     profileReady,
     signIn: async () => {
+      clearFailure();
       try {
         await signInWithGoogle();
       } catch (e) {
@@ -126,6 +147,7 @@ export const AuthProvider: React.FC<{
       setProfileReady(false);
     },
     sendGuestLink: async (email: string) => {
+      clearFailure();
       try {
         await sendGuestSignInLink(email);
       } catch (e) {
@@ -144,11 +166,14 @@ export const AuthProvider: React.FC<{
         throw e;
       }
     },
-    clearError: () => setState((s) => ({
-      ...s,
-      error: null,
-      status: s.user ? 'signed_in' : 'signed_out',
-    })),
+    clearError: () => {
+      clearFailure();
+      setState((s) => ({
+        ...s,
+        error: null,
+        status: s.user ? 'signed_in' : 'signed_out',
+      }));
+    },
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

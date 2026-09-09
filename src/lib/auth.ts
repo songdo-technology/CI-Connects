@@ -78,6 +78,37 @@ const POPUP_UNAVAILABLE = new Set([
   'auth/cancelled-popup-request',
 ]);
 
+
+/**
+ * Rejects an account that is positively not on the school's domain.
+ *
+ * The emphasis is on *positively*. The previous check refused anything it
+ * could not confirm, which included a UserCredential whose top-level email is
+ * null — Google does not always populate it, and the address is then only on
+ * the provider record. Refusing there signed a legitimate Chadwick account
+ * straight back out, which is indistinguishable from sign-in silently
+ * failing.
+ *
+ * Being permissive here costs nothing, because this is not the security
+ * boundary. The Firestore rules are, and they check the token's own email on
+ * every read and write. This exists to give a wrong-account visitor a clear
+ * message instead of an empty app.
+ */
+function assertAllowedAccount(user: User): void {
+  const candidates = [user.email, ...user.providerData.map((p) => p?.email)]
+    .filter((e): e is string => Boolean(e));
+
+  // No address to judge. Let it through and let the rules decide.
+  if (candidates.length === 0) return;
+  if (candidates.some((e) => isAllowedDomain(e))) return;
+
+  throw new Error(
+    `Sign-in is limited to @${ALLOWED_EMAIL_DOMAIN} accounts. `
+    + `You signed in as ${candidates[0]}. Sign out of that Google account, or `
+    + 'use "I\'m attending as a guest" if you were sent an invitation.',
+  );
+}
+
 export async function signInWithGoogle(eventSlug?: string): Promise<void> {
   if (!firebaseAuth) throw new Error('Firebase is not configured.');
 
@@ -116,15 +147,14 @@ export async function signInWithGoogle(eventSlug?: string): Promise<void> {
     throw e;
   }
 
-  if (!isAllowedDomain(result.user.email)) {
+  try {
+    assertAllowedAccount(result.user);
+  } catch (e) {
     // Sign straight back out. Leaving the session open would let a personal
     // Google account sit signed in against a school platform, even though the
     // rules would refuse it every read.
     await signOut(firebaseAuth);
-    throw new Error(
-      `Sign-in is limited to @${ALLOWED_EMAIL_DOMAIN} accounts. ` +
-      `You signed in as ${result.user.email ?? 'an unknown account'}.`,
-    );
+    throw e;
   }
 }
 
@@ -136,12 +166,12 @@ export async function signInWithGoogle(eventSlug?: string): Promise<void> {
 export async function completeRedirectSignIn(): Promise<void> {
   if (!firebaseAuth) return;
   const result = await getRedirectResult(firebaseAuth);
-  if (result && !isAllowedDomain(result.user.email)) {
+  if (!result) return;
+  try {
+    assertAllowedAccount(result.user);
+  } catch (e) {
     await signOut(firebaseAuth);
-    throw new Error(
-      `Sign-in is limited to @${ALLOWED_EMAIL_DOMAIN} accounts. ` +
-      `You signed in as ${result.user.email ?? 'an unknown account'}.`,
-    );
+    throw e;
   }
 }
 

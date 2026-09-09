@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useLayoutEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { X, Printer, Users, User, Building2, CalendarDays, MapPin } from 'lucide-react';
 import {
@@ -38,14 +38,132 @@ interface PrintableBadgeProps {
  */
 
 /**
- * Largest first-name type that still fits, expressed in inches so it scales
- * with the card. A CR80 is a third the area of a 4x6, so a fixed ladder would
- * either waste the large card or overflow the small one.
+ * A line of text shrunk until it fits its column on one line.
+ *
+ * The previous version guessed a size from the character count, which cannot
+ * work: "Illia" and "Wilhelmina" differ by five characters but far more than
+ * five characters' worth of width, and the same ladder has to serve a CR80 and
+ * a 4x6. Names that guessed wrong wrapped mid-word — "Timo / thy" — on a card
+ * somebody was about to laminate.
+ *
+ * So it measures instead. A binary search over font size, comparing the text's
+ * natural width against the space actually available, converges in seven cheap
+ * reflows and is exact for any name in any font at any card size.
+ *
+ * The size is written straight to the node rather than held in React state:
+ * the search runs several sizes per pass, and routing each through a render
+ * would flash the intermediate ones on screen.
  */
-const firstNameSize = (name: string, maxInches: number) => {
-  const n = name.length;
-  const factor = n <= 5 ? 1 : n <= 7 ? 0.84 : n <= 10 ? 0.68 : n <= 13 ? 0.55 : 0.46;
-  return `${(maxInches * factor).toFixed(3)}in`;
+/**
+ * A card body that shrinks its whole contents until they fit the card.
+ *
+ * Cards are a fixed physical size and their contents are not: a delegate with
+ * six reserved sessions, three meal choices and a long job title needs more
+ * room than one with none, and a CR80 is a third the area of a 4x6. Tuning
+ * each size by hand only holds until somebody books another session — and the
+ * failure mode is silent, because the card clips at its own border and looks
+ * deliberate. Measured here, the badge printed 266px of sponsor banners past
+ * the bottom edge of a CR80 and gave no sign of it.
+ *
+ * Scaling is uniform and only ever downward, so proportions and the type
+ * hierarchy survive; the card just gets a little denser. The QR stays on the
+ * card, which is the part that has to be true.
+ */
+const FitBox: React.FC<{ className: string; children: React.ReactNode }> = ({
+  className, children,
+}) => {
+  const outer = useRef<HTMLDivElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const o = outer.current;
+    const i = inner.current;
+    if (!o || !i) return;
+
+    const fit = () => {
+      // Measure unscaled, or each pass would compound the last one's scale.
+      i.style.transform = 'none';
+      const natural = i.scrollHeight;
+      // clientHeight includes padding, but the content lives inside it. Using
+      // it directly over-stated the room by exactly the padding, and the card
+      // overshot its own bottom edge by the bottom pad — enough to take the
+      // corner off a QR code.
+      const box = getComputedStyle(o);
+      const available = o.clientHeight
+        - parseFloat(box.paddingTop || '0')
+        - parseFloat(box.paddingBottom || '0');
+      if (!natural || available <= 0) return;
+      const ratio = Math.min(1, available / natural);
+      i.style.transform = ratio < 1 ? `scale(${ratio.toFixed(4)})` : 'none';
+    };
+
+    fit();
+    document.fonts?.ready.then(fit).catch(() => { /* no font loading API */ });
+    const observer = new ResizeObserver(fit);
+    observer.observe(o);
+    return () => observer.disconnect();
+  });
+
+  return (
+    <div ref={outer} className={className}>
+      {/* Scaled from the top centre, so the inner width never changes and the
+          name's own fitting is not disturbed into a feedback loop. */}
+      <div ref={inner} className="badge-fit-inner">{children}</div>
+    </div>
+  );
+};
+
+const FitLine: React.FC<{
+  text: string;
+  /** Upper bound, in inches. The line never grows past this. */
+  maxIn: number;
+  /** Lower bound. Below this a name is unreadable across a room, so it is
+   *  better to let it touch the edges than to shrink it into illegibility. */
+  minIn: number;
+  className?: string;
+  style?: React.CSSProperties;
+}> = ({ text, maxIn, minIn, className, style }) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    const parent = el?.parentElement;
+    if (!el || !parent) return;
+
+    const fit = () => {
+      const available = parent.clientWidth;
+      if (!available) return;
+
+      let lo = minIn;
+      let hi = maxIn;
+      let best = minIn;
+      for (let i = 0; i < 7; i++) {
+        const mid = (lo + hi) / 2;
+        el.style.fontSize = `${mid}in`;
+        // scrollWidth is the text's natural width because the line cannot wrap.
+        if (el.scrollWidth <= available) { best = mid; lo = mid; } else { hi = mid; }
+      }
+      el.style.fontSize = `${best.toFixed(4)}in`;
+    };
+
+    fit();
+
+    // Web fonts change every metric this depends on, and they land after the
+    // first paint. Without this the card is measured in the fallback face and
+    // is wrong in the one it actually prints in.
+    document.fonts?.ready.then(fit).catch(() => { /* no font loading API */ });
+
+    // The card is laid out in a responsive grid, so its column can change width.
+    const observer = new ResizeObserver(fit);
+    observer.observe(parent);
+    return () => observer.disconnect();
+  }, [text, maxIn, minIn]);
+
+  return (
+    <div ref={ref} className={className} style={{ whiteSpace: 'nowrap', ...style }}>
+      {text}
+    </div>
+  );
 };
 
 /** Honorifics and job titles that precede a name. Stripping these matters:
@@ -136,19 +254,36 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
           <span className="badge-band-role">{band.label}</span>
         </div>
 
-        <div className="badge-body">
+        <FitBox className="badge-body">
           <div className="badge-identity">
             {/* Whatever the profile holds — a generated initials mark today, a
                 real photo once someone uploads one. */}
-            <img className="badge-photo" src={u.avatarUrl} alt="" />
+            {scale.showPhoto && <img className="badge-photo" src={u.avatarUrl} alt="" />}
           <div className="badge-name-block">
-            <div className="badge-first" style={{ fontSize: firstNameSize(first, scale.firstNameMax) }}>{first}</div>
-            {rest && <div className="badge-last">{rest}</div>}
+            <FitLine
+              className="badge-first"
+              text={first}
+              maxIn={scale.firstNameMax}
+              minIn={scale.firstNameMax * 0.34}
+            />
+            {rest && (
+              <FitLine
+                className="badge-last"
+                text={rest}
+                maxIn={scale.firstNameMax * 0.34}
+                minIn={scale.firstNameMax * 0.15}
+              />
+            )}
           </div>
           </div>
 
           <div className="badge-meta">
-            <div className="badge-org">{org}</div>
+            <FitLine
+              className="badge-org"
+              text={org}
+              maxIn={scale.firstNameMax * 0.20}
+              minIn={scale.firstNameMax * 0.11}
+            />
             {u.title && <div className="badge-title">{u.title}</div>}
           </div>
 
@@ -204,7 +339,7 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
               <span className="badge-diet-value">{DIETARY_META[u.dietaryTag].label}</span>
             </div>
           )}
-        </div>
+        </FitBox>
       </div>
     );
   };
@@ -212,6 +347,7 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
   // ----------------------------------------------------------------- Back
   const Back: React.FC = () => (
     <div className="badge-card badge-card--back">
+      <FitBox className="badge-back-body">
       <div className="badge-back-top">
         <div className="badge-back-crest">CI</div>
         <div className="badge-back-school">Chadwick International</div>
@@ -257,6 +393,7 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
         </div>
         <div className="badge-back-brand">CI Connects · The Chadwick International Event Management Platform</div>
       </div>
+      </FitBox>
     </div>
   );
 
@@ -399,21 +536,33 @@ const PRINT_CSS = `
 .badge-band-role { font-size: 7.5pt; font-weight: 700; letter-spacing: 0.11em;
                    background: rgba(255,255,255,.22); padding: 0.02in 0.09in; border-radius: 999px; }
 
-.badge-body { flex: 1; padding: var(--card-pad); display: flex; flex-direction: column; }
+.badge-body { flex: 1; padding: var(--card-pad); overflow: hidden; }
+.badge-back-body { flex: 1; overflow: hidden; }
+/* min-height so a sparse card still pushes its footer to the bottom, while a
+   full one is free to exceed the box and be scaled back down to fit it. */
+.badge-fit-inner {
+  display: flex; flex-direction: column; min-height: 100%;
+  transform-origin: top center;
+}
 
-.badge-name-block { text-align: center; margin-top: 0.14in; }
+.badge-name-block { text-align: center; margin-top: 0.02in; width: 100%; }
 .badge-first {
-  font-weight: 700; line-height: 0.98; letter-spacing: -0.02em;
-  color: #002b54; word-break: break-word;
+  font-weight: 700; line-height: 1.02; letter-spacing: -0.02em;
+  color: #002b54;
+  /* Never wrap and never clip: FitLine guarantees it fits on one line. */
+  white-space: nowrap;
 }
 .badge-last {
-  font-size: 1.05rem; font-weight: 600; color: #334155;
-  margin-top: 0.05in; letter-spacing: 0.01em;
+  font-weight: 600; color: #334155;
+  margin-top: 0.04in; letter-spacing: 0.01em; white-space: nowrap;
 }
 
-.badge-meta { text-align: center; margin-top: 0.12in; }
+.badge-meta {
+  text-align: center; margin-top: 0.09in; padding-top: 0.08in;
+  border-top: 1px solid #e8edf3;
+}
 .badge-title { font-size: 8.5pt; font-weight: 600; color: #2a6791; line-height: 1.25; }
-.badge-org   { font-size: 7.5pt; color: #64748b; margin-top: 0.02in; }
+.badge-org   { color: #64748b; margin-top: 0.02in; white-space: nowrap; font-weight: 600; }
 
 .badge-lower {
   margin-top: auto; display: flex; gap: 0.14in; align-items: flex-start;
@@ -476,10 +625,19 @@ const PRINT_CSS = `
 .badge-back-sponsor-name { font-size: 7pt; font-weight: 600; }
 .badge-back-sponsor-tier { font-size: 5.5pt; color: rgba(255,255,255,.45); letter-spacing: 0.06em; text-transform: uppercase; }
 
-.badge-identity { display: flex; align-items: center; gap: 0.1in; }
+/* The photo sits above the name rather than beside it.
+   Side by side, the photo took more than a third of the card and the first
+   name was left a narrow column — which forced the type down to a size you
+   could not read from arm's length, let alone across a room. Stacked, the
+   name gets the full width of the card and roughly twice the type size. */
+.badge-identity {
+  display: flex; flex-direction: column; align-items: stretch;
+  text-align: center;
+}
 .badge-photo {
-  width: 0.62in; height: 0.62in; border-radius: 0.1in; object-fit: cover;
-  border: 1px solid #e2e8f0; flex-shrink: 0;
+  width: 0.54in; height: 0.54in; border-radius: 50%; object-fit: cover;
+  margin: 0 auto 0.06in; display: block;
+  border: 1.5px solid #fff; box-shadow: 0 0 0 1px #cbd5e1;
 }
 .badge-meals { margin-top: 0.07in; }
 .badge-meal { display: flex; align-items: baseline; justify-content: space-between; gap: 0.06in; margin-bottom: 0.02in; }
