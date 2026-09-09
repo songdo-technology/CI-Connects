@@ -51,6 +51,8 @@ import { FeedbackView } from './components/FeedbackView';
 import { SignageDirectory } from './components/SignageDirectory';
 import { ProposeSession } from './components/ProposeSession';
 import { AdminDashboard } from './components/AdminDashboard';
+import { VerifyCertificate } from './components/VerifyCertificate';
+import { MyCertificates } from './components/MyCertificates';
 
 /** The public surfaces of the product: a hub listing every event Chadwick
  *  runs, one page per event, a sign-in gate, and the attendee portal behind
@@ -81,6 +83,7 @@ export default function App() {
     prizes,
     costs,
     invites,
+    certificates,
     create,
     update,
     remove,
@@ -120,6 +123,9 @@ export default function App() {
     initialEventSlug ?? EVENT_CONFIG.slug,
   );
   const [authSession, setAuthSession] = useState<AuthSession | null>(null);
+  /** Set when the page was opened from a certificate's QR or printed code. */
+  const [verifyCode, setVerifyCode] = useState<string | null>(
+    () => new URLSearchParams(window.location.search).get('verify'));
   /**
    * Somebody is on their way into the portal and has not arrived yet.
    *
@@ -652,6 +658,24 @@ export default function App() {
 
   // Gate placed after every hook: returning earlier would change the hook
   // count between the loading and loaded renders, which React rejects.
+  // A verification link is checked before anything else on the page. Somebody
+  // holding a printed certificate has no account and no interest in the rest
+  // of the platform, and asking them to load it would be an obstacle.
+  if (verifyCode !== null) {
+    return (
+      <VerifyCertificate
+        code={verifyCode}
+        onOpenHub={() => {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('verify');
+          window.history.replaceState({}, '', url.toString());
+          setVerifyCode(null);
+          setSurface('hub');
+        }}
+      />
+    );
+  }
+
   // Subscriptions attach in an effect, so the first render has empty
   // collections. Everything below assumes data is present — currentUser falls
   // back to allUsers[0] — so hold rendering until the store has delivered.
@@ -773,6 +797,7 @@ export default function App() {
         messages={messages}
         feedback={feedback}
         announcements={announcements}
+        certificates={certificates}
         onSaveInvite={saver('invites')}
         onDeleteInvite={remover('invites')}
       />
@@ -823,7 +848,7 @@ export default function App() {
             onSaveCost={saver('costs')} onDeleteCost={remover('costs')}
             onBulkImport={(ops) => batch(ops)} openTo={adminIntent}
             communityTopics={communityTopics} messages={messages}
-            feedback={feedback} announcements={announcements}
+            feedback={feedback} announcements={announcements} certificates={certificates}
             onSaveInvite={saver('invites')} onDeleteInvite={remover('invites')}
           />
         )}
@@ -925,6 +950,22 @@ export default function App() {
           onToggleReservation={handleToggleReservation}
           onSelectSession={(session) => setSelectedSessionForModal(session)}
         />
+      )}
+
+      {activeTab === 'badge' && (
+        <div className="mb-5">
+          <MyCertificates
+            currentUser={viewUser}
+            certificates={certificates}
+            events={allEvents}
+            gaveFeedbackFor={(eventId) => {
+              const ids = new Set(sessions.filter((s) => s.eventId === eventId).map((s) => s.id));
+              return feedback.some((f) => f.userId === viewUser.id
+                && (ids.has(f.targetId) || f.targetKind !== 'session'));
+            }}
+            onGiveFeedback={() => setActiveTab('feedback')}
+          />
+        </div>
       )}
 
       {activeTab === 'badge' && (

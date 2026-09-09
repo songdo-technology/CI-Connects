@@ -1,7 +1,7 @@
 import {
   UserProfile, EventConfig, Session, Track, Room, Sponsor, MealService,
   BroadcastAnnouncement, CommunityTopic, AttendanceRecord, DirectMessage,
-  FeedbackEntry, Prize, CostEntry, Invite,
+  FeedbackEntry, Prize, CostEntry, Invite, Certificate,
 } from '../../types';
 
 /**
@@ -29,6 +29,7 @@ export interface CollectionTypes {
   prizes: Prize;
   costs: CostEntry;
   invites: Invite;
+  certificates: Certificate;
 }
 
 export type CollectionKey = keyof CollectionTypes;
@@ -36,7 +37,7 @@ export type CollectionKey = keyof CollectionTypes;
 export const COLLECTION_KEYS: CollectionKey[] = [
   'users', 'events', 'sessions', 'tracks', 'rooms', 'sponsors',
   'mealServices', 'announcements', 'communityTopics', 'attendance',
-  'messages', 'feedback', 'prizes', 'costs', 'invites',
+  'messages', 'feedback', 'prizes', 'costs', 'invites', 'certificates',
 ];
 
 /** Every stored entity carries a string id, which the store relies on. */

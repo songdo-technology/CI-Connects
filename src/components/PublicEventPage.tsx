@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import {
   Building2, CalendarDays, MapPin, ArrowRight, Clock, ChevronDown,
-  Users, Sparkles, LogIn, PlayCircle, Clock as ClockIcon, FileText,
+  Users, Sparkles, LogIn, PlayCircle, Clock as ClockIcon, FileText, CalendarPlus,
 } from 'lucide-react';
 import { EventConfig, Session, Track, Room, UserProfile, Sponsor, registrationState, eventStatus } from '../types';
 import { resolveVideoEmbed } from '../lib/videoEmbed';
 import { EventRecapBody } from './EventRecapModal';
+import { googleCalendarUrl, entryForEvent, downloadIcs } from '../lib/calendarLinks';
 import { SponsorWall } from './SponsorWall';
 
 interface PublicEventPageProps {
@@ -214,6 +215,28 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
                   </div>
                 );
               })()}
+              {/* Generated in the browser: no service, no account, and it works
+                  for Outlook and Apple Calendar as well as Google. */}
+              {!isPast && (
+                <div className="inline-flex rounded-xl overflow-hidden border border-white/25 backdrop-blur-sm">
+                  <a
+                    href={googleCalendarUrl(entryForEvent(event))}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-4 bg-white/10 text-white font-semibold hover:bg-white/20 transition-colors"
+                  >
+                    <CalendarPlus className="w-4 h-4" />
+                    Google Calendar
+                  </a>
+                  <button
+                    onClick={() => downloadIcs([entryForEvent(event)], event.name)}
+                    className="px-5 py-4 bg-white/10 text-white font-semibold hover:bg-white/20 border-l border-white/25 transition-colors cursor-pointer"
+                    title="Outlook, Apple Calendar and everything else"
+                  >
+                    .ics
+                  </button>
+                </div>
+              )}
               <button
                 onClick={() => scrollTo('agenda')}
                 className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl bg-white/10 border border-white/25 text-white font-semibold hover:bg-white/20 transition-colors backdrop-blur-sm cursor-pointer"

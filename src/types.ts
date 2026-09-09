@@ -251,6 +251,77 @@ export interface Session {
   unavailableDays?: number[];
 }
 
+/**
+ * How an event's certificate reads, set once by an organiser.
+ *
+ * Teachers submit these to licensing bodies, so the fields are the ones such a
+ * body looks for: who attended, what, when, how many hours, issued by whom,
+ * and a way to check it is real.
+ */
+export interface CertificateDesign {
+  /** Off until deliberately turned on. */
+  enabled: boolean;
+  /** Heading, e.g. "Certificate of Professional Learning". */
+  title: string;
+  /**
+   * How hours are worked out.
+   *
+   * `fixed` awards the same to everyone who attended — right for a
+   * single-track day. `attended` sums the actual length of the sessions a
+   * person scanned into, which is the only version that survives scrutiny when
+   * somebody came for half the programme.
+   */
+  hoursPolicy: 'fixed' | 'attended';
+  /** Hours for full attendance, used by the `fixed` policy and as the cap. */
+  hours: number;
+  /** Minimum sessions scanned before anyone qualifies. */
+  minSessions: number;
+  issuerName: string;
+  signatoryName: string;
+  signatoryTitle: string;
+  /** Accreditation or recognition line, printed small under the hours. */
+  accreditationNote?: string;
+  /** An extra paragraph, for wording a particular body requires. */
+  bodyText?: string;
+  /**
+   * Whether feedback must be given before the certificate is released.
+   *
+   * Defaults off, and deliberately so: withholding a document somebody needs
+   * for their licence until they rate the event is coercion, and it corrupts
+   * the feedback as well. Available because some organisers will want it, and
+   * the cost of the choice is stated where it is made.
+   */
+  requireFeedback?: boolean;
+}
+
+/**
+ * An issued certificate.
+ *
+ * The holder's name, organisation and hours are copied in at the moment of
+ * issue rather than read live. A certificate is a statement about a past
+ * event: if somebody later changes their display name or their hours are
+ * recalculated, the document a licensing body already holds must not silently
+ * disagree with the record behind it.
+ */
+export interface Certificate {
+  /** The document id is the verification code, so checking one is a single
+   *  public read and never a query over everybody's certificates. */
+  id: string;
+  eventId: string;
+  userId: string;
+  fullName: string;
+  organization: string;
+  eventName: string;
+  eventDates: string;
+  hours: number;
+  sessionsAttended: number;
+  issuedAt: string;
+  issuedBy: string;
+  /** Set instead of deleting, so a revoked code still verifies — as revoked. */
+  revokedAt?: string;
+  revokedReason?: string;
+}
+
 /** A period the programme can place a session in. */
 export interface ScheduleSlot {
   day: number;
@@ -385,6 +456,14 @@ export interface EventConfig {
      *  presenter keeps ownership of the current version. */
     materials?: { label: string; url: string; presenter?: string }[];
   };
+  /**
+   * Certificates of attendance and professional learning hours.
+   *
+   * Absent means this event issues none, which is the right default: a parent
+   * evening or an open house has no professional development to certify, and
+   * a certificate that means nothing devalues the ones that do.
+   */
+  certificate?: CertificateDesign;
   /** Drafts are visible only to organisers; published events are the public
    *  website. Absent is treated as published, so existing rows keep working. */
   status?: 'draft' | 'published';

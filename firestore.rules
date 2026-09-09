@@ -223,6 +223,29 @@ service cloud.firestore {
     // matched on the email in their verified token, never on a supplied value.
     // Everything else about invites is organisers only, because the collection
     // is a list of who is coming.
+    /**
+     * Certificates of professional learning.
+     *
+     * `get` is public and `list` is not, which is the whole design: the code
+     * is the capability. A licensing body holding one certificate can check
+     * that certificate without an account — requiring a sign-in to verify a
+     * credential would make the credential useless — while nobody can
+     * enumerate the collection and harvest the name, organisation and
+     * attendance of every teacher who ever came.
+     *
+     * Only organisers issue, and nobody deletes: a code printed on a document
+     * somebody already holds must keep answering. Withdrawing one sets
+     * revokedAt, so the answer becomes "issued, then withdrawn" rather than
+     * "no such certificate", which would read as an accusation of forgery.
+     */
+    match /certificates/{code} {
+      allow get: if true;
+      allow list: if isOrganiser();
+      allow create: if isOrganiser();
+      allow update: if isOrganiser();
+      allow delete: if false;
+    }
+
     match /invites/{inviteId} {
       allow read: if isOrganiser()
                   || (signedIn() && resource.data.email == request.auth.token.email);

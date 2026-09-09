@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import {
   ShieldCheck, CalendarPlus, Database, X, Cloud, CloudOff, ExternalLink,
   CalendarDays, DoorOpen, UtensilsCrossed, Handshake, Gift, Wallet, UserPlus, ClipboardCheck,
-  FileSpreadsheet, Inbox,
+  FileSpreadsheet, Inbox, Award,
 } from 'lucide-react';
 import {
   EventConfig, UserProfile, UserRole, Session, Track, Room, MealService, Sponsor,
-  Prize, CostEntry, Invite, AttendanceRecord,
+  Prize, CostEntry, Invite, AttendanceRecord, FeedbackEntry, Certificate,
 } from '../../types';
 import { can, ROLE_LABEL } from '../../lib/permissions';
 import { BatchOperation } from '../../lib/data/store';
@@ -20,6 +20,7 @@ import { AdminImport } from './AdminImport';
 import { AdminProposals } from './AdminProposals';
 import { AdminReset } from './AdminReset';
 import { AdminGettingStarted } from './AdminGettingStarted';
+import { AdminCertificates } from './AdminCertificates';
 import { AdminAttendance } from './AdminAttendance';
 
 interface AdminPanelProps {
@@ -61,13 +62,15 @@ interface AdminPanelProps {
   openTo?: 'events-new';
   communityTopics: { id: string }[];
   messages: { id: string }[];
-  feedback: { id: string }[];
+  feedback: FeedbackEntry[];
+  certificates: Certificate[];
   announcements: { id: string }[];
 }
 
 type Section =
   | 'people' | 'events' | 'programme' | 'rooms' | 'dining' | 'sponsors'
-  | 'prizes' | 'costs' | 'guests' | 'attendance' | 'import' | 'proposals' | 'system';
+  | 'prizes' | 'costs' | 'guests' | 'attendance' | 'import' | 'proposals'
+  | 'certificates' | 'system';
 
 /**
  * Administration console.
@@ -86,7 +89,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onSaveSession, onDeleteSession, onSaveRoom, onDeleteRoom,
   onSaveMeal, onDeleteMeal, onSaveSponsor, onDeleteSponsor,
   onSavePrize, onDeletePrize, onSaveCost, onDeleteCost, onSaveInvite, onDeleteInvite,
-  onBulkImport, communityTopics, messages, feedback, announcements, openTo,
+  onBulkImport, communityTopics, messages, feedback, announcements, certificates, openTo,
 }) => {
   const mayManageRoles = can(currentUser, 'users:manage_roles');
   const mayManageEvents = can(currentUser, 'events:create');
@@ -102,6 +105,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     can(currentUser, 'sponsors:manage') && ['sponsors', 'Sponsors', Handshake],
     can(currentUser, 'users:view_all') && ['guests', 'Guests', UserPlus],
     can(currentUser, 'attendance:view_all') && ['attendance', 'Attendance', ClipboardCheck],
+    mayManageEvents && ['certificates', 'Certificates', Award],
     can(currentUser, 'luckydraw:manage') && ['prizes', 'Lucky Draw', Gift],
     can(currentUser, 'costs:view') && ['costs', 'Spend', Wallet],
     mayManageRoles && ['people', 'People & Roles', ShieldCheck],
@@ -205,6 +209,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             events={events} rooms={rooms} tracks={tracks} sponsors={sponsors}
             mealServices={mealServices} sessions={sessions} users={users}
             invites={invites} currentUser={currentUser} onCommit={onBulkImport}
+          />
+        )}
+
+        {section === 'certificates' && (
+          <AdminCertificates
+            currentUser={currentUser} events={events} sessions={sessions}
+            users={users} attendance={attendance} feedback={feedback}
+            certificates={certificates} onSaveEvent={onSaveEvent}
+            onCommit={onBulkImport}
           />
         )}
 
