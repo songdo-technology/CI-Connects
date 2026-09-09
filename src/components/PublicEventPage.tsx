@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import {
   Building2, CalendarDays, MapPin, ArrowRight, Clock, ChevronDown,
-  Users, Sparkles, LogIn,
+  Users, Sparkles, LogIn, PlayCircle, Clock as ClockIcon,
 } from 'lucide-react';
-import { EventConfig, Session, Track, Room, UserProfile, Sponsor } from '../types';
+import { EventConfig, Session, Track, Room, UserProfile, Sponsor, registrationState } from '../types';
 import { SponsorWall } from './SponsorWall';
 
 interface PublicEventPageProps {
@@ -65,6 +65,7 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
     hasProgramme ? ['Agenda', 'agenda'] : null,
     ['Venue', 'venue'],
     sponsors.length ? ['Sponsors', 'sponsors'] : null,
+    event.recap ? ['How it went', 'recap'] : null,
     event.discover ? ['Discover', 'discover'] : null,
     event.faqs?.length ? ['FAQ', 'faq'] : null,
   ].filter(Boolean)) as [string, string][];
@@ -170,13 +171,35 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={onSignIn}
-                className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl bg-white text-blue-800 font-bold hover:bg-blue-50 transition-colors cursor-pointer"
-              >
-                {event.registrationOpen ? 'Sign in to the attendee portal' : 'Registration closed'}
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              {(() => {
+                const reg = registrationState(event);
+                if (reg.state === 'open') {
+                  return (
+                    <button
+                      onClick={onSignIn}
+                      className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl bg-white text-blue-800 font-bold hover:bg-blue-50 transition-colors cursor-pointer"
+                    >
+                      Register now
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  );
+                }
+                if (reg.state === 'opens_later') {
+                  return (
+                    <div className="inline-flex items-center gap-2.5 px-7 py-4 rounded-xl bg-white/10 border border-white/25 font-semibold backdrop-blur-sm">
+                      <ClockIcon className="w-4 h-4 text-blue-200" />
+                      Registration opens{' '}
+                      {new Date(reg.opensAt + 'T00:00:00').toLocaleDateString('en-US',
+                        { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </div>
+                  );
+                }
+                return (
+                  <div className="inline-flex items-center gap-2.5 px-7 py-4 rounded-xl bg-white/10 border border-white/25 font-semibold backdrop-blur-sm">
+                    {reg.reason === 'ended' ? 'This event has finished' : 'Registration is closed'}
+                  </div>
+                );
+              })()}
               <button
                 onClick={() => scrollTo('agenda')}
                 className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl bg-white/10 border border-white/25 text-white font-semibold hover:bg-white/20 transition-colors backdrop-blur-sm cursor-pointer"
@@ -446,6 +469,70 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
         </div>
       </section>
 
+
+      {/* ---------------- Recap ----------------
+          Shown only after an event has run. Past events keep their page
+          rather than being archived: the recording and the numbers are the
+          most persuasive argument for the next one. */}
+      {event.recap && (
+        <section id="recap" className="py-20 sm:py-24 bg-slate-900 text-white scroll-mt-16">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 mb-6">
+              <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">
+                Event completed
+              </span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-5">How it went</h2>
+            {event.recap.summary && (
+              <p className="text-lg text-slate-300 leading-relaxed mb-8 max-w-3xl">
+                {event.recap.summary}
+              </p>
+            )}
+
+            {!!event.recap.highlights?.length && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-10 pb-10 border-b border-white/10">
+                {event.recap.highlights.map((h) => (
+                  <div key={h.label}>
+                    <div className="text-3xl font-bold">{h.value}</div>
+                    <div className="text-xs text-slate-400 uppercase tracking-wide mt-0.5">{h.label}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {event.recap.recordingUrl && (
+              <a
+                href={event.recap.recordingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 px-6 py-4 rounded-xl bg-white text-slate-900 font-bold hover:bg-slate-100 transition-colors mb-10"
+              >
+                <PlayCircle className="w-5 h-5" />
+                {event.recap.recordingLabel ?? 'Watch the recording'}
+              </a>
+            )}
+
+            {!!event.recap.photoUrls?.length && (
+              <div>
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
+                  Highlights
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {event.recap.photoUrls.map((url, i) => (
+                    <img
+                      key={url}
+                      src={url}
+                      alt={`Highlight ${i + 1}`}
+                      loading="lazy"
+                      className="w-full aspect-[4/3] object-cover rounded-xl border border-white/10"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* ---------------- Discover Chadwick ----------------
           The school-connection half of the event. Framed as an invitation

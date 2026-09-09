@@ -214,6 +214,17 @@ export const AdminEvents: React.FC<AdminEventsProps> = ({
             </F>
           </div>
 
+          <div className="grid sm:grid-cols-2 gap-4">
+            <F label="Registration opens" hint="Before this the event is announced but not bookable. Leave blank to open immediately.">
+              <input type="date" className={input} value={editing.registrationOpensAt ?? ''}
+                     onChange={(e) => set('registrationOpensAt', e.target.value || undefined)} />
+            </F>
+            <F label="Registration closes" hint="Leave blank to stay open until the event begins.">
+              <input type="date" className={input} value={editing.registrationClosesAt ?? ''}
+                     onChange={(e) => set('registrationClosesAt', e.target.value || undefined)} />
+            </F>
+          </div>
+
           <F label="Cover image URL" hint="Paste any image URL. Uploading from your machine comes next.">
             <input className={input} value={editing.heroImageUrl}
                    onChange={(e) => set('heroImageUrl', e.target.value)} />
@@ -221,6 +232,43 @@ export const AdminEvents: React.FC<AdminEventsProps> = ({
           {editing.heroImageUrl && (
             <img src={editing.heroImageUrl} alt=""
                  className="w-full h-40 object-cover rounded-xl border border-slate-200" />
+          )}
+
+          {editing.endDate && new Date(editing.endDate + 'T23:59:59') < new Date() && (
+            <div className="rounded-xl border border-slate-200 p-4 space-y-4">
+              <div>
+                <h4 className="text-sm font-bold text-slate-800">After the event</h4>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Shown on the event page and the hub. A past event keeps its page —
+                  the recording and the numbers are the argument for the next one.
+                </p>
+              </div>
+              <F label="How it went">
+                <textarea className={`${input} resize-none`} rows={3}
+                  value={editing.recap?.summary ?? ''}
+                  onChange={(e) => set('recap', { ...editing.recap, summary: e.target.value })} />
+              </F>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <F label="Recording link" hint="Drive, YouTube or Stream — linked, not uploaded.">
+                  <input className={input} value={editing.recap?.recordingUrl ?? ''}
+                    onChange={(e) => set('recap', { ...editing.recap, recordingUrl: e.target.value })}
+                    placeholder="https://" />
+                </F>
+                <F label="Link label">
+                  <input className={input} value={editing.recap?.recordingLabel ?? ''}
+                    onChange={(e) => set('recap', { ...editing.recap, recordingLabel: e.target.value })}
+                    placeholder="Watch the closing plenary" />
+                </F>
+              </div>
+              <F label="Highlight photos" hint="One image URL per line.">
+                <textarea className={`${input} resize-none`} rows={3}
+                  value={(editing.recap?.photoUrls ?? []).join('\n')}
+                  onChange={(e) => set('recap', {
+                    ...editing.recap,
+                    photoUrls: e.target.value.split('\n').map((x) => x.trim()).filter(Boolean),
+                  })} />
+              </F>
+            </div>
           )}
 
           <div className="flex flex-wrap gap-4 pt-1">

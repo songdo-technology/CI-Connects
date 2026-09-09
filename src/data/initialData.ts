@@ -941,6 +941,7 @@ export const INITIAL_MESSAGES: DirectMessage[] = [
 export const EVENT_CONFIG: EventConfig = {
   id: 'evt-mission-conference',
   slug: 'chadwick-connects-2027',
+  registrationOpensAt: '2027-03-01',
   category: 'Conference',
   isFeatured: true,
   hasPortal: true,
@@ -1047,6 +1048,7 @@ export const EVENTS: EventConfig[] = [
   {
     id: 'evt-open-house-2026',
     slug: 'admissions-open-house-nov-2026',
+    registrationClosesAt: '2026-11-10',
     category: 'Admissions',
     name: 'Autumn Admissions Open House',
     shortName: 'Open House',
@@ -1070,6 +1072,7 @@ export const EVENTS: EventConfig[] = [
   {
     id: 'evt-student-forum-2027',
     slug: 'global-citizenship-student-forum-2027',
+    registrationOpensAt: '2026-12-01',
     category: 'Student',
     name: 'Global Citizenship Student Forum',
     shortName: 'Student Forum',
@@ -1180,6 +1183,23 @@ export const EVENTS: EventConfig[] = [
       { label: 'Sessions', value: '28' },
       { label: 'Countries', value: '12' },
     ],
+    recap: {
+      summary:
+        'Two days that ended on a question nobody could answer tidily: what is a school for, once the answers are free? It became the premise of Chadwick Connects, and the closing plenary is worth watching in full.',
+      recordingUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      recordingLabel: 'Watch the closing plenary',
+      highlights: [
+        { label: 'Attendees', value: '210' },
+        { label: 'Sessions', value: '28' },
+        { label: 'Countries', value: '12' },
+        { label: 'Satisfaction', value: '4.6' },
+      ],
+      photoUrls: [
+        'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=800&auto=format&fit=crop&q=80',
+      ],
+    },
   },
   {
     id: 'evt-cop-colloquium-2026',
@@ -1284,6 +1304,7 @@ export const EVENTS: EventConfig[] = [
   {
     id: 'evt-kath-murdoch-2027',
     slug: 'kath-murdoch-inquiry-2027',
+    registrationOpensAt: '2027-01-15',
     category: 'Workshop',
     name: 'The Power of Inquiry with Kath Murdoch',
     shortName: 'Power of Inquiry',

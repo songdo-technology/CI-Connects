@@ -324,6 +324,20 @@ export interface EventConfig {
    *  edit on it, so an event without an owner is one nobody but a technical
    *  admin can change. Stamped at creation, including during seeding. */
   ownerId?: string;
+  /** When registration opens. Before this the event is announced but not
+   *  bookable, which is a different message from "closed". */
+  registrationOpensAt?: string;
+  /** When it closes. Absent means it stays open until the event begins. */
+  registrationClosesAt?: string;
+  /** Filled in afterwards: what happened, and how to watch it back. */
+  recap?: {
+    summary?: string;
+    /** A link, not an upload — recordings live in Drive, YouTube or Stream. */
+    recordingUrl?: string;
+    recordingLabel?: string;
+    photoUrls?: string[];
+    highlights?: { label: string; value: string }[];
+  };
   /** Drafts are visible only to organisers; published events are the public
    *  website. Absent is treated as published, so existing rows keep working. */
   status?: 'draft' | 'published';
@@ -353,6 +367,33 @@ export interface EventConfig {
     closing: string;
   };
   faqs?: { question: string; answer: string }[];
+}
+
+/**
+ * Whether an event can be booked right now, and why not when it cannot.
+ *
+ * Kept separate from EventStatus because "announced but not yet open" and
+ * "closed" are different messages to a reader, and collapsing them into one
+ * boolean loses the more useful half.
+ */
+export type RegistrationState =
+  | { state: 'open' }
+  | { state: 'opens_later'; opensAt: string }
+  | { state: 'closed'; reason: 'ended' | 'closed' | 'not_open' };
+
+export function registrationState(e: EventConfig, today = new Date()): RegistrationState {
+  const end = new Date(e.endDate + 'T23:59:59');
+  if (today > end) return { state: 'closed', reason: 'ended' };
+
+  if (e.registrationOpensAt) {
+    const opens = new Date(e.registrationOpensAt + 'T00:00:00');
+    if (today < opens) return { state: 'opens_later', opensAt: e.registrationOpensAt };
+  }
+  if (e.registrationClosesAt) {
+    const closes = new Date(e.registrationClosesAt + 'T23:59:59');
+    if (today > closes) return { state: 'closed', reason: 'closed' };
+  }
+  return e.registrationOpen ? { state: 'open' } : { state: 'closed', reason: 'not_open' };
 }
 
 /** Resolves an event's status from its dates against a reference day. */

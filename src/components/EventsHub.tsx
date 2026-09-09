@@ -1,8 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import {
   Building2, CalendarDays, MapPin, ArrowRight, ArrowUpRight, LogIn, Sparkles, Check,
+  LayoutGrid, CalendarRange, PlayCircle, Images,
 } from 'lucide-react';
-import { EventConfig, EventCategory, eventStatus } from '../types';
+import { EventConfig, EventCategory, eventStatus, registrationState } from '../types';
+import { EventCarousel } from './EventCarousel';
+import { EventCalendar } from './EventCalendar';
 
 interface EventsHubProps {
   events: EventConfig[];
@@ -31,6 +34,7 @@ const CATEGORY_STYLE: Record<EventCategory, string> = {
 
 export const EventsHub: React.FC<EventsHubProps> = ({ events, onOpenEvent, onSignIn }) => {
   const [filter, setFilter] = useState<'all' | EventCategory>('all');
+  const [layout, setLayout] = useState<'cards' | 'calendar'>('cards');
 
   const { featured, upcoming, past } = useMemo(() => {
     const withStatus = events.map((e) => ({ e, status: eventStatus(e) }));
@@ -97,20 +101,52 @@ export const EventsHub: React.FC<EventsHubProps> = ({ events, onOpenEvent, onSig
           </div>
         )}
 
-        {past && e.outcomes ? (
-          <div className="mt-auto pt-3 border-t border-slate-100 flex flex-wrap gap-x-5 gap-y-1">
-            {e.outcomes.map((o) => (
-              <div key={o.label}>
-                <div className="text-base font-bold text-slate-800 leading-tight">{o.value}</div>
-                <div className="text-[10px] text-slate-400 uppercase tracking-wide">{o.label}</div>
+        {past ? (
+          <div className="mt-auto pt-3 border-t border-slate-100">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+              Event completed
+            </div>
+            {e.outcomes && (
+              <div className="flex flex-wrap gap-x-5 gap-y-1 mb-3">
+                {e.outcomes.map((o) => (
+                  <div key={o.label}>
+                    <div className="text-base font-bold text-slate-800 leading-tight">{o.value}</div>
+                    <div className="text-[10px] text-slate-400 uppercase tracking-wide">{o.label}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
+            {(e.recap?.recordingUrl || e.recap?.photoUrls?.length) && (
+              <div className="flex items-center gap-3 text-xs font-semibold text-blue-700">
+                {e.recap?.recordingUrl && (
+                  <span className="flex items-center gap-1.5">
+                    <PlayCircle className="w-3.5 h-3.5" /> Recording
+                  </span>
+                )}
+                {!!e.recap?.photoUrls?.length && (
+                  <span className="flex items-center gap-1.5">
+                    <Images className="w-3.5 h-3.5" /> Highlights
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
-            <span className={`text-xs font-semibold ${e.registrationOpen ? 'text-emerald-800' : 'text-slate-400'}`}>
-              {e.registrationOpen ? 'Registration open' : 'Registration opens soon'}
-            </span>
+            {(() => {
+              const reg = registrationState(e);
+              if (reg.state === 'open') {
+                return <span className="text-xs font-semibold text-emerald-800">Registration open</span>;
+              }
+              if (reg.state === 'opens_later') {
+                return (
+                  <span className="text-xs font-semibold text-amber-800">
+                    Opens {new Date(reg.opensAt + 'T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
+                  </span>
+                );
+              }
+              return <span className="text-xs font-semibold text-slate-400">Registration closed</span>;
+            })()}
             <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-blue-600 transition-colors" />
           </div>
         )}
@@ -218,11 +254,49 @@ export const EventsHub: React.FC<EventsHubProps> = ({ events, onOpenEvent, onSig
         </div>
       </div>
 
-      {/* ---------------- Upcoming ---------------- */}
+      {/* ---------------- Open & coming up ---------------- */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1.5">Coming up</h2>
-        <p className="text-sm text-slate-500 mb-8">
-          Open for registration or announcing soon.
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1.5">Coming up</h2>
+            <p className="text-sm text-slate-500">
+              {upcoming.filter((e) => registrationState(e).state === 'open').length} open for
+              registration now · {upcoming.length} scheduled.
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {([['cards', 'Cards', LayoutGrid], ['calendar', 'Calendar', CalendarRange]] as const).map(
+              ([v, label, Icon]) => (
+                <button
+                  key={v}
+                  onClick={() => setLayout(v)}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${
+                    layout === v ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-600'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {label}
+                </button>
+              ))}
+          </div>
+        </div>
+
+        {layout === 'calendar' ? (
+          <EventCalendar events={events} onOpenEvent={onOpenEvent} />
+        ) : (
+          <EventCarousel
+            events={[...(featured ? [featured] : []), ...upcoming].filter(show)}
+            onOpenEvent={onOpenEvent}
+            onSignIn={onSignIn}
+          />
+        )}
+      </section>
+
+      {/* ---------------- Full list ---------------- */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <h2 className="text-lg font-bold text-slate-900 mb-1.5">All scheduled events</h2>
+        <p className="text-sm text-slate-500 mb-6">
+          Everything announced, whether or not registration has opened.
         </p>
         {upcoming.filter(show).length === 0 ? (
           <p className="text-sm text-slate-400 italic py-8">
