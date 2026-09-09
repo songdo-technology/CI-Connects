@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, QrCode, Users, MessageSquare, Award, ShieldCheck, Smartphone, Monitor, Layers, ChevronDown, Building2, BellRing, CheckCircle2, Sparkles, ExternalLink, UtensilsCrossed, Send, LogOut, Globe, Sun, UserRound } from 'lucide-react';
+import { Calendar, QrCode, Users, MessageSquare, Award, ShieldCheck, Smartphone, Monitor, Layers, ChevronDown, Building2, BellRing, CheckCircle2, Sparkles, ExternalLink, UtensilsCrossed, Send, LogOut, Globe, Sun, UserRound, LayoutGrid } from 'lucide-react';
 import { can, ROLE_LABEL } from '../lib/permissions';
 import { UserRole } from '../types';
 import { ActiveTab, BroadcastAnnouncement, UserProfile } from '../types';
@@ -24,6 +24,9 @@ interface HeaderProps {
    *  reading "CI Connects" that lands on one conference is a lie about where
    *  it goes. */
   onGoHome: () => void;
+  /** The event this portal is scoped to, so the link to its public page can
+   *  say which page that is. */
+  eventName: string;
   onOpenAdmin: () => void;
   realRole: UserRole;
   previewRole: UserRole | null;
@@ -38,6 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSignOut,
   onViewPublicPage,
   onGoHome,
+  eventName,
   onOpenAdmin,
   realRole,
   previewRole,
@@ -214,14 +218,27 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             )}
 
-            {/* Return to the public-facing event site */}
+            {/* Two exits, each named after where it goes.
+                "Event Page" said what kind of thing it was, not which one, so
+                people reached for it wanting the platform's front page and
+                landed on a single conference. A label that names its
+                destination cannot be misread. */}
+            <button
+              onClick={onGoHome}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+              title="All Chadwick events — the CI Connects home page"
+            >
+              <LayoutGrid className="w-3.5 h-3.5 text-blue-600" />
+              <span className="hidden sm:inline">All events</span>
+            </button>
+
             <button
               onClick={onViewPublicPage}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
-              title="Back to the public event page"
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 transition-colors cursor-pointer max-w-[12rem]"
+              title={`Open the public page for ${eventName}`}
             >
-              <Globe className="w-3.5 h-3.5 text-blue-600" />
-              <span className="hidden sm:inline">Event Page</span>
+              <Globe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span className="truncate">{eventName}</span>
             </button>
 
             {/* Architecture Blueprint Button */}

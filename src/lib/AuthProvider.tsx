@@ -81,18 +81,32 @@ export const AuthProvider: React.FC<{
   // Provision the profile after sign-in. Kept out of the sign-in call itself
   // so a returning user with an existing session is handled the same way as a
   // fresh one.
+  //
+  // Keyed on the uid rather than the User object: Firebase hands out a fresh
+  // object on every token refresh, and depending on the reference would
+  // re-provision on a timer for as long as somebody stayed signed in.
+  const uid = state.user?.uid;
   useEffect(() => {
     if (!live || state.status !== 'signed_in' || !state.user) return;
     let cancelled = false;
     ensureUserDocument(state.user)
       .then(() => { if (!cancelled) setProfileReady(true); })
       .catch((e: Error) => {
-        if (!cancelled) {
-          setState((s) => ({ ...s, status: 'error', error: e.message }));
-        }
+        if (cancelled) return;
+        // ensureUserDocument has already retried through the token race, so
+        // reaching here means something is actually wrong. Say what, rather
+        // than returning the visitor to a sign-in form that looks like their
+        // attempt was simply ignored.
+        setState((s) => ({
+          ...s,
+          status: 'error',
+          error: `Signed in, but your profile could not be set up: ${e.message} `
+            + 'Try again, and tell songdo-technology@chadwickschool.org if it persists.',
+        }));
       });
     return () => { cancelled = true; };
-  }, [live, state.status, state.user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live, state.status, uid]);
 
   const value: AuthContextValue = {
     live,

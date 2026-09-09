@@ -267,7 +267,7 @@ export const EventsHub: React.FC<EventsHubProps> = ({ events, sessions, onOpenEv
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.06] mb-5">
-              Every Chadwick event, in one place.
+              Every Chadwick International event, in one place.
             </h1>
 
             <p className="text-lg sm:text-xl text-blue-100/90 leading-relaxed max-w-2xl mb-4">

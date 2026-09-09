@@ -924,6 +924,7 @@ export default function App() {
         onSignOut={handleSignOut}
         onViewPublicPage={() => { setSurface('event'); window.scrollTo(0, 0); }}
         onGoHome={openHub}
+        eventName={activeEvent.shortName}
         onOpenAdmin={() => setIsAdminPanelOpen(true)}
         realRole={currentUser.role}
         previewRole={previewRole}

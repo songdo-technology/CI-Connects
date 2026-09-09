@@ -1,0 +1,14 @@
+# Hashed filenames change whenever their contents change, so the file at a
+# given name is immutable and can be cached for a year. Without this every
+# asset revalidates on every page load: correct, but a needless round trip.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# The entry document names those hashed files, so it must never be reused from
+# cache without checking. This is what makes a deploy take effect immediately
+# rather than whenever a browser happens to expire its copy.
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/
+  Cache-Control: public, max-age=0, must-revalidate

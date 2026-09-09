@@ -279,11 +279,48 @@ export async function signOutUser(): Promise<void> {
  * role an administrator gave them, and this must not quietly demote them back
  * to attendee on their next sign-in.
  */
+
+/**
+ * Firestore error codes that mean "not yet", rather than "no".
+ *
+ * A freshly minted auth token does not reach Firestore's backend in the same
+ * instant the client receives it, so the very first write after sign-in can
+ * come back permission-denied even though the rules would allow it a moment
+ * later. That window is small and it is real: it is why signing in would fail
+ * once and then work on the second attempt.
+ */
+const TRANSIENT = new Set([
+  'permission-denied', 'unauthenticated', 'unavailable',
+  'deadline-exceeded', 'resource-exhausted', 'internal', 'aborted',
+]);
+
+/**
+ * Retries a Firestore call through that window.
+ *
+ * Backs off 150ms, 400ms, 900ms, 1600ms — roughly three seconds in total,
+ * which is longer than the race has ever been observed to last and short
+ * enough that a genuine permission error still surfaces quickly.
+ */
+async function withRetry<T>(operation: () => Promise<T>, attempts = 5): Promise<T> {
+  let lastError: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await operation();
+    } catch (e) {
+      lastError = e;
+      const code = (e as { code?: string }).code ?? '';
+      if (!TRANSIENT.has(code) || i === attempts - 1) throw e;
+      await new Promise((resolve) => setTimeout(resolve, 150 + i * i * 250));
+    }
+  }
+  throw lastError;
+}
+
 export async function ensureUserDocument(user: User): Promise<UserRole> {
   if (!db) throw new Error('Firestore is not configured.');
 
   const ref = doc(db, 'users', user.uid);
-  const existing = await getDoc(ref);
+  const existing = await withRetry(() => getDoc(ref));
   if (existing.exists()) {
     return (existing.data().role as UserRole) ?? 'attendee';
   }
@@ -294,7 +331,12 @@ export async function ensureUserDocument(user: User): Promise<UserRole> {
   // already recorded. Adopting it here is the difference between a guest
   // landing as a usable profile and landing as an anonymous attendee somebody
   // then has to go and fix.
-  const invite = isAllowedDomain(email) ? null : await findInvite(email);
+  // A failed invite lookup must not fail the sign-in. Landing as a plain
+  // attendee whose details an organiser tidies up later is a small problem;
+  // being unable to get in at all is not.
+  const invite = isAllowedDomain(email)
+    ? null
+    : await withRetry(() => findInvite(email)).catch(() => null);
 
   const role: UserRole = BOOTSTRAP_ROLES[email] ?? invite?.role ?? 'attendee';
   const fullName = invite?.fullName ?? user.displayName ?? email.split('@')[0] ?? 'New member';
@@ -318,7 +360,7 @@ export async function ensureUserDocument(user: User): Promise<UserRole> {
     ...(invite ? { accessCode: invite.accessCode } : {}),
   };
 
-  await setDoc(ref, profile);
+  await withRetry(() => setDoc(ref, profile));
 
   // Mark the invitation used, so an organiser can see who has actually
   // arrived rather than only who was invited.
