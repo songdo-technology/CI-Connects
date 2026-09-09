@@ -80,8 +80,15 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
       {/* ---------------- Nav ---------------- */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shrink-0">
+          {/* The mark returns to the hub, as a logo is expected to. Without
+              this the only way back was a nav item hidden below md, which left
+              a phone with no route off an event page at all. */}
+          <button
+            onClick={onBackToEvents}
+            title="All Chadwick events"
+            className="flex items-center gap-2.5 min-w-0 group cursor-pointer text-left"
+          >
+            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-700 transition-colors">
               <Building2 className="w-4.5 h-4.5 text-blue-200" />
             </div>
             <div className="min-w-0">
@@ -93,9 +100,11 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
                   </span>
                 )}
               </div>
-              <div className="text-[11px] text-slate-500 truncate">Chadwick International</div>
+              <div className="text-[11px] text-slate-500 truncate group-hover:text-blue-700 transition-colors">
+                CI Connects · Chadwick International
+              </div>
             </div>
-          </div>
+          </button>
 
           <nav className="hidden md:flex items-center gap-1">
             <button

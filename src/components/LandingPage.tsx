@@ -8,8 +8,9 @@ import { describeAuthProblem } from '../lib/auth';
 interface LandingPageProps {
   profiles: UserProfile[];
   onSignIn: (user: UserProfile, method: AuthMethod) => void;
-  onBackToEvent: () => void;
-  eventName: string;
+  onBack: () => void;
+  /** What the visitor is going back to — the hub, or one event by name. */
+  backLabel: string;
 }
 
 /**
@@ -26,7 +27,7 @@ interface LandingPageProps {
  */
 
 
-export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, onBackToEvent, eventName }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, onBack, backLabel }) => {
   const auth = useAuth();
   const [mode, setMode] = useState<'choose' | 'guest'>('choose');
   const [ssoPickerOpen, setSsoPickerOpen] = useState(false);
@@ -121,10 +122,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, on
           {mode === 'choose' ? (
             <>
               <button
-                onClick={onBackToEvent}
+                onClick={onBack}
                 className="text-xs font-semibold text-slate-500 hover:text-blue-700 mb-5 cursor-pointer"
               >
-                ← Back to {eventName}
+                ← Back to {backLabel}
               </button>
               <h2 className="text-2xl font-bold text-slate-900 mb-1.5">Sign in</h2>
               <p className="text-sm text-slate-500 mb-8">

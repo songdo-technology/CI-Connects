@@ -105,6 +105,12 @@ export default function App() {
   const initialEventSlug = new URLSearchParams(window.location.search).get('event');
 
   const [surface, setSurface] = useState<Surface>(initialEventSlug ? 'event' : 'hub');
+  /** Where the visitor was when they chose to sign in.
+   *
+   *  Leaving the sign-in screen used to go to the flagship event's page
+   *  whenever that event had a portal — so anyone arriving from the hub was
+   *  quietly moved somewhere they had not been. Back means back. */
+  const [returnSurface, setReturnSurface] = useState<'hub' | 'event'>('hub');
   /** Which event the public pages and the portal are scoped to. */
   const [activeEventSlug, setActiveEventSlug] = useState<string>(
     initialEventSlug ?? EVENT_CONFIG.slug,
@@ -173,6 +179,11 @@ export default function App() {
     setSurface('hub');
     syncUrl(null);
   }, [ready, surface, allEvents, activeEventSlug]);
+
+  const openSignIn = () => {
+    if (surface === 'hub' || surface === 'event') setReturnSurface(surface);
+    setSurface('signin');
+  };
 
   const openHub = () => {
     setSurface('hub');
@@ -686,7 +697,7 @@ export default function App() {
       <EventsHub
         events={allEvents}
         onOpenEvent={openEvent}
-        onSignIn={() => setSurface('signin')}
+        onSignIn={openSignIn}
       />
     );
   }
@@ -701,7 +712,7 @@ export default function App() {
         rooms={rooms}
         profiles={allUsers}
         sponsors={sponsors}
-        onSignIn={() => setSurface('signin')}
+        onSignIn={openSignIn}
         onBackToEvents={openHub}
       />
     );
@@ -713,8 +724,8 @@ export default function App() {
       <LandingPage
         profiles={allUsers}
         onSignIn={handleSignIn}
-        onBackToEvent={() => setSurface(activeEvent.hasPortal ? 'event' : 'hub')}
-        eventName={activeEvent.shortName}
+        onBack={() => setSurface(returnSurface)}
+        backLabel={returnSurface === 'event' ? activeEvent.shortName : 'all events'}
       />
     );
   }
