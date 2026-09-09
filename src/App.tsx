@@ -696,6 +696,7 @@ export default function App() {
     return (
       <EventsHub
         events={allEvents}
+        sessions={sessions}
         onOpenEvent={openEvent}
         onSignIn={openSignIn}
       />

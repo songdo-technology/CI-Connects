@@ -2,17 +2,22 @@ import React, { useMemo, useState } from 'react';
 import {
   Building2, CalendarDays, MapPin, ArrowRight, ArrowUpRight, LogIn, Sparkles, Check,
   LayoutGrid, CalendarRange, PlayCircle, Images, Ticket, QrCode, MessagesSquare,
-  FileText, Lightbulb, Compass, ChevronDown,
+  FileText, Lightbulb, Compass, ChevronDown, Users, Globe2, School, Presentation,
+  CalendarClock, CalendarCheck2,
 } from 'lucide-react';
-import { EventConfig, EventCategory, eventStatus, registrationState } from '../types';
+import { EventConfig, EventCategory, Session, eventStatus, registrationState } from '../types';
 import { EventCarousel } from './EventCarousel';
 import { EventCalendar } from './EventCalendar';
 import { EventRecapModal } from './EventRecapModal';
 import { HubFooter } from './HubFooter';
 import { ConnectsStatement } from './ConnectsStatement';
+import { heroStats } from '../lib/eventStats';
 
 interface EventsHubProps {
   events: EventConfig[];
+  /** Only used to count the programme when a past event recorded no figure
+   *  of its own. */
+  sessions: Session[];
   onOpenEvent: (slug: string) => void;
   onSignIn: () => void;
 }
@@ -27,6 +32,17 @@ interface EventsHubProps {
  * outcomes (who came, what changed) instead of a dead registration button.
  */
 
+/** One icon per derived figure. Keyed by the stat's own id so the two lists
+ *  cannot fall out of step when a figure is added or removed. */
+const STAT_ICON: Record<string, React.ElementType> = {
+  hosted: CalendarCheck2,
+  attendees: Users,
+  countries: Globe2,
+  schools: School,
+  sessions: Presentation,
+  upcoming: CalendarClock,
+};
+
 const CATEGORY_STYLE: Record<EventCategory, string> = {
   Conference: 'bg-blue-600 text-white',
   Symposium:  'bg-indigo-600 text-white',
@@ -36,11 +52,13 @@ const CATEGORY_STYLE: Record<EventCategory, string> = {
   Student:    'bg-blue-400 text-blue-950',
 };
 
-export const EventsHub: React.FC<EventsHubProps> = ({ events, onOpenEvent, onSignIn }) => {
+export const EventsHub: React.FC<EventsHubProps> = ({ events, sessions, onOpenEvent, onSignIn }) => {
   const [filter, setFilter] = useState<'all' | EventCategory>('all');
   const [layout, setLayout] = useState<'cards' | 'calendar'>('cards');
   /** A completed event opened for its write-up, without leaving the hub. */
   const [recapEvent, setRecapEvent] = useState<EventConfig | null>(null);
+
+  const stats = useMemo(() => heroStats(events, sessions), [events, sessions]);
 
   const { featured, upcoming, past, showcase } = useMemo(() => {
     const withStatus = events.map((e) => ({ e, status: eventStatus(e) }));
@@ -288,24 +306,51 @@ export const EventsHub: React.FC<EventsHubProps> = ({ events, onOpenEvent, onSig
             </div>
           </div>
 
-          {/* What the platform actually does, named plainly. */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4 pt-10 mt-12 border-t border-white/15">
-              {([
-                [Ticket, 'Register and reserve', 'Sessions, meals and a place at the table.'],
-                [QrCode, 'A badge that scans', 'Printed lanyards, phone check-in at the door.'],
-                [MessagesSquare, 'Find your colleagues', 'A directory, and a way to say hello.'],
-                [FileText, 'Everything, afterwards', 'Slides, takeaways and recordings that stay put.'],
-              ] as const).map(([Icon, title, body]) => (
-                <div key={title}>
-                  <Icon className="w-4.5 h-4.5 text-blue-200 mb-2" />
-                  <div className="text-sm font-bold text-white mb-0.5">{title}</div>
-                  <div className="text-xs text-blue-100/70 leading-relaxed">{body}</div>
-                </div>
-              ))}
-          </div>
+          {/* The record, counted from the catalogue rather than typed in — a
+              hand-written "500+ attendees" is wrong the moment somebody adds
+              an event, and nobody remembers to change it. */}
+          {stats.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-6 gap-y-7 pt-10 mt-12 border-t border-white/15">
+              {stats.map((s) => {
+                const Icon = STAT_ICON[s.key] ?? Sparkles;
+                return (
+                  <div key={s.key}>
+                    <Icon className="w-4.5 h-4.5 text-blue-200 mb-2.5" />
+                    <div className="text-3xl font-bold text-white leading-none tabular-nums mb-1.5">
+                      {s.value}
+                    </div>
+                    <div className="text-xs font-semibold text-blue-100 leading-snug">{s.label}</div>
+                    {s.note && (
+                      <div className="text-[10px] text-blue-200/60 leading-snug mt-0.5">{s.note}</div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <ChevronDown className="relative mx-auto w-5 h-5 text-white/40 animate-bounce mb-6" />
+      </section>
+
+      {/* ---------------- What the platform does ---------------- */}
+      <section className="bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-8">
+          {([
+            [Ticket, 'Register and reserve', 'Sessions, meals and a place at the table.'],
+            [QrCode, 'A badge that scans', 'Printed lanyards, phone check-in at the door.'],
+            [MessagesSquare, 'Find your colleagues', 'A directory, and a way to say hello.'],
+            [FileText, 'Everything, afterwards', 'Slides, takeaways and recordings that stay put.'],
+          ] as const).map(([Icon, title, body]) => (
+            <div key={title}>
+              <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center mb-3">
+                <Icon className="w-4.5 h-4.5 text-blue-600" />
+              </div>
+              <div className="text-sm font-bold text-slate-900 mb-1">{title}</div>
+              <div className="text-xs text-slate-500 leading-relaxed">{body}</div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* ---------------- Showcase ---------------- */}
