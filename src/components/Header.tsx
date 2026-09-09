@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, QrCode, Users, MessageSquare, Award, ShieldCheck, Smartphone, Monitor, Layers, ChevronDown, Building2, BellRing, CheckCircle2, Sparkles, ExternalLink, UtensilsCrossed, Send, LogOut, Globe, Sun, UserRound } from 'lucide-react';
 import { can, ROLE_LABEL } from '../lib/permissions';
+import { UserRole } from '../types';
 import { ActiveTab, BroadcastAnnouncement, UserProfile } from '../types';
 
 interface HeaderProps {
@@ -18,6 +19,9 @@ interface HeaderProps {
   onSignOut: () => void;
   onViewPublicPage: () => void;
   onOpenAdmin: () => void;
+  realRole: UserRole;
+  previewRole: UserRole | null;
+  onPreviewRole: (role: UserRole | null) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -27,6 +31,9 @@ export const Header: React.FC<HeaderProps> = ({
   onSignOut,
   onViewPublicPage,
   onOpenAdmin,
+  realRole,
+  previewRole,
+  onPreviewRole,
   currentUser,
   allUsers,
   onSwitchUser,
@@ -96,6 +103,21 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       )}
 
+      {previewRole && (
+        <div className="bg-amber-500 text-amber-950 px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-4 text-xs font-semibold">
+          <span>
+            Viewing as <strong>{ROLE_LABEL[previewRole]}</strong>. Your real role is{' '}
+            {ROLE_LABEL[realRole]} — this changes only what you see, not what you may do.
+          </span>
+          <button
+            onClick={() => onPreviewRole(null)}
+            className="shrink-0 px-3 py-1 rounded-lg bg-amber-950/15 hover:bg-amber-950/25 transition-colors cursor-pointer"
+          >
+            Exit preview
+          </button>
+        </div>
+      )}
+
       {/* Main Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-3">
@@ -156,6 +178,20 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>Mobile App</span>
               </button>
             </div>
+
+            {realRole === 'technical_admin' && (
+              <select
+                value={previewRole ?? ''}
+                onChange={(e) => onPreviewRole((e.target.value || null) as UserRole | null)}
+                title="See the app as another role"
+                className="hidden lg:block px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600"
+              >
+                <option value="">View as: myself</option>
+                {(['event_organizer', 'speaker', 'sponsor', 'front_desk', 'attendee'] as UserRole[]).map((r) => (
+                  <option key={r} value={r}>View as: {ROLE_LABEL[r]}</option>
+                ))}
+              </select>
+            )}
 
             {/* Administration — platform-level, distinct from the Organizer
                 Console, which is about running an event in progress. */}

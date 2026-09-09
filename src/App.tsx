@@ -42,6 +42,7 @@ import { FirstRunSetup } from './components/FirstRunSetup';
 import { useAuth } from './lib/AuthProvider';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { MyProfile } from './components/MyProfile';
+import { GuestLinkReturn } from './components/GuestLinkReturn';
 import { can } from './lib/permissions';
 import { FeedbackView } from './components/FeedbackView';
 import { SignageDirectory } from './components/SignageDirectory';
@@ -74,6 +75,7 @@ export default function App() {
     feedback,
     prizes,
     costs,
+    invites,
     create,
     update,
     remove,
@@ -108,6 +110,10 @@ export default function App() {
   const [isArchitectureOpen, setIsArchitectureOpen] = useState(false);
   const [isPrintBadgeOpen, setIsPrintBadgeOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  /** Lets a technical admin view the app as another role. Affects only what
+   *  this browser renders — the security rules still see the real account, so
+   *  previewing a lower role cannot be used to escape one. */
+  const [previewRole, setPreviewRole] = useState<UserRole | null>(null);
   const [contactCardProfile, setContactCardProfile] = useState<UserProfile | null>(null);
   const [pendingThreadUserId, setPendingThreadUserId] = useState<string | null>(null);
 
@@ -154,6 +160,13 @@ export default function App() {
     [allUsers, authSession],
   );
   const currentUserId = currentUser?.id;
+
+  /** The identity the interface renders against. Distinct from the real
+   *  account, which is what every write is still performed as. */
+  const viewUser: UserProfile | undefined = useMemo(
+    () => (currentUser && previewRole ? { ...currentUser, role: previewRole } : currentUser),
+    [currentUser, previewRole],
+  );
 
   /**
    * Mirrors the Firebase session into the app's own session.
@@ -367,12 +380,12 @@ export default function App() {
   };
 
   /** Save helper shared by the programme, room, dining and sponsor editors. */
-  const saver = <K extends 'sessions' | 'rooms' | 'mealServices' | 'sponsors' | 'prizes' | 'costs'>(key: K) =>
+  const saver = <K extends 'sessions' | 'rooms' | 'mealServices' | 'sponsors' | 'prizes' | 'costs' | 'invites'>(key: K) =>
     async (item: { id: string }, isNew: boolean) => {
       if (isNew) await create(key, item as never);
       else await update(key, item.id, item as never);
     };
-  const remover = (key: 'sessions' | 'rooms' | 'mealServices' | 'sponsors' | 'prizes' | 'costs') =>
+  const remover = (key: 'sessions' | 'rooms' | 'mealServices' | 'sponsors' | 'prizes' | 'costs' | 'invites') =>
     async (id: string) => { await remove(key, id); };
 
   /** A person editing their own profile, from My Profile. */
@@ -553,6 +566,11 @@ export default function App() {
     );
   }
 
+  // ------------------------------------------- Surface: guest sign-in link
+  // A returning sign-in link carries credentials in the URL and must be
+  // redeemed before any other surface renders a form.
+  if (auth.guestLinkPending) return <GuestLinkReturn />;
+
   // ------------------------------------------------------ Surface: signage
   // Read straight from the URL rather than from state: a CI Vision Live Cast
   // opens a bare URL with no way to click through an app shell, so the display
@@ -587,10 +605,10 @@ export default function App() {
   }
 
   // ------------------------------------------------- Surface: admin panel
-  if (isAdminPanelOpen && can(currentUser, 'events:create')) {
+  if (isAdminPanelOpen && can(viewUser, 'events:create')) {
     return (
       <AdminPanel
-        currentUser={currentUser}
+        currentUser={viewUser}
         users={allUsers}
         events={events}
         counts={{
@@ -599,7 +617,7 @@ export default function App() {
           mealServices: mealServices.length, announcements: announcements.length,
           communityTopics: communityTopics.length, attendance: attendance.length,
           messages: messages.length, feedback: feedback.length,
-          prizes: prizes.length, costs: costs.length,
+          prizes: prizes.length, costs: costs.length, invites: invites.length,
         }}
         isRemote={isRemote}
         onClose={() => setIsAdminPanelOpen(false)}
@@ -625,6 +643,10 @@ export default function App() {
         onDeletePrize={remover('prizes')}
         onSaveCost={saver('costs')}
         onDeleteCost={remover('costs')}
+        invites={invites}
+        attendance={attendance}
+        onSaveInvite={saver('invites')}
+        onDeleteInvite={remover('invites')}
       />
     );
   }
@@ -672,7 +694,7 @@ export default function App() {
   // profile. Anonymous visitors never reach here — the public surfaces above
   // return first — but a signed-in user whose profile has not yet arrived
   // would, so hold rather than render against a missing user.
-  if (!currentUser) {
+  if (!viewUser) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
@@ -693,7 +715,7 @@ export default function App() {
           rooms={rooms}
           sponsors={sponsors}
           profiles={allUsers}
-          currentUser={currentUser}
+          currentUser={viewUser}
           onToggleReservation={handleToggleReservation}
           onSelectSession={(session) => setSelectedSessionForModal(session)}
         />
@@ -701,7 +723,7 @@ export default function App() {
 
       {activeTab === 'badge' && (
         <DigitalBadge
-          currentUser={currentUser}
+          currentUser={viewUser}
           onToggleCheckIn={handleToggleCheckIn}
           reservedSessions={reservedSessionsForUser}
           onOpenScanner={() => setIsScannerOpen(true)}
@@ -717,7 +739,7 @@ export default function App() {
       {activeTab === 'dining' && (
         <DiningView
           mealServices={mealServices}
-          currentUser={currentUser}
+          currentUser={viewUser}
           onSelectMeal={handleSelectMeal}
         />
       )}
@@ -725,7 +747,7 @@ export default function App() {
       {activeTab === 'community' && (
         <CommunityBoard
           topics={communityTopics}
-          currentUser={currentUser}
+          currentUser={viewUser}
           onAddTopic={handleAddTopic}
           onToggleRsvp={handleToggleRsvp}
           onAddReply={handleAddReply}
@@ -736,7 +758,7 @@ export default function App() {
       {activeTab === 'directory' && (
         <DirectoryView
           profiles={allUsers}
-          currentUser={currentUser}
+          currentUser={viewUser}
           onToggleDirectoryVisibility={handleToggleDirectoryVisibility}
           onMessage={handleOpenThread}
           onViewContactCard={(p) => setContactCardProfile(p)}
@@ -747,7 +769,7 @@ export default function App() {
         <MessagesView
           messages={messages}
           profiles={allUsers}
-          currentUser={currentUser}
+          currentUser={viewUser}
           initialThreadUserId={pendingThreadUserId}
           onSendMessage={handleSendMessage}
           onMarkRead={handleMarkRead}
@@ -756,7 +778,7 @@ export default function App() {
 
       {activeTab === 'profile' && (
         <MyProfile
-          currentUser={currentUser}
+          currentUser={viewUser}
           sessions={sessions}
           rooms={rooms}
           uploadsEnabled={isRemote}
@@ -768,7 +790,7 @@ export default function App() {
 
       {activeTab === 'feedback' && (
         <FeedbackView
-          currentUser={currentUser}
+          currentUser={viewUser}
           sessions={sessions}
           mealServices={mealServices}
           attendance={attendance}
@@ -783,7 +805,7 @@ export default function App() {
           prizes={prizes}
           sponsors={sponsors}
           events={events}
-          currentUser={currentUser}
+          currentUser={viewUser}
           onUpdatePrize={(prizeId, wonBy) => update('prizes', prizeId, { wonBy })}
         />
       )}
@@ -813,7 +835,7 @@ export default function App() {
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        currentUser={currentUser}
+        currentUser={viewUser}
         allUsers={allUsers}
         onSwitchUser={handleSwitchUser}
         deviceMode={deviceMode}
@@ -825,6 +847,9 @@ export default function App() {
         onSignOut={handleSignOut}
         onViewPublicPage={() => { setSurface('event'); window.scrollTo(0, 0); }}
         onOpenAdmin={() => setIsAdminPanelOpen(true)}
+        realRole={currentUser.role}
+        previewRole={previewRole}
+        onPreviewRole={setPreviewRole}
       />
 
       {/* Main View Area */}
@@ -837,7 +862,7 @@ export default function App() {
           <MobileAppFrame
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            currentUser={currentUser}
+            currentUser={viewUser}
             onExitMobile={() => setDeviceMode('desktop')}
           >
             {mainContent}
@@ -879,7 +904,7 @@ export default function App() {
         rooms={rooms}
         sponsors={sponsors}
         profiles={allUsers}
-        currentUser={currentUser}
+        currentUser={viewUser}
         onToggleReservation={handleToggleReservation}
         onNavigateToCommunity={() => {
           setActiveTab('community');
@@ -902,9 +927,10 @@ export default function App() {
         rooms={rooms}
         profiles={allUsers}
         attendance={attendance}
-        currentUser={currentUser}
+        currentUser={viewUser}
         onRecordAttendance={handleRecordAttendance}
         onCheckInToVenue={handleToggleCheckIn}
+        invites={invites}
       />
 
       {/* Badge scan result — contact card or security verification */}
@@ -921,7 +947,7 @@ export default function App() {
         onClose={() => setIsPrintBadgeOpen(false)}
         event={activeEvent}
         profiles={allUsers}
-        currentUser={currentUser}
+        currentUser={viewUser}
         sessions={sessions}
         rooms={rooms}
         tracks={tracks}

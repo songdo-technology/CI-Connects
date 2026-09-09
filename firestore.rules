@@ -217,6 +217,23 @@ service cloud.firestore {
       allow write: if isOrganiser();
     }
 
+    // -------------------------------------------------------------- invites
+    // An invited guest must be able to read their own invitation on first
+    // sign-in, to adopt the name and role an organiser recorded for them —
+    // matched on the email in their verified token, never on a supplied value.
+    // Everything else about invites is organisers only, because the collection
+    // is a list of who is coming.
+    match /invites/{inviteId} {
+      allow read: if isOrganiser()
+                  || (signedIn() && resource.data.email == request.auth.token.email);
+      allow create, delete: if isOrganiser();
+      // The invitee may only mark their own invitation claimed.
+      allow update: if isOrganiser()
+                    || (signedIn()
+                        && resource.data.email == request.auth.token.email
+                        && onlyTouches(['claimedAt', 'claimedByUid']));
+    }
+
     // -------------------------------------------------------- signage takeover
     // Read by unauthenticated display players, so world-readable by design.
     // Keep nothing sensitive in here.

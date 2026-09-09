@@ -3,7 +3,7 @@ import {
   X, ShieldCheck, ShieldAlert, DoorOpen, MapPin, UserCheck, Clock, Search,
   Building2, ScanLine, CheckCircle2,
 } from 'lucide-react';
-import { Session, UserProfile, Room, AttendanceRecord } from '../types';
+import { Session, UserProfile, Room, AttendanceRecord, Invite } from '../types';
 import { CameraScanner } from './CameraScanner';
 import { parseBadgePayload } from '../lib/badge';
 import { ROLE_LABEL } from '../lib/permissions';
@@ -18,6 +18,7 @@ interface DoorScannerProps {
   currentUser: UserProfile;
   onRecordAttendance: (userId: string, sessionId: string) => AttendanceRecord;
   onCheckInToVenue: (userId: string) => void;
+  invites: Invite[];
 }
 
 type Mode = 'venue' | 'session';
@@ -41,7 +42,7 @@ type Mode = 'venue' | 'session';
  */
 export const DoorScanner: React.FC<DoorScannerProps> = ({
   isOpen, onClose, sessions, rooms, profiles, attendance, currentUser,
-  onRecordAttendance, onCheckInToVenue,
+  onRecordAttendance, onCheckInToVenue, invites,
 }) => {
   const [mode, setMode] = useState<Mode>('venue');
   const [doorSessionId, setDoorSessionId] = useState<string>(sessions[0]?.id ?? '');
@@ -94,7 +95,25 @@ export const DoorScanner: React.FC<DoorScannerProps> = ({
       setScanError('That code is not a CI Connects badge.');
       return;
     }
-    const user = profiles.find((p) => p.id === payload.uid);
+    // An invitation code stands in for a guest who has not signed in yet, so
+    // resolve it to whoever eventually claimed it. Badges are printed the week
+    // before an event, and most guests create their account on the day.
+    let user = payload.uid ? profiles.find((p) => p.id === payload.uid) : undefined;
+    if (!user && payload.inv) {
+      const invite = invites.find((i) => i.id === payload.inv);
+      if (!invite) {
+        setScanError('That invitation is not recognised.');
+        return;
+      }
+      user = profiles.find((p) => p.email.toLowerCase() === invite.email.toLowerCase());
+      if (!user) {
+        setScanError(
+          `${invite.fullName} has not signed in yet, so there is no record to check them into. ` +
+          'Admit them by name, and ask them to sign in when they can.',
+        );
+        return;
+      }
+    }
     if (!user) {
       setScanError('That badge does not match anyone registered for this event.');
       return;

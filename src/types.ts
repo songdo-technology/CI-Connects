@@ -425,3 +425,39 @@ export function formatMoney(minor: number, currency = 'KRW'): string {
     maximumFractionDigits: currency === 'KRW' ? 0 : 2,
   }).format(major);
 }
+
+/**
+ * A guest invitation.
+ *
+ * External attendees have no Chadwick account, so an organiser records them
+ * here first. On their first sign-in the invitation is adopted — their profile
+ * is created with the name, organisation and role recorded here, rather than
+ * them arriving as an anonymous attendee an organiser then has to fix up.
+ *
+ * The access code is a human confirmation ("your code is 4K7QP2"), not the
+ * security. Authentication is the email link, because a short code cannot be
+ * verified in a browser without publishing every code to it.
+ */
+export interface Invite {
+  id: string;
+  email: string;
+  fullName: string;
+  organization: string;
+  title?: string;
+  role: UserRole;
+  /** Short, readable, no ambiguous characters. */
+  accessCode: string;
+  eventId?: string;
+  invitedBy: string;
+  invitedAt: string;
+  /** Set when the invitation has been used. */
+  claimedAt?: string;
+  claimedByUid?: string;
+}
+
+/** Six characters, avoiding 0/O and 1/I/L so it can be read aloud. */
+export function generateAccessCode(): string {
+  const alphabet = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+  return Array.from({ length: 6 }, () =>
+    alphabet[Math.floor(Math.random() * alphabet.length)]).join('');
+}

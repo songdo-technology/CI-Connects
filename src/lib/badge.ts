@@ -19,8 +19,12 @@ export interface BadgePayload {
   /** Marks this as ours, so a scanner can reject unrelated QR codes. */
   t: 'ci-badge';
   v: number;
-  /** Who. */
-  uid: string;
+  /** Who. Absent on an invitation code, where no account exists yet. */
+  uid?: string;
+  /** An invitation this code stands for, for a guest who has not yet signed
+   *  in. Lets a printed card be issued before the account exists — which is
+   *  the normal case, since badges are printed the week before. */
+  inv?: string;
   /** Which event they are attending. */
   evt: string;
   /** The session they are booked into at scan time, when there is one. */
@@ -55,6 +59,14 @@ export function currentSessionFor(
     // scans into something sensible.
     ?? booked.find((s) => s.startMinutes > minutes)
   );
+}
+
+/** A code for an invited guest who has no account yet. */
+export function buildInvitePayload(inviteId: string, eventId: string): string {
+  const payload: BadgePayload = {
+    t: 'ci-badge', v: BADGE_PAYLOAD_VERSION, inv: inviteId, evt: eventId, mode: 'print',
+  };
+  return JSON.stringify(payload);
 }
 
 export function buildBadgePayload(

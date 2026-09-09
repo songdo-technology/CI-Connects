@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from 'firebase/auth';
 import {
-  AuthState, completeRedirectSignIn, ensureUserDocument, signInWithGoogle,
+  AuthState, completeGuestSignIn, completeRedirectSignIn, ensureUserDocument,
+  isGuestLinkInUrl, pendingGuestEmail, sendGuestSignInLink, signInWithGoogle,
   signOutUser, watchAuth,
 } from './auth';
 import { isFirebaseConfigured } from './firebase';
@@ -18,6 +19,14 @@ interface AuthContextValue {
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
   clearError: () => void;
+  /** Emails a one-tap sign-in link to a guest. */
+  sendGuestLink: (email: string) => Promise<void>;
+  /** True when the page was opened from one of those links. */
+  guestLinkPending: boolean;
+  /** The address the link was sent to, when this browser requested it. */
+  guestEmailHint: string | null;
+  /** Finishes a guest sign-in; email is needed only across devices. */
+  completeGuestLink: (email?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -43,6 +52,14 @@ export const AuthProvider: React.FC<{
     error: null,
   });
   const [profileReady, setProfileReady] = useState(false);
+  const [guestLinkPending, setGuestLinkPending] = useState(false);
+
+  // A sign-in link lands as a fresh page load carrying credentials in the URL,
+  // so this has to be detected before anything renders a sign-in form.
+  useEffect(() => {
+    if (!live) return;
+    setGuestLinkPending(isGuestLinkInUrl());
+  }, [live]);
 
   // A redirect sign-in finishes on the next page load, not in the click that
   // started it, so the result has to be claimed here before anything else.
@@ -92,6 +109,25 @@ export const AuthProvider: React.FC<{
     signOut: async () => {
       await signOutUser();
       setProfileReady(false);
+    },
+    sendGuestLink: async (email: string) => {
+      try {
+        await sendGuestSignInLink(email);
+      } catch (e) {
+        setState((s) => ({ ...s, status: 'error', error: (e as Error).message }));
+        throw e;
+      }
+    },
+    guestLinkPending,
+    guestEmailHint: pendingGuestEmail(),
+    completeGuestLink: async (email?: string) => {
+      try {
+        await completeGuestSignIn(email);
+        setGuestLinkPending(false);
+      } catch (e) {
+        setState((s) => ({ ...s, status: 'error', error: (e as Error).message }));
+        throw e;
+      }
     },
     clearError: () => setState((s) => ({
       ...s,

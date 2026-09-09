@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Building2, ArrowRight, Mail, KeyRound, AlertCircle, CalendarDays, Users, QrCode, UtensilsCrossed } from 'lucide-react';
 import { UserProfile, AuthMethod } from '../types';
 import { useAuth } from '../lib/AuthProvider';
+import { ALLOWED_EMAIL_DOMAIN as ALLOWED_DOMAIN } from '../lib/firebase';
 
 interface LandingPageProps {
   profiles: UserProfile[];
@@ -23,7 +24,7 @@ interface LandingPageProps {
  * (Google provider + a custom-token or email-link flow) when the backend
  * lands; this component's props are shaped so that swap is contained.
  */
-const GUEST_DEMO_CODE = 'CI-DEMO';
+
 
 export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, onBackToEvent, eventName }) => {
   const auth = useAuth();
@@ -36,25 +37,36 @@ export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, on
   const chadwickAccounts = profiles.filter((p) => p.email.endsWith('@chadwickschool.org'));
   const guestAccounts = profiles.filter((p) => !p.email.endsWith('@chadwickschool.org'));
 
-  const handleGuestSubmit = (e: React.FormEvent) => {
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const handleGuestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     const email = guestEmail.trim().toLowerCase();
     if (!email) return setError('Enter the email address your invitation was sent to.');
-
-    if (email.endsWith('@chadwickschool.org')) {
-      return setError('That looks like a Chadwick address — please use "Continue with Chadwick Google" instead.');
+    if (email.endsWith(`@${ALLOWED_DOMAIN}`)) {
+      return setError('That is a Chadwick address — use "Continue with Chadwick Google" instead.');
     }
 
-    const match = guestAccounts.find((p) => p.email.toLowerCase() === email);
-    if (!match) {
-      return setError('We could not find an invitation for that email address. Check the address, or contact the event organizers.');
+    if (!auth.live) {
+      // Demo build: fall back to the seeded directory so the flow is walkable
+      // without sending real mail.
+      const match = guestAccounts.find((p) => p.email.toLowerCase() === email);
+      if (!match) return setError('No invitation found for that address.');
+      return onSignIn(match, 'guest_code');
     }
-    if (guestCode.trim().toUpperCase() !== GUEST_DEMO_CODE) {
-      return setError('That access code is not valid for this event.');
+
+    setBusy(true);
+    try {
+      await auth.sendGuestLink(email);
+      setSent(true);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
     }
-    onSignIn(match, 'guest_code');
   };
 
   return (
@@ -217,22 +229,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, on
                   </div>
                 </div>
 
-                <div>
-                  <label htmlFor="guest-code" className="block text-xs font-semibold text-slate-600 mb-1.5">
-                    Access code
-                  </label>
-                  <div className="relative">
-                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      id="guest-code"
-                      type="text"
-                      value={guestCode}
-                      onChange={(e) => setGuestCode(e.target.value)}
-                      placeholder="CI-XXXX"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-sm tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-                    />
-                  </div>
-                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  We will email you a one-tap sign-in link. There is no password
+                  to remember — the link is the sign-in.
+                </p>
 
                 {error && (
                   <div className="flex items-start gap-2 px-3.5 py-3 rounded-lg bg-amber-50 border border-amber-200">
@@ -243,26 +243,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, on
 
                 <button
                   type="submit"
-                  className="w-full px-5 py-3.5 rounded-xl bg-blue-600 text-white font-semibold shadow-sm hover:bg-blue-700 transition-colors cursor-pointer"
+                  disabled={busy}
+                  className="w-full px-5 py-3.5 rounded-xl bg-blue-600 text-white font-semibold shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors cursor-pointer"
                 >
-                  Continue
+                  {busy ? 'Sending…' : auth.live ? 'Email me a sign-in link' : 'Continue'}
                 </button>
               </form>
 
-              <div className="mt-6 px-4 py-3 rounded-lg bg-slate-50 border border-slate-200">
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  <span className="font-semibold text-slate-700">Prototype:</span>{' '}
-                  try{' '}
-                  <code className="px-1 py-0.5 rounded bg-white border border-slate-200 text-slate-700">
-                    {guestAccounts[0]?.email}
-                  </code>{' '}
-                  with code{' '}
-                  <code className="px-1 py-0.5 rounded bg-white border border-slate-200 text-slate-700">
-                    {GUEST_DEMO_CODE}
-                  </code>
-                  .
-                </p>
-              </div>
+              {sent && (
+                <div className="mt-5 px-4 py-4 rounded-xl bg-emerald-50 border border-emerald-300">
+                  <div className="flex items-center gap-2 text-sm font-bold text-emerald-900 mb-1">
+                    <Mail className="w-4 h-4" />
+                    Check your inbox
+                  </div>
+                  <p className="text-xs text-emerald-900/80 leading-relaxed">
+                    We sent a sign-in link to <strong>{guestEmail.trim().toLowerCase()}</strong>.
+                    Open it on any device to finish signing in. It may take a
+                    minute, and it is worth checking spam.
+                  </p>
+                </div>
+              )}
             </>
           )}
 
