@@ -3,6 +3,7 @@ import { Building2, ArrowRight, Mail, KeyRound, AlertCircle, CalendarDays, Users
 import { UserProfile, AuthMethod } from '../types';
 import { useAuth } from '../lib/AuthProvider';
 import { ALLOWED_EMAIL_DOMAIN as ALLOWED_DOMAIN } from '../lib/firebase';
+import { describeAuthProblem } from '../lib/auth';
 
 interface LandingPageProps {
   profiles: UserProfile[];
@@ -18,11 +19,10 @@ interface LandingPageProps {
  *  - External guests redeem the access code emailed with their invitation,
  *    since they have no Chadwick account to sign in with.
  *
- * PROTOTYPE: no real identity provider is wired up yet. The SSO button
- * resolves against the seeded directory and the guest form accepts any
- * known guest email with the demo code. Replace both with Firebase Auth
- * (Google provider + a custom-token or email-link flow) when the backend
- * lands; this component's props are shaped so that swap is contained.
+ * Both doors are real when Firebase is configured: Google for Workspace
+ * accounts, an emailed single-use link for everyone else. The seeded-directory
+ * fallback below survives only for `auth.live === false` — the design preview
+ * build, where the flow has to be walkable without sending real mail.
  */
 
 
@@ -63,7 +63,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, on
       await auth.sendGuestLink(email);
       setSent(true);
     } catch (err) {
-      setError((err as Error).message);
+      setError(describeAuthProblem(err));
     } finally {
       setBusy(false);
     }
