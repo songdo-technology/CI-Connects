@@ -11,9 +11,28 @@ different Mac without asking a person what happened.
 git add -A && git commit -m "…" && git push origin main
 ```
 
-**Pushing does not deploy.** Cloudflare Pages has no Git provider connected to
-this repository, so a commit on GitHub and a live site are two different
-things. When a change should be live:
+**Pushing `main` deploys.** `.github/workflows/deploy.yml` runs on every push
+to `main`: typecheck, build, then `wrangler pages deploy` to the `ci-events`
+project as production. It needs the `CLOUDFLARE_API_TOKEN` repository secret;
+without it the run still builds but ends with a "not deployed" warning, and
+`main` is ahead of the live site. Cloudflare's own Git integration is NOT used:
+`ci-events` was created by direct upload and cannot be switched, and a new
+project would change the origin the OAuth handler is registered on.
+
+After pushing, check the run (`gh run watch`, or the Actions tab) and state
+which of these is true, so the next session inherits the truth rather than a
+guess:
+
+- pushed, Actions green — live matches `main`
+- pushed, Actions warned "not deployed" or failed — `main` is ahead of live
+- deployed by hand from an uncommitted tree — fix this immediately by committing
+
+From a machine with a wrangler login, `npm run ship` does typecheck → build →
+`git push` → deploy in one step with no token; it refuses a dirty tree or a
+branch other than `main`. Once the Actions secret is set, a plain `git push`
+is enough and `ship` merely deploys the same bundle twice.
+
+Manual deploy still works and is the fallback when Actions is unavailable:
 
 ```sh
 npm run build
@@ -24,18 +43,13 @@ npx wrangler pages deploy dist --project-name=ci-events --branch=main
 subdomain, which is fine for looking at but cannot sign in — preview subdomains
 are not on the OAuth authorized list.
 
-After pushing, state which of these is true, so the next session inherits the
-truth rather than a guess:
-
-- committed and pushed, and deployed — live matches `main`
-- committed and pushed, not deployed — `main` is ahead of the live site
-- deployed from an uncommitted tree — fix this immediately by committing
-
-Firebase rules deploy separately and only when `firestore.rules` or
-`storage.rules` changed:
+Firebase rules deploy separately and only when `firestore.rules`,
+`storage.rules` or `firestore.indexes.json` change. `.github/workflows/rules.yml`
+does it on push if the `FIREBASE_SERVICE_ACCOUNT` secret is set; otherwise by
+hand:
 
 ```sh
-npx firebase deploy --only firestore:rules --project ci-connects
+npx firebase deploy --only firestore:rules,storage --project ci-connects
 ```
 
 ## Secrets never enter this repository

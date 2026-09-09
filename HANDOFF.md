@@ -4,6 +4,16 @@ Written 10 September 2026, moving from one Mac to another. Everything needed to
 resume is in this repository except the two files named under "Secrets", which
 are gitignored and must be recreated by hand.
 
+## Machines
+
+- **Current home (since 10 Sep 2026):** Junyoung's MacBook Pro,
+  `/Users/junyoung/OPENCLAW/CI-Connects`. Clone verified: `.env.local`
+  recreated, typecheck clean, local build hash identical to the live bundle.
+- **The first Mac is frozen.** Nothing should be edited there. If it is ever
+  used again, `git pull` first.
+- The repository is **public** on GitHub. That is fine while it holds no
+  secrets — keep it that way, or flip it to private in repo settings.
+
 ---
 
 ## What this is
@@ -27,15 +37,29 @@ account is not used anywhere.
 
 | Part | Service | Project | Deploys how |
 |------|---------|---------|-------------|
-| Web app + Functions | Cloudflare Pages | `ci-events` (account `db320cde773461ed8f257d3ec0eda290`) | **Manual.** No Git provider is connected |
-| Auth, database, file storage | Firebase | `ci-connects` (number `898826571976`) | Manual, rules only |
+| Web app + Functions | Cloudflare Pages | `ci-events` (account `db320cde773461ed8f257d3ec0eda290`) | **GitHub Actions on push to `main`** (`deploy.yml`, needs `CLOUDFLARE_API_TOKEN` secret). Manual `wrangler pages deploy` is the fallback |
+| Auth, database, file storage | Firebase | `ci-connects` (number `898826571976`) | Rules only. GitHub Actions when rules files change (`rules.yml`, needs `FIREBASE_SERVICE_ACCOUNT` secret); else manual |
 
-### Pushing to GitHub does NOT deploy anything
+### Automatic deploys
 
-`wrangler pages project list` reports **Git Provider: No**. Cloudflare is not
-watching this repository. A deploy happens only when somebody runs the command
-below. This is the single most important thing to know on the new machine —
-work can be committed, pushed, and still not live.
+Cloudflare itself is still not watching this repository (`wrangler pages
+project list` reports **Git Provider: No**, and a direct-upload project cannot
+be switched). Instead `.github/workflows/deploy.yml` runs on every push to
+`main`: `npm ci` → typecheck → build with the `VITE_*` repository variables →
+`wrangler pages deploy … --branch=main`.
+
+It deploys only when the repository secret `CLOUDFLARE_API_TOKEN` exists.
+Until then every run builds, then ends with a **"not deployed"** warning —
+that warning is the signal that `main` is ahead of the live site. To enable
+deploys once, from a terminal on any machine:
+
+1. Cloudflare dashboard → My Profile → API Tokens → Create Token → template
+   **Edit Cloudflare Workers** (it includes Pages:Edit), scoped to the
+   `Songdo-technology@chadwickschool.org` account.
+2. `gh secret set CLOUDFLARE_API_TOKEN` in this repo, paste the token.
+3. Push, or `gh workflow run deploy.yml`, and watch it go green.
+
+Manual deploy remains the fallback and is what to reach for if Actions is down:
 
 ```sh
 npm run build

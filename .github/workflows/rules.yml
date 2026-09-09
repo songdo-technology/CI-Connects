@@ -1,0 +1,47 @@
+# Deploys Firestore / Storage security rules when they change on main.
+#
+# Needs one repository secret:  FIREBASE_SERVICE_ACCOUNT
+#   = the JSON of a service account on project ci-connects with the
+#     "Firebase Rules Admin" (or Editor) role.
+# Without it the run prints a warning and the rules must be deployed by hand:
+#   npx firebase deploy --only firestore:rules,storage --project ci-connects
+name: Firebase rules
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - firestore.rules
+      - firestore.indexes.json
+      - storage.rules
+      - firebase.json
+  workflow_dispatch:
+
+env:
+  HAS_FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+
+jobs:
+  rules:
+    name: ci-connects rules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        if: env.HAS_FIREBASE_SA == 'true'
+        with:
+          node-version-file: .node-version
+
+      - name: Deploy rules
+        if: env.HAS_FIREBASE_SA == 'true'
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          npx --yes firebase-tools@15 deploy --only firestore:rules,firestore:indexes,storage --project ci-connects --non-interactive
+          rm -f "$RUNNER_TEMP/sa.json"
+
+      - name: Not deployed
+        if: env.HAS_FIREBASE_SA != 'true'
+        run: echo "::warning::FIREBASE_SERVICE_ACCOUNT is not set. Rules changed on main but were NOT deployed — run: npx firebase deploy --only firestore:rules,storage --project ci-connects"
