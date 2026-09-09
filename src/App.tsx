@@ -746,6 +746,7 @@ export default function App() {
         onDeleteCost={remover('costs')}
         invites={invites}
         attendance={attendance}
+        onBulkImport={(ops) => batch(ops)}
         onSaveInvite={saver('invites')}
         onDeleteInvite={remover('invites')}
       />
