@@ -4,6 +4,7 @@ import { UserProfile, AuthMethod } from '../types';
 import { useAuth } from '../lib/AuthProvider';
 import { ALLOWED_EMAIL_DOMAIN as ALLOWED_DOMAIN } from '../lib/firebase';
 import { describeAuthProblem } from '../lib/auth';
+import { checkInviteCode } from '../lib/inviteCodes';
 
 interface LandingPageProps {
   profiles: UserProfile[];
@@ -49,6 +50,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, on
     if (!email) return setError('Enter the email address your invitation was sent to.');
     if (email.endsWith(`@${ALLOWED_DOMAIN}`)) {
       return setError('That is a Chadwick address — use "Continue with Chadwick Google" instead.');
+    }
+    if (!guestCode.trim()) {
+      return setError('Enter the access code from your invitation.');
+    }
+
+    // The pair has to name a real invitation before anything is sent. Checked
+    // by hash, so no part of the guest list is exposed to do it.
+    if (auth.live) {
+      setBusy(true);
+      const match = await checkInviteCode(email, guestCode);
+      setBusy(false);
+      if (!match) {
+        return setError(
+          'That email and code do not match an invitation. Check both — the code is '
+          + 'six characters, and the email must be the one the invitation was sent to. '
+          + 'If it still fails, ask the organisers to resend it.',
+        );
+      }
     }
 
     if (!auth.live) {
@@ -230,9 +249,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({ profiles, onSignIn, on
                   </div>
                 </div>
 
+                <div>
+                  <label htmlFor="guest-code" className="block text-xs font-semibold text-slate-600 mb-1.5">
+                    Access code
+                  </label>
+                  <div className="relative">
+                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      id="guest-code"
+                      value={guestCode}
+                      onChange={(e) => setGuestCode(e.target.value.toUpperCase())}
+                      placeholder="A7K2M9"
+                      maxLength={8}
+                      autoCapitalize="characters"
+                      spellCheck={false}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-sm font-mono tracking-[0.2em] uppercase focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+                    />
+                  </div>
+                </div>
+
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  We will email you a one-tap sign-in link. There is no password
-                  to remember — the link is the sign-in.
+                  The six characters from your invitation, with the address it was sent
+                  to. We check the pair, then email you a one-tap sign-in link — there is
+                  no password to remember.
                 </p>
 
                 {error && (

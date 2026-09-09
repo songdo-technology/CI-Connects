@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { UserPlus, X, Check, Copy, MailCheck, Clock } from 'lucide-react';
+import {
+  UserPlus, X, Check, Copy, MailCheck, Clock, ShieldCheck, RefreshCw, Loader2,
+} from 'lucide-react';
 import {
   Invite, UserProfile, UserRole, EventConfig, generateAccessCode,
 } from '../../types';
@@ -15,6 +17,9 @@ interface AdminGuestsProps {
   currentUser: UserProfile;
   onSave: (invite: Invite, isNew: boolean) => Promise<void> | void;
   onDelete: (id: string) => Promise<void> | void;
+  /** Rewrites every access-code lookup. The repair for invitations created
+   *  before codes were checkable, or brought in through a spreadsheet. */
+  onRepublishCodes: () => Promise<number>;
 }
 
 const GUEST_ROLES: UserRole[] = ['attendee', 'speaker', 'sponsor'];
@@ -36,13 +41,15 @@ const GUEST_ROLES: UserRole[] = ['attendee', 'speaker', 'sponsor'];
  * invitation to whoever eventually claims it.
  */
 export const AdminGuests: React.FC<AdminGuestsProps> = ({
-  invites, profiles, events, currentUser, onSave, onDelete,
+  invites, profiles, events, currentUser, onSave, onDelete, onRepublishCodes,
 }) => {
   const [editing, setEditing] = useState<Invite | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState(false);
+  const [published, setPublished] = useState<number | null>(null);
 
   const eventId = events.find((e) => e.isFeatured)?.id ?? events[0]?.id;
 
@@ -214,11 +221,37 @@ export const AdminGuests: React.FC<AdminGuestsProps> = ({
     );
   }
 
+  const republish = async () => {
+    setPublishing(true);
+    try { setPublished(await onRepublishCodes()); }
+    finally { setPublishing(false); }
+  };
+
   return (
     <div className="space-y-5">
       <SectionHeader icon={UserPlus} title="Guest invitations"
         subtitle={`${rows.length} invited · ${rows.filter((i) => i.claimedAt).length} signed in. Chadwick accounts need no invitation — they sign in with Google.`}
         action={{ label: 'Invite a guest', onClick: () => { setEditing(blank()); setIsNew(true); setError(null); } }} />
+
+      {/* An invitation whose code cannot be checked is one nobody can use, and
+          nothing else in the platform would show that. Republishing is
+          idempotent, so running it when unsure costs nothing. */}
+      <div className="flex flex-wrap items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
+        <ShieldCheck className="w-4 h-4 text-slate-400 shrink-0" />
+        <p className="text-[11px] text-slate-500 leading-relaxed flex-1 min-w-[16rem]">
+          Guests sign in with their invited address <em>and</em> this code — nobody can
+          register for an event they were not added to. Run this after importing
+          invitations from a spreadsheet, or if a guest reports their code being refused.
+        </p>
+        <button
+          onClick={republish}
+          disabled={publishing || rows.length === 0}
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border-2 border-slate-200 text-slate-700 text-[11px] font-semibold hover:border-blue-600 hover:text-blue-700 disabled:opacity-40 transition-colors cursor-pointer"
+        >
+          {publishing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+          {published !== null ? `${published} codes published` : 'Republish access codes'}
+        </button>
+      </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
         {rows.length === 0 && (

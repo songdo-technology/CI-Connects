@@ -624,7 +624,14 @@ export interface Invite {
 
 /** Six characters, avoiding 0/O and 1/I/L so it can be read aloud. */
 export function generateAccessCode(): string {
+  // Ambiguous characters left out: somebody reads these aloud down a phone
+  // and types them off a printed sheet.
   const alphabet = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
-  return Array.from({ length: 6 }, () =>
-    alphabet[Math.floor(Math.random() * alphabet.length)]).join('');
+  // crypto rather than Math.random: this code decides who gets into a
+  // building. Math.random is seeded predictably enough that a handful of
+  // observed codes can narrow the next one, which is a strange risk to carry
+  // for no benefit.
+  const bytes = new Uint8Array(6);
+  crypto.getRandomValues(bytes);
+  return [...bytes].map((b) => alphabet[b % alphabet.length]).join('');
 }

@@ -30,6 +30,7 @@ export interface CollectionTypes {
   costs: CostEntry;
   invites: Invite;
   certificates: Certificate;
+  inviteCodes: { id: string; inviteId: string; eventId: string };
 }
 
 export type CollectionKey = keyof CollectionTypes;

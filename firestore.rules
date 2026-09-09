@@ -246,6 +246,24 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    /**
+     * Access-code lookups, keyed by a hash of email plus code.
+     *
+     * `get` is public because the hash is the question and the answer at once:
+     * knowing the pair finds the document, and not knowing it finds nothing.
+     * `list` is refused, so the collection cannot be swept for guest
+     * addresses — and the documents hold neither an address nor a code, only
+     * which invitation they belong to.
+     *
+     * Finding one causes a sign-in link to be sent to the invited address.
+     * It admits nobody by itself.
+     */
+    match /inviteCodes/{hash} {
+      allow get: if true;
+      allow list: if isOrganiser();
+      allow write: if isOrganiser();
+    }
+
     match /invites/{inviteId} {
       allow read: if isOrganiser()
                   || (signedIn() && resource.data.email == request.auth.token.email);

@@ -56,6 +56,7 @@ interface AdminPanelProps {
   onDeleteCost: (id: string) => Promise<void> | void;
   onSaveInvite: (invite: Invite, isNew: boolean) => Promise<void> | void;
   onDeleteInvite: (id: string) => Promise<void> | void;
+  onRepublishInviteCodes: () => Promise<number>;
   /** Applies a whole spreadsheet as one write. */
   onBulkImport: (ops: BatchOperation[]) => Promise<void>;
   /** Where to land, when opened for a specific job rather than browsing. */
@@ -88,7 +89,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   prizes, costs, invites, attendance, counts, isRemote, onClose, onChangeRole, onSaveEvent, onDeleteEvent,
   onSaveSession, onDeleteSession, onSaveRoom, onDeleteRoom,
   onSaveMeal, onDeleteMeal, onSaveSponsor, onDeleteSponsor,
-  onSavePrize, onDeletePrize, onSaveCost, onDeleteCost, onSaveInvite, onDeleteInvite,
+  onSavePrize, onDeletePrize, onSaveCost, onDeleteCost, onSaveInvite, onDeleteInvite, onRepublishInviteCodes,
   onBulkImport, communityTopics, messages, feedback, announcements, certificates, openTo,
 }) => {
   const mayManageRoles = can(currentUser, 'users:manage_roles');
@@ -222,7 +223,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         )}
 
         {section === 'guests' && (
-          <AdminGuests invites={invites} profiles={users} events={events}
+          <AdminGuests onRepublishCodes={onRepublishInviteCodes} invites={invites} profiles={users} events={events}
                        currentUser={currentUser} onSave={onSaveInvite} onDelete={onDeleteInvite} />
         )}
 

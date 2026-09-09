@@ -16,6 +16,7 @@ import {
   AuthMethod,
   UserRole,
   EventConfig,
+  Invite,
 } from './types';
 import { Header } from './components/Header';
 import { AgendaView } from './components/AgendaView';
@@ -47,6 +48,7 @@ import { can } from './lib/permissions';
 import { profileGaps } from './lib/profileCompleteness';
 import { takeSignInIntent, hasSignInIntent, clearSignInIntent } from './lib/signInIntent';
 import { isGuestLinkInUrl } from './lib/auth';
+import { lookupDocFor } from './lib/inviteCodes';
 import { FeedbackView } from './components/FeedbackView';
 import { SignageDirectory } from './components/SignageDirectory';
 import { ProposeSession } from './components/ProposeSession';
@@ -305,6 +307,30 @@ export default function App() {
     setAuthSession({ userId: user.id, method, signedInAt: now() });
     setActiveTab('agenda');
     setSurface(homeSurfaceFor(user, Boolean(takeSignInIntent()?.eventSlug)));
+  };
+
+  /**
+   * Saving an invitation also publishes its access-code lookup.
+   *
+   * Kept in one action deliberately: an invitation whose code cannot be
+   * checked is one nobody can use, and the two drifting apart would stay
+   * invisible until a guest was standing at the door.
+   */
+  const handleSaveInvite = async (invite: Invite, isNew: boolean) => {
+    if (isNew) await create('invites', invite);
+    else await update('invites', invite.id, invite);
+    const lookup = await lookupDocFor(invite);
+    await create('inviteCodes', { id: lookup.id, ...lookup.data });
+  };
+
+  /** Republishes every lookup. Idempotent, and the repair for invitations made
+   *  before this existed or brought in through a spreadsheet. */
+  const republishInviteCodes = async () => {
+    const docs = await Promise.all(invites.map(lookupDocFor));
+    await batch(docs.map((d) => ({
+      op: 'create' as const, key: 'inviteCodes' as const, item: { id: d.id, ...d.data },
+    })));
+    return docs.length;
   };
 
   const handleSignOut = () => {
@@ -798,8 +824,9 @@ export default function App() {
         feedback={feedback}
         announcements={announcements}
         certificates={certificates}
-        onSaveInvite={saver('invites')}
+        onSaveInvite={handleSaveInvite}
         onDeleteInvite={remover('invites')}
+        onRepublishInviteCodes={republishInviteCodes}
       />
     );
   }
@@ -849,7 +876,8 @@ export default function App() {
             onBulkImport={(ops) => batch(ops)} openTo={adminIntent}
             communityTopics={communityTopics} messages={messages}
             feedback={feedback} announcements={announcements} certificates={certificates}
-            onSaveInvite={saver('invites')} onDeleteInvite={remover('invites')}
+            onSaveInvite={handleSaveInvite} onDeleteInvite={remover('invites')}
+            onRepublishInviteCodes={republishInviteCodes}
           />
         )}
       </>
