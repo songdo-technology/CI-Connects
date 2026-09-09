@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   ShieldCheck, CalendarPlus, Database, X, Cloud, CloudOff, ExternalLink,
   CalendarDays, DoorOpen, UtensilsCrossed, Handshake, Gift, Wallet, UserPlus, ClipboardCheck,
-  FileSpreadsheet, Inbox, Award,
+  FileSpreadsheet, Inbox, Award, BarChart3,
 } from 'lucide-react';
 import {
   EventConfig, UserProfile, UserRole, Session, Track, Room, MealService, Sponsor,
@@ -21,6 +21,7 @@ import { AdminProposals } from './AdminProposals';
 import { AdminReset } from './AdminReset';
 import { AdminGettingStarted } from './AdminGettingStarted';
 import { AdminCertificates } from './AdminCertificates';
+import { AdminAnalytics } from './AdminAnalytics';
 import { AdminAttendance } from './AdminAttendance';
 
 interface AdminPanelProps {
@@ -71,7 +72,7 @@ interface AdminPanelProps {
 type Section =
   | 'people' | 'events' | 'programme' | 'rooms' | 'dining' | 'sponsors'
   | 'prizes' | 'costs' | 'guests' | 'attendance' | 'import' | 'proposals'
-  | 'certificates' | 'system';
+  | 'certificates' | 'analytics' | 'system';
 
 /**
  * Administration console.
@@ -105,6 +106,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     can(currentUser, 'dining:manage') && ['dining', 'Dining', UtensilsCrossed],
     can(currentUser, 'sponsors:manage') && ['sponsors', 'Sponsors', Handshake],
     can(currentUser, 'users:view_all') && ['guests', 'Guests', UserPlus],
+    can(currentUser, 'attendance:view_all') && ['analytics', 'Analytics', BarChart3],
     can(currentUser, 'attendance:view_all') && ['attendance', 'Attendance', ClipboardCheck],
     mayManageEvents && ['certificates', 'Certificates', Award],
     can(currentUser, 'luckydraw:manage') && ['prizes', 'Lucky Draw', Gift],
@@ -210,6 +212,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             events={events} rooms={rooms} tracks={tracks} sponsors={sponsors}
             mealServices={mealServices} sessions={sessions} users={users}
             invites={invites} currentUser={currentUser} onCommit={onBulkImport}
+          />
+        )}
+
+        {section === 'analytics' && (
+          <AdminAnalytics
+            events={events} sessions={sessions} rooms={rooms} tracks={tracks}
+            users={users} attendance={attendance} feedback={feedback}
           />
         )}
 
