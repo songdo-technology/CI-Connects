@@ -21,10 +21,13 @@ interface MyLearningProps {
   onOpenEventPortal: (slug: string) => void;
   onOpenPublicPage: (slug: string) => void;
   onOpenHub: () => void;
-  onEditProfile: () => void;
+  /** Rendered inside this dashboard rather than jumped to. */
+  profilePanel: React.ReactNode;
   onRedeemCode: (code: string) => Promise<string | null>;
   onRequestPlace: (eventId: string) => void;
   onSignOut: () => void;
+  /** Present for organisers, so their own record is not a dead end. */
+  onBackToAdmin?: () => void;
 }
 
 /**
@@ -42,9 +45,18 @@ interface MyLearningProps {
  */
 export const MyLearning: React.FC<MyLearningProps> = ({
   currentUser, events, sessions, rooms, certificates, attendance, invites,
-  onOpenEventPortal, onOpenPublicPage, onOpenHub, onEditProfile,
-  onRedeemCode, onRequestPlace, onSignOut,
+  onOpenEventPortal, onOpenPublicPage, onOpenHub, profilePanel,
+  onRedeemCode, onRequestPlace, onSignOut, onBackToAdmin,
 }) => {
+  /**
+   * Which half of their own account they are looking at.
+   *
+   * Editing a profile used to open the event portal, so somebody who clicked
+   * "Your profile" arrived at an agenda, a badge and a dining menu belonging
+   * to one conference they may not even be attending. Those are properties of
+   * an event and belong inside it; a person's own record belongs here.
+   */
+  const [view, setView] = useState<'overview' | 'profile'>('overview');
   const [code, setCode] = useState('');
   const [redeeming, setRedeeming] = useState(false);
   const [redeemError, setRedeemError] = useState<string | null>(null);
@@ -128,8 +140,17 @@ export const MyLearning: React.FC<MyLearningProps> = ({
             </div>
           </button>
           <div className="flex items-center gap-2 shrink-0">
-            <button onClick={onEditProfile}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-slate-200 hover:border-blue-600 transition-colors cursor-pointer">
+            {onBackToAdmin && (
+              <button onClick={onBackToAdmin}
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 border-slate-200 text-slate-700 text-xs font-semibold hover:border-blue-600 hover:text-blue-700 transition-colors cursor-pointer">
+                <span className="hidden sm:inline">Admin</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+            <button onClick={() => setView(view === 'profile' ? 'overview' : 'profile')}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-colors cursor-pointer ${
+                      view === 'profile' ? 'border-blue-600 bg-blue-50' : 'border-slate-200 hover:border-blue-600'
+                    }`}>
               <img src={currentUser.avatarUrl} alt="" className="w-6 h-6 rounded-lg object-cover" />
               <span className="hidden sm:inline text-xs font-semibold text-slate-700">
                 {currentUser.preferredName || currentUser.fullName.split(' ')[0]}
@@ -144,6 +165,16 @@ export const MyLearning: React.FC<MyLearningProps> = ({
       </header>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+        {view === 'profile' ? (
+          <>
+            <button onClick={() => setView('overview')}
+                    className="text-xs font-semibold text-slate-500 hover:text-blue-700 cursor-pointer">
+              ← Back to your learning
+            </button>
+            {profilePanel}
+          </>
+        ) : (
+        <>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             {currentUser.preferredName || currentUser.fullName.split(' ')[0]}’s learning
@@ -170,51 +201,91 @@ export const MyLearning: React.FC<MyLearningProps> = ({
 
         {/* ---------- Booked on ---------- */}
         {mine.upcoming.length > 0 && (
-          <Panel title="You are booked on">
-            {mine.upcoming.map((e) => (
-              <button key={e.id} onClick={() => onOpenEventPortal(e.slug)}
-                      className="w-full text-left px-5 py-4 flex items-center gap-4 hover:bg-slate-50 transition-colors cursor-pointer">
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-bold text-slate-900">{e.name}</div>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500 mt-0.5">
-                    <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" />{e.dateLabel}</span>
-                    <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{e.venueName}</span>
-                  </div>
-                </div>
-                <span className="text-[11px] font-bold text-blue-700 shrink-0">Open</span>
-                <ArrowRight className="w-4 h-4 text-slate-300 shrink-0" />
-              </button>
-            ))}
-          </Panel>
+          <section>
+            <h2 className="text-sm font-bold text-slate-900 mb-3">You are booked on</h2>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {mine.upcoming.map((e) => {
+                const days = Math.ceil(
+                  (new Date(e.startDate + 'T00:00:00').getTime() - Date.now()) / 86400000);
+                const booked = sessions.filter(
+                  (s) => s.eventId === e.id && s.reservedUserIds.includes(currentUser.id));
+                return (
+                  <button key={e.id} onClick={() => onOpenEventPortal(e.slug)}
+                          className="group text-left rounded-2xl border border-slate-200 bg-white overflow-hidden hover:border-blue-600 hover:shadow-md transition-all cursor-pointer">
+                    <div className="relative aspect-[16/7] overflow-hidden bg-slate-100">
+                      <img src={e.heroImageUrl} alt=""
+                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent" />
+                      <div className="absolute bottom-3 left-4 right-4 text-white">
+                        <div className="text-base font-bold leading-tight">{e.name}</div>
+                        <div className="text-[11px] text-white/85">{e.dateLabel}</div>
+                      </div>
+                      {days >= 0 && days <= 60 && (
+                        <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm text-[10px] font-bold text-slate-800">
+                          {days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : `${days} days`}
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-4 flex items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1 text-[11px] text-slate-500">
+                          <MapPin className="w-3 h-3 shrink-0" />
+                          <span className="truncate">{e.venueName}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">
+                          {booked.length > 0
+                            ? `${booked.length} session${booked.length === 1 ? '' : 's'} reserved`
+                            : 'No sessions reserved yet'}
+                        </div>
+                      </div>
+                      <span className="flex items-center gap-1 text-xs font-bold text-blue-700 shrink-0">
+                        Open
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
         )}
 
         {/* ---------- Completed ---------- */}
         {mine.past.length > 0 && (
-          <Panel title="Completed">
-            {mine.past.map((e) => {
-              const cert = myCertificates.find((c) => c.eventId === e.id);
-              return (
-                <div key={e.id} className="px-5 py-4 flex items-center gap-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-bold text-slate-900">{e.name}</div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">{e.dateLabel}</div>
-                  </div>
-                  {cert ? (
-                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-[10px] font-bold text-emerald-800 shrink-0">
-                      <Award className="w-3 h-3" />
-                      {formatHours(cert.hours)} h certified
-                    </span>
-                  ) : (
-                    <span className="text-[10px] text-slate-400 shrink-0">No certificate</span>
-                  )}
-                  <button onClick={() => onOpenPublicPage(e.slug)}
-                          className="text-[11px] font-semibold text-blue-700 hover:underline shrink-0 cursor-pointer">
-                    Recap
+          <section>
+            <h2 className="text-sm font-bold text-slate-900 mb-3">Your record</h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {mine.past.map((e) => {
+                const cert = myCertificates.find((c) => c.eventId === e.id);
+                const attended = sessions.filter(
+                  (s) => s.eventId === e.id && mine.attendedSessionIds.has(s.id));
+                return (
+                  <button key={e.id} onClick={() => onOpenPublicPage(e.slug)}
+                          className="group text-left rounded-2xl border border-slate-200 bg-white overflow-hidden hover:border-blue-600 transition-colors cursor-pointer">
+                    <div className="aspect-[16/7] overflow-hidden bg-slate-100 relative">
+                      <img src={e.heroImageUrl} alt=""
+                           className="w-full h-full object-cover grayscale-[55%] group-hover:grayscale-0 transition-all duration-500" />
+                      {cert && (
+                        <span className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-600 text-white text-[10px] font-bold">
+                          <Award className="w-3 h-3" />
+                          {formatHours(cert.hours)} h
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <div className="text-sm font-bold text-slate-900 leading-snug">{e.name}</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">{e.dateLabel}</div>
+                      <div className="text-[11px] text-slate-400 mt-1.5">
+                        {attended.length > 0
+                          ? `${attended.length} session${attended.length === 1 ? '' : 's'} attended`
+                          : cert ? 'Certified' : 'No attendance recorded'}
+                      </div>
+                    </div>
                   </button>
-                </div>
-              );
-            })}
-          </Panel>
+                );
+              })}
+            </div>
+          </section>
         )}
 
         {/* ---------- Materials from rooms they were in ---------- */}
@@ -340,7 +411,7 @@ export const MyLearning: React.FC<MyLearningProps> = ({
           </div>
         )}
 
-        <button onClick={onEditProfile}
+        <button onClick={() => setView('profile')}
                 className="w-full flex items-center gap-3 p-4 rounded-2xl bg-white border border-slate-200 hover:border-blue-600 transition-colors cursor-pointer text-left">
           <UserRound className="w-4 h-4 text-slate-400 shrink-0" />
           <div className="min-w-0 flex-1">
@@ -351,6 +422,8 @@ export const MyLearning: React.FC<MyLearningProps> = ({
           </div>
           <ArrowRight className="w-4 h-4 text-slate-300 shrink-0" />
         </button>
+        </>
+        )}
       </div>
     </div>
   );

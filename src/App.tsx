@@ -957,9 +957,20 @@ export default function App() {
         }}
         onOpenPublicPage={openEvent}
         onOpenHub={openHub}
-        onEditProfile={() => { setActiveTab('profile'); setSurface('portal'); }}
+        profilePanel={(
+          <MyProfile
+            currentUser={viewUser}
+            sessions={sessions}
+            rooms={rooms}
+            uploadsEnabled={isRemote}
+            onSaveProfile={handleSaveOwnProfile}
+            onTogglePrivacy={handleSaveOwnProfile}
+            onSaveSession={handleSaveOwnSession}
+          />
+        )}
         onRedeemCode={handleRedeemCode}
         onRequestPlace={handleRequestPlace}
+        onBackToAdmin={can(viewUser, 'events:create') ? () => setSurface('dashboard') : undefined}
         onSignOut={handleSignOut}
       />
     );
@@ -1010,6 +1021,7 @@ export default function App() {
           onOpenPublicPage={openEvent}
           onOpenHub={openHub}
           onOpenGate={() => setSurface('gate')}
+          onOpenMyLearning={() => setSurface('learning')}
           onSignOut={handleSignOut}
         />
         {isAdminPanelOpen && (

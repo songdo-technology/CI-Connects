@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import {
   Building2, LogOut, Plus, FileSpreadsheet, Inbox, UserPlus, Settings2,
   CalendarDays, Users, Ticket, AlertTriangle, ArrowRight, Check, Eye,
-  Presentation, DoorOpen, Sparkles, ScanLine,
+  Presentation, DoorOpen, Sparkles, ScanLine, GraduationCap,
 } from 'lucide-react';
 import {
   EventConfig, Session, Room, UserProfile, Invite, AttendanceRecord,
@@ -26,6 +26,8 @@ interface AdminDashboardProps {
   onOpenHub: () => void;
   /** Organisers cover the gate too, especially in the first hour. */
   onOpenGate: () => void;
+  /** An administrator attends things too, and their hours count the same. */
+  onOpenMyLearning: () => void;
   onSignOut: () => void;
 }
 
@@ -64,7 +66,7 @@ const Tile: React.FC<{
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   currentUser, events, sessions, rooms, users, invites, attendance,
   isTechnical, isRemote, onOpenAdmin, onOpenEventPortal, onOpenPublicPage,
-  onOpenHub, onOpenGate, onSignOut,
+  onOpenHub, onOpenGate, onOpenMyLearning, onSignOut,
 }) => {
   const real = events.filter((e) => !e.isTemplate);
   const samples = events.filter((e) => e.isTemplate);
@@ -218,6 +220,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           </button>
           <div className="flex items-center gap-2 shrink-0">
+            <button onClick={onOpenMyLearning}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 border-slate-200 text-slate-700 text-xs font-semibold hover:border-blue-600 hover:text-blue-700 transition-colors cursor-pointer">
+              <GraduationCap className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">My learning</span>
+            </button>
             <button onClick={onOpenHub}
                     className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 border-slate-200 text-slate-700 text-xs font-semibold hover:border-blue-600 hover:text-blue-700 transition-colors cursor-pointer">
               Public site
