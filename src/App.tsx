@@ -45,6 +45,8 @@ import { MyProfile } from './components/MyProfile';
 import { GuestLinkReturn } from './components/GuestLinkReturn';
 import { can } from './lib/permissions';
 import { profileGaps } from './lib/profileCompleteness';
+import { takeSignInIntent, hasSignInIntent } from './lib/signInIntent';
+import { isGuestLinkInUrl } from './lib/auth';
 import { FeedbackView } from './components/FeedbackView';
 import { SignageDirectory } from './components/SignageDirectory';
 
@@ -116,6 +118,12 @@ export default function App() {
     initialEventSlug ?? EVENT_CONFIG.slug,
   );
   const [authSession, setAuthSession] = useState<AuthSession | null>(null);
+  /** True when this load began with an emailed sign-in link. Captured before
+   *  anything can rewrite the address bar. */
+  const [arrivedOnGuestLink] = useState(() => isGuestLinkInUrl());
+  /** Whether this load is the tail end of a redirect sign-in. Read at mount,
+   *  before the effect below consumes the marker. */
+  const [returningFromSignIn] = useState(() => hasSignInIntent());
   const auth = useAuth();
 
   // UI Navigation State
@@ -216,6 +224,13 @@ export default function App() {
    * the surface never leaves the public hub. Waits for `profileReady` because
    * the portal reads a role, and the role lives in the Firestore profile that
    * is written just after sign-in.
+   *
+   * Entering the portal cannot be decided by looking at the current surface
+   * alone. That works for a popup, which returns to the same React tree, but
+   * `signInWithRedirect` comes back to a cold load where the surface has
+   * re-initialised to the hub — so the visitor arrives signed in and stares at
+   * the public front page. The stored intent survives that trip; an emailed
+   * guest link is the same trip and counts as the same intent.
    */
   useEffect(() => {
     if (!auth.live) return;
@@ -225,12 +240,15 @@ export default function App() {
           ? current
           : { userId: auth.firebaseUser!.uid, method: 'google_sso', signedInAt: now() },
       );
-      setSurface((s) => (s === 'signin' ? 'portal' : s));
+
+      const intent = takeSignInIntent();
+      if (intent?.eventSlug) setActiveEventSlug(intent.eventSlug);
+      setSurface((s) => (s === 'signin' || intent || arrivedOnGuestLink ? 'portal' : s));
     }
     if (auth.status === 'signed_out') {
       setAuthSession(null);
     }
-  }, [auth.live, auth.status, auth.profileReady, auth.firebaseUser]);
+  }, [auth.live, auth.status, auth.profileReady, auth.firebaseUser, arrivedOnGuestLink]);
 
   // ---------------------------------------------------------------- Auth
   const handleSignIn = (user: UserProfile, method: AuthMethod) => {
@@ -601,6 +619,23 @@ export default function App() {
         <div className="text-center">
           <div className="w-10 h-10 rounded-xl bg-blue-600 mx-auto mb-4 animate-pulse" />
           <p className="text-sm text-slate-500">Loading CI Connects…</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Coming back from Google, the identity resolves a beat after the data does.
+  // Without this the public hub paints first and is then replaced by the
+  // portal — which looks exactly like the bug where sign-in dumped you on the
+  // front page, so it is worth the extra gate.
+  if ((returningFromSignIn || arrivedOnGuestLink) && auth.live
+      && auth.status !== 'signed_out' && auth.status !== 'error'
+      && !(auth.status === 'signed_in' && auth.profileReady)) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 rounded-xl bg-blue-600 mx-auto mb-4 animate-pulse" />
+          <p className="text-sm text-slate-500">Signing you in…</p>
         </div>
       </div>
     );

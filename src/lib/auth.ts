@@ -8,6 +8,7 @@ import { Invite } from '../types';
 import { ALLOWED_EMAIL_DOMAIN, db, firebaseAuth } from './firebase';
 import { UserProfile, UserRole } from '../types';
 import { initialsAvatar } from './avatar';
+import { markSignInIntent } from './signInIntent';
 
 /**
  * Google Workspace sign-in.
@@ -77,8 +78,17 @@ const POPUP_UNAVAILABLE = new Set([
   'auth/cancelled-popup-request',
 ]);
 
-export async function signInWithGoogle(): Promise<void> {
+export async function signInWithGoogle(eventSlug?: string): Promise<void> {
   if (!firebaseAuth) throw new Error('Firebase is not configured.');
+
+  // Recorded before anything can navigate away: the redirect fallback below
+  // destroys every piece of in-memory state, and this is how the app knows on
+  // the way back that somebody was heading into the portal.
+  // The address bar already names the event the visitor is looking at, so the
+  // caller does not have to thread it down through the sign-in screen.
+  markSignInIntent(
+    eventSlug ?? new URLSearchParams(window.location.search).get('event') ?? undefined,
+  );
 
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ hd: ALLOWED_EMAIL_DOMAIN, prompt: 'select_account' });
