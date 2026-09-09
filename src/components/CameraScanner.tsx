@@ -31,8 +31,17 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onScan, paused = f
   /** Suppresses the same code firing on every frame while it stays in view. */
   const lastRef = useRef<{ value: string; at: number } | null>(null);
 
+  const onScanRef = useRef(onScan);
+  onScanRef.current = onScan;
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
+
   const [status, setStatus] = useState<'idle' | 'starting' | 'running' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
+  /** Frames examined since the camera started. Zero while running means the
+   *  stream is not delivering pixels, which looks identical to "no code in
+   *  view" unless it is reported. */
+  const [framesSeen, setFramesSeen] = useState(0);
 
   const stop = useCallback(() => {
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
@@ -84,13 +93,17 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onScan, paused = f
   useEffect(() => {
     if (status !== 'running') return;
 
+    let frames = 0;
     const tick = () => {
       rafRef.current = requestAnimationFrame(tick);
-      if (paused) return;
+      if (pausedRef.current) return;
 
       const video = videoRef.current;
       const canvas = canvasRef.current;
-      if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+      // HAVE_CURRENT_DATA (2) is enough to read a frame. The earlier check
+      // demanded HAVE_ENOUGH_DATA (4), which a live camera stream often never
+      // reports — so every frame was skipped and nothing ever decoded.
+      if (!video || !canvas || video.readyState < 2) return;
 
       const w = video.videoWidth;
       const h = video.videoHeight;
@@ -108,9 +121,15 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onScan, paused = f
       if (!ctx) return;
       ctx.drawImage(video, 0, 0, targetW, targetH);
 
+      frames += 1;
+      if (frames % 30 === 0) setFramesSeen(frames);
+
       const image = ctx.getImageData(0, 0, targetW, targetH);
+      // attemptBoth costs a second pass but reads codes that arrive inverted
+      // or low-contrast — a phone screen photographed under hall lighting is
+      // exactly that case, and it is the common one at a door.
       const found = jsQR(image.data, image.width, image.height, {
-        inversionAttempts: 'dontInvert',
+        inversionAttempts: 'attemptBoth',
       });
       if (!found?.data) return;
 
@@ -121,12 +140,12 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onScan, paused = f
       lastRef.current = { value: found.data, at: now };
 
       if (navigator.vibrate) navigator.vibrate(40);
-      onScan(found.data);
+      onScanRef.current(found.data);
     };
 
     rafRef.current = requestAnimationFrame(tick);
     return () => { if (rafRef.current !== null) cancelAnimationFrame(rafRef.current); };
-  }, [status, paused, onScan]);
+  }, [status]);
 
   return (
     <div className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-900">
@@ -191,7 +210,11 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({ onScan, paused = f
       {status === 'running' && (
         <div className="px-4 py-2.5 bg-slate-800 flex items-center justify-between gap-3">
           <span className="text-xs text-slate-300">
-            {paused ? 'Showing result…' : 'Point at a badge QR code'}
+            {paused
+              ? 'Showing result…'
+              : framesSeen > 0
+                ? 'Scanning — point at a QR code'
+                : 'Waiting for the camera…'}
           </span>
           <button
             onClick={() => { stop(); setStatus('idle'); }}

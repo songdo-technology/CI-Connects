@@ -32,7 +32,7 @@ import { PublicEventPage } from './components/PublicEventPage';
 import { LandingPage } from './components/LandingPage';
 import { DiningView } from './components/DiningView';
 import { MessagesView } from './components/MessagesView';
-import { SessionDoorScanner } from './components/SessionDoorScanner';
+import { DoorScanner } from './components/DoorScanner';
 import { ContactCardModal } from './components/ContactCardModal';
 import { PrintableBadge } from './components/PrintableBadge';
 import { RoomSignage } from './components/RoomSignage';
@@ -894,8 +894,8 @@ export default function App() {
         onCheckInUser={(userId) => handleToggleCheckIn(userId)}
       />
 
-      {/* Session door scanner — verified attendance capture */}
-      <SessionDoorScanner
+      {/* Door scanner — main entrance and session doors */}
+      <DoorScanner
         isOpen={isDoorScannerOpen}
         onClose={() => setIsDoorScannerOpen(false)}
         sessions={sessions}
@@ -904,6 +904,7 @@ export default function App() {
         attendance={attendance}
         currentUser={currentUser}
         onRecordAttendance={handleRecordAttendance}
+        onCheckInToVenue={handleToggleCheckIn}
       />
 
       {/* Badge scan result — contact card or security verification */}
