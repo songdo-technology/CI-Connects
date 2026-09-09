@@ -45,7 +45,7 @@ import { MyProfile } from './components/MyProfile';
 import { GuestLinkReturn } from './components/GuestLinkReturn';
 import { can } from './lib/permissions';
 import { profileGaps } from './lib/profileCompleteness';
-import { takeSignInIntent, hasSignInIntent } from './lib/signInIntent';
+import { takeSignInIntent, hasSignInIntent, clearSignInIntent } from './lib/signInIntent';
 import { isGuestLinkInUrl } from './lib/auth';
 import { FeedbackView } from './components/FeedbackView';
 import { SignageDirectory } from './components/SignageDirectory';
@@ -118,12 +118,19 @@ export default function App() {
     initialEventSlug ?? EVENT_CONFIG.slug,
   );
   const [authSession, setAuthSession] = useState<AuthSession | null>(null);
-  /** True when this load began with an emailed sign-in link. Captured before
-   *  anything can rewrite the address bar. */
-  const [arrivedOnGuestLink] = useState(() => isGuestLinkInUrl());
-  /** Whether this load is the tail end of a redirect sign-in. Read at mount,
-   *  before the effect below consumes the marker. */
-  const [returningFromSignIn] = useState(() => hasSignInIntent());
+  /**
+   * Somebody is on their way into the portal and has not arrived yet.
+   *
+   * True from the moment they choose to sign in, and on a cold load when the
+   * page is the tail end of a redirect or an emailed link. It stays true until
+   * they are actually in, so the hand-off no longer depends on a single
+   * storage read landing in the one effect pass where everything happens to be
+   * ready — the failure that put people on the sign-in screen and was undone
+   * by pressing reload.
+   */
+  const [enteringPortal, setEnteringPortal] = useState(
+    () => hasSignInIntent() || isGuestLinkInUrl(),
+  );
   const auth = useAuth();
 
   // UI Navigation State
@@ -190,6 +197,7 @@ export default function App() {
 
   const openSignIn = () => {
     if (surface === 'hub' || surface === 'event') setReturnSurface(surface);
+    setEnteringPortal(true);
     setSurface('signin');
   };
 
@@ -243,12 +251,27 @@ export default function App() {
 
       const intent = takeSignInIntent();
       if (intent?.eventSlug) setActiveEventSlug(intent.eventSlug);
-      setSurface((s) => (s === 'signin' || intent || arrivedOnGuestLink ? 'portal' : s));
+      setSurface((s) => (s === 'signin' || enteringPortal ? 'portal' : s));
+      setEnteringPortal(false);
     }
     if (auth.status === 'signed_out') {
       setAuthSession(null);
     }
-  }, [auth.live, auth.status, auth.profileReady, auth.firebaseUser, arrivedOnGuestLink]);
+  }, [auth.live, auth.status, auth.profileReady, auth.firebaseUser, enteringPortal]);
+
+  /**
+   * A sign-in that Firebase has finished deciding on, and decided against.
+   *
+   * Only judged once `settled` is true, because a signed-out status before
+   * that is provisional. Clearing the marker here stops the message following
+   * the visitor into their next visit.
+   */
+  useEffect(() => {
+    if (!auth.live || !auth.settled || !enteringPortal) return;
+    if (auth.status !== 'signed_out') return;
+    setEnteringPortal(false);
+    clearSignInIntent();
+  }, [auth.live, auth.settled, auth.status, enteringPortal]);
 
   // ---------------------------------------------------------------- Auth
   const handleSignIn = (user: UserProfile, method: AuthMethod) => {
@@ -628,8 +651,11 @@ export default function App() {
   // Without this the public hub paints first and is then replaced by the
   // portal — which looks exactly like the bug where sign-in dumped you on the
   // front page, so it is worth the extra gate.
-  if ((returningFromSignIn || arrivedOnGuestLink) && auth.live
-      && auth.status !== 'signed_out' && auth.status !== 'error'
+  // Hold the screen while a sign-in is still in flight. Releasing on the first
+  // signed-out answer painted the sign-in form over a session that was about
+  // to arrive — the bug a reload appeared to fix.
+  if (enteringPortal && auth.live && !auth.error
+      && (!auth.settled || auth.status === 'signed_in')
       && !(auth.status === 'signed_in' && auth.profileReady)) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">

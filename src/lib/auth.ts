@@ -5,10 +5,10 @@ import {
 } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { Invite } from '../types';
-import { ALLOWED_EMAIL_DOMAIN, db, firebaseAuth } from './firebase';
+import { ALLOWED_EMAIL_DOMAIN, AUTH_HANDLER_IS_SAME_SITE, db, firebaseAuth } from './firebase';
 import { UserProfile, UserRole } from '../types';
 import { initialsAvatar } from './avatar';
-import { markSignInIntent } from './signInIntent';
+import { clearSignInIntent, markSignInIntent } from './signInIntent';
 
 /**
  * Google Workspace sign-in.
@@ -71,11 +71,16 @@ export function watchAuth(onChange: (state: AuthState) => void): () => void {
 }
 
 /** Popup failures that mean "this environment cannot do popups", as opposed to
- *  "the user closed it". Only the former should silently fall back. */
+ *  "the user closed it". Only the former should silently fall back.
+ *
+ *  `auth/cancelled-popup-request` is deliberately NOT here. It means a second
+ *  popup request superseded the first — a double click, or a component that
+ *  mounted twice — which says nothing about whether popups work. Treating it
+ *  as an unusable environment sent people into the redirect flow for no
+ *  reason, and on a cross-site auth domain that flow cannot finish. */
 const POPUP_UNAVAILABLE = new Set([
   'auth/popup-blocked',
   'auth/operation-not-supported-in-this-environment',
-  'auth/cancelled-popup-request',
 ]);
 
 
@@ -136,9 +141,25 @@ export async function signInWithGoogle(eventSlug?: string): Promise<void> {
     // and Android builds will never have a popup available. Control leaves the
     // page here; getRedirectResult() picks it up on the way back.
     if (POPUP_UNAVAILABLE.has(code)) {
+      // Redirect is only worth attempting when the OAuth handler is on this
+      // same site. Otherwise it ends at a sign-in screen with no explanation,
+      // which is worse than being told what to do.
+      if (!AUTH_HANDLER_IS_SAME_SITE) {
+        clearSignInIntent();
+        throw new Error(
+          'Your browser blocked the Google sign-in window. Allow pop-ups for this '
+          + 'site and try again — the pop-up is required here, because the '
+          + 'full-page alternative cannot return you to this address.',
+        );
+      }
       await signInWithRedirect(firebaseAuth, provider);
       return;
     }
+
+    // A second request superseded this one. The other attempt is still live,
+    // so finishing quietly is right — shouting would report a failure that
+    // has not happened.
+    if (code === 'auth/cancelled-popup-request') return;
 
     // Closing the chooser is a deliberate choice, not an error worth shouting
     // about.
@@ -163,16 +184,27 @@ export async function signInWithGoogle(eventSlug?: string): Promise<void> {
  * applies the same domain check the popup path does — a redirect that came
  * back with a personal account must be rejected just as firmly.
  */
-export async function completeRedirectSignIn(): Promise<void> {
-  if (!firebaseAuth) return;
+export async function completeRedirectSignIn(): Promise<boolean> {
+  if (!firebaseAuth) return false;
   const result = await getRedirectResult(firebaseAuth);
-  if (!result) return;
+  if (!result) return false;
   try {
     assertAllowedAccount(result.user);
   } catch (e) {
     await signOut(firebaseAuth);
     throw e;
   }
+  return true;
+}
+
+/** Resolves once Firebase has decided whether anyone is signed in. */
+export async function authSettled(): Promise<void> {
+  await firebaseAuth?.authStateReady();
+}
+
+/** True when a session exists right now. */
+export function hasFirebaseSession(): boolean {
+  return Boolean(firebaseAuth?.currentUser);
 }
 
 /* ------------------------------------------------------------ guest access */

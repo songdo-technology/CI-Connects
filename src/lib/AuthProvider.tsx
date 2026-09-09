@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { User } from 'firebase/auth';
 import {
-  AuthState, completeGuestSignIn, completeRedirectSignIn, ensureUserDocument,
+  AuthState, authSettled, completeGuestSignIn, completeRedirectSignIn, ensureUserDocument,
   isGuestLinkInUrl, pendingGuestEmail, sendGuestSignInLink, signInWithGoogle,
   describeAuthProblem,
   signOutUser, watchAuth,
@@ -13,6 +13,9 @@ interface AuthContextValue {
    *  is running on seeded data and the persona picker stands in for it. */
   live: boolean;
   status: AuthState['status'];
+  /** True once Firebase has decided whether anyone is signed in. Before this,
+   *  a signed-out status is provisional and must not be acted on. */
+  settled: boolean;
   firebaseUser: User | null;
   error: string | null;
   /** Set once the signed-in account has a Firestore profile. */
@@ -54,6 +57,8 @@ export const AuthProvider: React.FC<{
   });
   const [profileReady, setProfileReady] = useState(false);
   const [guestLinkPending, setGuestLinkPending] = useState(false);
+  /** False until Firebase has finished deciding whether a session exists. */
+  const [settled, setSettled] = useState(!live);
 
   /**
    * Why the last attempt failed, held outside the auth state.
@@ -82,11 +87,25 @@ export const AuthProvider: React.FC<{
     setGuestLinkPending(isGuestLinkInUrl());
   }, [live]);
 
-  // A redirect sign-in finishes on the next page load, not in the click that
-  // started it, so the result has to be claimed here before anything else.
+  /**
+   * Claim any redirect result, then wait until Firebase has actually decided
+   * whether anyone is signed in.
+   *
+   * `settled` is the important half. onAuthStateChanged can report signed-out
+   * before a persisted session has been restored, and the app was treating
+   * that first answer as final — showing the sign-in screen to somebody whose
+   * session arrived a moment later. Which is exactly why reloading the page
+   * "fixed" it: the second load found the session already in place.
+   */
   useEffect(() => {
     if (!live) return;
-    completeRedirectSignIn().catch((e: Error) => fail(e.message));
+    let cancelled = false;
+    completeRedirectSignIn()
+      .catch((e: Error) => { if (!cancelled) fail(e.message); })
+      .then(() => authSettled())
+      .then(() => { if (!cancelled) setSettled(true); })
+      .catch(() => { if (!cancelled) setSettled(true); });
+    return () => { cancelled = true; };
   }, [live]);
 
   useEffect(() => {
@@ -131,6 +150,7 @@ export const AuthProvider: React.FC<{
   const value: AuthContextValue = {
     live,
     status: state.status,
+    settled,
     firebaseUser: state.user,
     error: state.error,
     profileReady,

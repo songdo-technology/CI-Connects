@@ -52,3 +52,8 @@ export function hasSignInIntent(): boolean {
     return false;
   }
 }
+
+/** Drops the marker without acting on it — for an attempt that failed. */
+export function clearSignInIntent(): void {
+  try { window.sessionStorage.removeItem(KEY); } catch { /* storage disabled */ }
+}

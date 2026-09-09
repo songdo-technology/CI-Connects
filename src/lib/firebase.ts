@@ -31,6 +31,25 @@ const config = {
 
 export const isFirebaseConfigured = Boolean(config.apiKey && config.projectId);
 
+/**
+ * Whether Firebase's OAuth handler is served from this same site.
+ *
+ * It usually is not: the handler lives at `<project>.firebaseapp.com/__/auth/`
+ * while the app is served from somewhere else. That split is what breaks
+ * signInWithRedirect in every current browser — the handler has to pass the
+ * credential back across a site boundary, and Chrome 115+, Safari's ITP and
+ * Firefox's ETP all partition the storage it used to do that through.
+ * getRedirectResult() then resolves to null with no error at all, and the
+ * visitor simply arrives back at the sign-in screen.
+ *
+ * Knowing this lets the app avoid a flow that cannot finish, instead of
+ * sending people into it and watching them come back empty-handed.
+ */
+export const AUTH_HANDLER_IS_SAME_SITE: boolean =
+  typeof window !== 'undefined'
+  && Boolean(config.authDomain)
+  && config.authDomain === window.location.hostname;
+
 /** Google Workspace domain that may sign in with SSO. */
 export const ALLOWED_EMAIL_DOMAIN: string =
   import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN ?? 'chadwickschool.org';
