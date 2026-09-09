@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { X, ScanLine, ShieldCheck, ShieldAlert, DoorOpen, MapPin, UserCheck, Clock } from 'lucide-react';
 import { Session, UserProfile, Room, AttendanceRecord } from '../types';
+import { CameraScanner } from './CameraScanner';
+import { parseBadgePayload } from '../lib/badge';
 
 interface SessionDoorScannerProps {
   isOpen: boolean;
@@ -25,15 +27,22 @@ interface SessionDoorScannerProps {
  * from "did not attend at all". That distinction is what makes the record
  * usable as proof of attendance.
  *
- * PROTOTYPE: a camera QR read is simulated by picking a badge from the list.
- * The verification logic below is the real logic and does not change when a
- * camera is wired in.
+ * Scanning is done with whatever camera the operator already has — a phone, a
+ * tablet, a laptop — rather than dedicated hardware. A badge encodes the
+ * session its holder is booked into at that moment, so a scan can resolve the
+ * session itself; the door selector below is the fallback for printed cards,
+ * which cannot know the time.
+ *
+ * The manual list remains, because a camera fails in ways a queue cannot wait
+ * for: a cracked screen, a flat battery, a badge left in a hotel room.
  */
 export const SessionDoorScanner: React.FC<SessionDoorScannerProps> = ({
   isOpen, onClose, sessions, rooms, profiles, attendance, currentUser, onRecordAttendance,
 }) => {
   const [doorSessionId, setDoorSessionId] = useState<string>(sessions[0]?.id ?? '');
   const [lastScan, setLastScan] = useState<{ record: AttendanceRecord; user: UserProfile } | null>(null);
+  const [mode, setMode] = useState<'camera' | 'manual'>('camera');
+  const [scanError, setScanError] = useState<string | null>(null);
 
   const doorSession = useMemo(
     () => sessions.find((s) => s.id === doorSessionId),
@@ -45,9 +54,33 @@ export const SessionDoorScanner: React.FC<SessionDoorScannerProps> = ({
 
   if (!isOpen) return null;
 
-  const handleScan = (user: UserProfile) => {
-    const record = onRecordAttendance(user.id, doorSessionId);
+  const handleScan = (user: UserProfile, sessionId = doorSessionId) => {
+    const record = onRecordAttendance(user.id, sessionId);
     setLastScan({ record, user });
+    setScanError(null);
+  };
+
+  /**
+   * Handles a decoded QR. A live badge names the session its holder is booked
+   * into, and that is trusted over the door selector — it is more specific,
+   * and it is what makes a single scanner work at any door without being
+   * reconfigured. A printed badge carries identity only, so the selector wins.
+   */
+  const handleDecoded = (raw: string) => {
+    const payload = parseBadgePayload(raw);
+    if (!payload) {
+      setScanError('That is not a CI Connects badge.');
+      return;
+    }
+    const user = profiles.find((p) => p.id === payload.uid);
+    if (!user) {
+      setScanError('That badge does not match anyone registered for this event.');
+      return;
+    }
+    const sessionId = payload.sid && sessions.some((s) => s.id === payload.sid)
+      ? payload.sid
+      : doorSessionId;
+    handleScan(user, sessionId);
   };
 
   const STATUS_META = {
@@ -126,12 +159,39 @@ export const SessionDoorScanner: React.FC<SessionDoorScannerProps> = ({
             );
           })()}
 
-          {/* Simulated badge reads */}
+          {/* Camera or manual */}
+          <div className="flex items-center gap-1.5">
+            {([['camera', 'Scan with camera'], ['manual', 'Find by name']] as const).map(([m, label]) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className={`px-3.5 py-2 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${
+                  mode === m
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-blue-600'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {scanError && (
+            <div className="px-3.5 py-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900">
+              {scanError}
+            </div>
+          )}
+
+          {mode === 'camera' && (
+            <CameraScanner onScan={handleDecoded} paused={Boolean(lastScan)} />
+          )}
+
+          {mode === 'manual' && (
           <div>
             <div className="flex items-center gap-2 mb-2.5">
               <ScanLine className="w-4 h-4 text-slate-400" />
               <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                Simulate a badge scan
+                Admit by name
               </span>
             </div>
             <div className="grid sm:grid-cols-2 gap-2">
@@ -161,6 +221,16 @@ export const SessionDoorScanner: React.FC<SessionDoorScannerProps> = ({
               })}
             </div>
           </div>
+          )}
+
+          {lastScan && (
+            <button
+              onClick={() => setLastScan(null)}
+              className="w-full px-5 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 cursor-pointer"
+            >
+              Scan the next person
+            </button>
+          )}
         </div>
       </div>
     </div>

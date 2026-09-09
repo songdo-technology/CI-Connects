@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { DIETARY_META } from '../lib/dietary';
+import { buildBadgePayload, currentSessionFor } from '../lib/badge';
 import { ShieldCheck, CheckCircle2, Clock, Sparkles, Download, Share2, Scan, Camera, Building2, QrCode, AlertCircle, ExternalLink, RefreshCw, Printer, UtensilsCrossed, DoorOpen, ShieldOff } from 'lucide-react';
 import { UserProfile, Session, MealService, MealOption, AttendanceRecord } from '../types';
 
@@ -39,15 +40,37 @@ export const DigitalBadge: React.FC<DigitalBadgeProps> = ({
   );
 
   // Encode structured payload into dynamic QR Code
-  const qrPayload = JSON.stringify({
-    type: 'EVENT_BADGE_PASS_V1',
-    event: 'ci-connects',
-    userId: currentUser.id,
-    email: currentUser.email,
-    name: currentUser.fullName,
-    role: currentUser.role,
-    userType: currentUser.userType,
-  });
+  /**
+   * The code refreshes on a timer so it always names the session the holder is
+   * booked into right now. A door scan then resolves the session by itself,
+   * instead of the scanner having to be told which door it is standing at.
+   *
+   * Personal details are deliberately absent from the payload: a QR is
+   * photographable, and a uid the rules can resolve is enough. Name and email
+   * come from the directory once the scanner has authenticated.
+   */
+  const [nowTick, setNowTick] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const activeSession = useMemo(
+    () => currentSessionFor(
+      currentUser,
+      sessions,
+      nowTick.getHours() * 60 + nowTick.getMinutes(),
+      // Day is inferred from which day's sessions the person actually holds;
+      // a two-day event means the badge must not assume day 1.
+      reservedSessions[0]?.day ?? 1,
+    ),
+    [currentUser, sessions, nowTick, reservedSessions],
+  );
+
+  const qrPayload = useMemo(
+    () => buildBadgePayload(currentUser, 'ci-connects', activeSession, 'live'),
+    [currentUser, activeSession],
+  );
 
   const handleCopyId = () => {
     navigator.clipboard?.writeText(currentUser.id);
@@ -229,8 +252,17 @@ export const DigitalBadge: React.FC<DigitalBadgeProps> = ({
                 <p className="text-xs font-semibold text-slate-700 font-mono tracking-wider">
                   {currentUser.id}
                 </p>
-                <p className="text-[11px] text-slate-400">
-                  Dynamic high-density QR code for contactless admission & workshop tracking
+                {activeSession ? (
+                  <p className="text-[11px] text-blue-700 font-semibold leading-snug">
+                    Now pointing at: {activeSession.title}
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-slate-400">
+                    Identity only — no session running. Scanning still admits you.
+                  </p>
+                )}
+                <p className="text-[10px] text-slate-400">
+                  Updates automatically as the day moves.
                 </p>
               </div>
 

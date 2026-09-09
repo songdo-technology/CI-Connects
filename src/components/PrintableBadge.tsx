@@ -3,6 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { X, Printer, Users, User, Building2, CalendarDays, MapPin } from 'lucide-react';
 import { UserProfile, Session, Room, Track, EventConfig, Sponsor } from '../types';
 import { DIETARY_META } from '../lib/dietary';
+import { LANYARD_SIZES, LanyardSize, badgeScale, buildBadgePayload } from '../lib/badge';
 
 interface PrintableBadgeProps {
   isOpen: boolean;
@@ -33,14 +34,15 @@ interface PrintableBadgeProps {
  * browsers drop the navy panel and the badge prints as white paper.
  */
 
-/** Steps the first-name type down only as far as the name demands. */
-const firstNameSize = (name: string) => {
+/**
+ * Largest first-name type that still fits, expressed in inches so it scales
+ * with the card. A CR80 is a third the area of a 4x6, so a fixed ladder would
+ * either waste the large card or overflow the small one.
+ */
+const firstNameSize = (name: string, maxInches: number) => {
   const n = name.length;
-  if (n <= 5) return '4.4rem';
-  if (n <= 7) return '3.7rem';
-  if (n <= 10) return '3rem';
-  if (n <= 13) return '2.4rem';
-  return '2rem';
+  const factor = n <= 5 ? 1 : n <= 7 ? 0.84 : n <= 10 ? 0.68 : n <= 13 ? 0.55 : 0.46;
+  return `${(maxInches * factor).toFixed(3)}in`;
 };
 
 /** Honorifics and job titles that precede a name. Stripping these matters:
@@ -71,6 +73,10 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
 }) => {
   const [scope, setScope] = useState<'me' | 'all'>('me');
   const [side, setSide] = useState<'both' | 'front' | 'back'>('both');
+  const [size, setSize] = useState<LanyardSize>(
+    LANYARD_SIZES.find((s) => s.id === 'conference-35') ?? LANYARD_SIZES[0],
+  );
+  const scale = badgeScale(size);
 
   const batch = useMemo(
     () => (scope === 'me' ? [currentUser] : profiles),
@@ -99,7 +105,7 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
 
         <div className="badge-body">
           <div className="badge-name-block">
-            <div className="badge-first" style={{ fontSize: firstNameSize(first) }}>{first}</div>
+            <div className="badge-first" style={{ fontSize: firstNameSize(first, scale.firstNameMax) }}>{first}</div>
             {rest && <div className="badge-last">{rest}</div>}
           </div>
 
@@ -111,15 +117,16 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
           <div className="badge-lower">
             <div className="badge-qr">
               <QRCodeSVG
-                value={JSON.stringify({ t: 'ci-connects-badge', uid: u.id, evt: event.id })}
-                size={92}
+                value={buildBadgePayload(u, event.id, undefined, 'print')}
+                size={Math.round(scale.qr * 96)}
                 level="M"
                 bgColor="#ffffff"
                 fgColor="#002b54"
               />
-              <span className="badge-qr-caption">Scan to verify &amp; connect</span>
+              <span className="badge-qr-caption">Scan to check in</span>
             </div>
 
+            {scale.showSessions && (
             <div className="badge-sessions">
               <div className="badge-sessions-head">My Sessions</div>
               {mine.length === 0 ? (
@@ -141,9 +148,10 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
                 <div className="badge-session-more">+{mine.length - 4} more in the app</div>
               )}
             </div>
+            )}
           </div>
 
-          {u.dietaryTag && (
+          {u.dietaryTag && scale.showDietary && (
             <div className="badge-diet">
               <span className="badge-diet-label">DIETARY</span>
               <span className="badge-diet-value">{DIETARY_META[u.dietaryTag].label}</span>
@@ -206,7 +214,7 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
             <Printer className="w-5 h-5 text-blue-200" />
             <div>
               <h3 className="font-bold text-base leading-tight">Printable Badges</h3>
-              <p className="text-xs text-blue-100/80">3.5 × 5.5 in — standard portrait lanyard insert</p>
+              <p className="text-xs text-blue-100/80">{size.label} · {size.width}″ × {size.height}″ — {size.note}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/15 transition-colors cursor-pointer">
@@ -229,6 +237,22 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
                 {label}
               </button>
             ))}
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-slate-500 mr-1">Size</span>
+            <select
+              value={size.id}
+              onChange={(e) => setSize(LANYARD_SIZES.find((s) => s.id === e.target.value)!)}
+              title={size.note}
+              className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600"
+            >
+              {LANYARD_SIZES.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label} — {s.width}″ × {s.height}″
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -262,7 +286,14 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
 
         {/* Sheet */}
         <div className="overflow-y-auto p-6 print:p-0 print:overflow-visible">
-          <div className="badge-sheet">
+          <div
+            className="badge-sheet"
+            style={{
+              ['--card-w' as string]: `${size.width}in`,
+              ['--card-h' as string]: `${size.height}in`,
+              ['--card-pad' as string]: `${scale.padding}in`,
+            }}
+          >
             {batch.map((u) => (
               <React.Fragment key={u.id}>
                 {side !== 'back' && <Front u={u} />}
@@ -279,14 +310,14 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
 const PRINT_CSS = `
 .badge-sheet {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 3.5in);
+  grid-template-columns: repeat(auto-fill, var(--card-w));
   gap: 0.25in;
   justify-content: center;
 }
 
 .badge-card {
-  width: 3.5in;
-  height: 5.5in;
+  width: var(--card-w);
+  height: var(--card-h);
   background: #fff;
   border: 1px solid #cbd5e1;
   border-radius: 0.14in;
@@ -311,7 +342,7 @@ const PRINT_CSS = `
 .badge-band-role { font-size: 7.5pt; font-weight: 700; letter-spacing: 0.11em;
                    background: rgba(255,255,255,.22); padding: 0.02in 0.09in; border-radius: 999px; }
 
-.badge-body { flex: 1; padding: 0.2in 0.2in 0.16in; display: flex; flex-direction: column; }
+.badge-body { flex: 1; padding: var(--card-pad); display: flex; flex-direction: column; }
 
 .badge-name-block { text-align: center; margin-top: 0.14in; }
 .badge-first {
@@ -356,7 +387,7 @@ const PRINT_CSS = `
 .badge-diet-value { font-size: 7pt; font-weight: 700; color: #002b54; }
 
 /* ---- Back ---- */
-.badge-card--back { background: #002b54; color: #fff; border-color: #002b54; padding: 0.22in; }
+.badge-card--back { background: #002b54; color: #fff; border-color: #002b54; padding: var(--card-pad); }
 .badge-back-top { text-align: center; }
 .badge-back-crest {
   width: 0.5in; height: 0.5in; margin: 0 auto 0.1in; border-radius: 0.1in;
