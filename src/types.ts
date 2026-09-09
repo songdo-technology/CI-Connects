@@ -215,6 +215,9 @@ export interface Session {
   supportingSponsorIds?: string[];
   slidesUrl?: string;
   slidesName?: string;
+  /** A recording of this session specifically. Event-level recap video covers
+   *  the keynote; this covers the breakout somebody could not get into. */
+  recordingUrl?: string;
   /** Files and links a speaker attaches to their own session. Uploads land in
    *  Firebase Storage; links are stored as-is, since plenty of presentations
    *  live in Slides or Canva and should not be copied into our bucket. */
@@ -335,11 +338,19 @@ export interface EventConfig {
   /** Filled in afterwards: what happened, and how to watch it back. */
   recap?: {
     summary?: string;
-    /** A link, not an upload — recordings live in Drive, YouTube or Stream. */
+    /** A link, not an upload — recordings live in Drive, YouTube or Stream.
+     *  Anything embeddable is embedded; anything else falls back to a link. */
     recordingUrl?: string;
     recordingLabel?: string;
     photoUrls?: string[];
     highlights?: { label: string; value: string }[];
+    /** What people should take away, in their own words. Prose, not metrics:
+     *  "42 attended" is a highlight, "start with the exit ticket" is a
+     *  takeaway, and conflating them makes both useless. */
+    takeaways?: string[];
+    /** Slides, handouts and readings, linked rather than uploaded so the
+     *  presenter keeps ownership of the current version. */
+    materials?: { label: string; url: string; presenter?: string }[];
   };
   /** Drafts are visible only to organisers; published events are the public
    *  website. Absent is treated as published, so existing rows keep working. */

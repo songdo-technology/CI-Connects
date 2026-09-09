@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { EventConfig, EventCategory, UserProfile, eventStatus } from '../../types';
 import { can } from '../../lib/permissions';
+import { resolveVideoEmbed } from '../../lib/videoEmbed';
 
 interface AdminEventsProps {
   events: EventConfig[];
@@ -50,6 +51,12 @@ export const AdminEvents: React.FC<AdminEventsProps> = ({
   events, currentUser, onSave, onDelete,
 }) => {
   const [editing, setEditing] = useState<EventConfig | null>(null);
+  /** Whether the pasted recording link will actually embed, checked as it is
+   *  typed rather than discovered by a visitor months later. */
+  const recordingEmbed = useMemo(
+    () => resolveVideoEmbed(editing?.recap?.recordingUrl),
+    [editing?.recap?.recordingUrl],
+  );
   const [isNew, setIsNew] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -234,7 +241,7 @@ export const AdminEvents: React.FC<AdminEventsProps> = ({
                  className="w-full h-40 object-cover rounded-xl border border-slate-200" />
           )}
 
-          {editing.endDate && new Date(editing.endDate + 'T23:59:59') < new Date() && (
+          {editing.startDate && new Date(editing.startDate + 'T00:00:00') <= new Date() && (
             <div className="rounded-xl border border-slate-200 p-4 space-y-4">
               <div>
                 <h4 className="text-sm font-bold text-slate-800">After the event</h4>
@@ -249,10 +256,28 @@ export const AdminEvents: React.FC<AdminEventsProps> = ({
                   onChange={(e) => set('recap', { ...editing.recap, summary: e.target.value })} />
               </F>
               <div className="grid sm:grid-cols-2 gap-4">
-                <F label="Recording link" hint="Drive, YouTube or Stream — linked, not uploaded.">
+                <F label="Recording link" hint="Paste the normal share link — YouTube, Drive or Vimeo.">
                   <input className={input} value={editing.recap?.recordingUrl ?? ''}
                     onChange={(e) => set('recap', { ...editing.recap, recordingUrl: e.target.value })}
                     placeholder="https://" />
+                  {/* Say immediately whether it will play. A link that silently
+                      fails to embed is only discovered by a visitor. */}
+                  {editing.recap?.recordingUrl?.trim() && (
+                    recordingEmbed ? (
+                      <p className="flex items-start gap-1.5 mt-1.5 text-[11px] text-emerald-800">
+                        <Check className="w-3.5 h-3.5 shrink-0 mt-px" />
+                        {recordingEmbed.provider} — this will play inline on the event page.
+                        {recordingEmbed.provider === 'Google Drive'
+                          && ' Set the file to "Anyone with the link" or viewers hit a sign-in wall.'}
+                      </p>
+                    ) : (
+                      <p className="flex items-start gap-1.5 mt-1.5 text-[11px] text-amber-800">
+                        <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-px" />
+                        Not a recognised video link — it will show as a button rather than a
+                        player. YouTube, Google Drive and Vimeo embed.
+                      </p>
+                    )
+                  )}
                 </F>
                 <F label="Link label">
                   <input className={input} value={editing.recap?.recordingLabel ?? ''}
@@ -260,6 +285,33 @@ export const AdminEvents: React.FC<AdminEventsProps> = ({
                     placeholder="Watch the closing plenary" />
                 </F>
               </div>
+              <F label="Key takeaways" hint="One per line. What people should carry away — not the numbers.">
+                <textarea className={`${input} resize-none`} rows={4}
+                  placeholder={'Start with the exit ticket, not the lesson plan\nCoaching works when the teacher picks the goal'}
+                  value={(editing.recap?.takeaways ?? []).join('\n')}
+                  onChange={(e) => set('recap', {
+                    ...editing.recap,
+                    takeaways: e.target.value.split('\n').map((x) => x.trim()).filter(Boolean),
+                  })} />
+              </F>
+
+              <F label="Slides and materials" hint="One per line as: Title | https://link | Presenter (presenter optional).">
+                <textarea className={`${input} resize-none font-mono text-xs`} rows={4}
+                  placeholder={'Opening keynote slides | https://docs.google.com/... | Ted Hill'}
+                  value={(editing.recap?.materials ?? [])
+                    .map((m) => [m.label, m.url, m.presenter].filter(Boolean).join(' | '))
+                    .join('\n')}
+                  onChange={(e) => set('recap', {
+                    ...editing.recap,
+                    materials: e.target.value.split('\n')
+                      .map((line) => line.split('|').map((x) => x.trim()))
+                      .filter((parts) => parts[0] && parts[1])
+                      .map(([label, url, presenter]) => ({
+                        label, url, ...(presenter ? { presenter } : {}),
+                      })),
+                  })} />
+              </F>
+
               <F label="Highlight photos" hint="One image URL per line.">
                 <textarea className={`${input} resize-none`} rows={3}
                   value={(editing.recap?.photoUrls ?? []).join('\n')}

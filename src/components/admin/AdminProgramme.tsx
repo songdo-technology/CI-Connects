@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { CalendarDays, Pencil, X, Clock, MapPin, Star } from 'lucide-react';
 import { EventConfig, Session, Track, Room, UserProfile } from '../../types';
+import { resolveVideoEmbed } from '../../lib/videoEmbed';
 import {
   Field, inputClass, Notice, SectionHeader, ConfirmDelete,
   toMinutes, toDisplayTime, toInputTime,
@@ -236,6 +237,26 @@ export const AdminProgramme: React.FC<AdminProgrammeProps> = ({
             <input className={inputClass} value={editing.tags.join(', ')}
                    onChange={(e) => set('tags',
                      e.target.value.split(',').map((x) => x.trim()).filter(Boolean))} />
+          </Field>
+
+          <Field
+            label="Recording"
+            hint="Paste the YouTube, Drive or Vimeo share link. Plays on the session card once the event has finished."
+          >
+            <input className={inputClass} value={editing.recordingUrl ?? ''}
+                   onChange={(e) => set('recordingUrl', e.target.value)}
+                   placeholder="https://" />
+            {editing.recordingUrl?.trim() && (
+              resolveVideoEmbed(editing.recordingUrl) ? (
+                <p className="mt-1.5 text-[11px] text-emerald-800">
+                  {resolveVideoEmbed(editing.recordingUrl)!.provider} — this will play inline.
+                </p>
+              ) : (
+                <p className="mt-1.5 text-[11px] text-amber-800">
+                  Not a recognised video link — it will show as a button rather than a player.
+                </p>
+              )
+            )}
           </Field>
 
           <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">

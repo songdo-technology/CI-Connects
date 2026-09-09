@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import {
   Building2, CalendarDays, MapPin, ArrowRight, Clock, ChevronDown,
-  Users, Sparkles, LogIn, PlayCircle, Clock as ClockIcon,
+  Users, Sparkles, LogIn, PlayCircle, Clock as ClockIcon, FileText,
 } from 'lucide-react';
-import { EventConfig, Session, Track, Room, UserProfile, Sponsor, registrationState } from '../types';
+import { EventConfig, Session, Track, Room, UserProfile, Sponsor, registrationState, eventStatus } from '../types';
+import { resolveVideoEmbed } from '../lib/videoEmbed';
+import { EventRecapBody } from './EventRecapModal';
 import { SponsorWall } from './SponsorWall';
 
 interface PublicEventPageProps {
@@ -34,6 +36,9 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
   // the agenda, speaker and venue-room sections are hidden rather than shown
   // empty, which would read as a broken page rather than a lighter one.
   const hasProgramme = sessions.length > 0;
+  /** A finished event answers a different question: not "should I come" but
+   *  "what did I miss". The page shifts accordingly. */
+  const isPast = eventStatus(event) === 'past';
   const [agendaDay, setAgendaDay] = useState(1);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
@@ -269,6 +274,21 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
       </section>
       )}
 
+      {/* ---------------- After the event ---------------- */}
+      {isPast && event.recap && (
+        <section id="recap" className="py-16 sm:py-20 bg-white border-b border-slate-200 scroll-mt-16">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">
+              After the event
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-8">
+              What came out of it
+            </h2>
+            <EventRecapBody event={event} />
+          </div>
+        </section>
+      )}
+
       {/* ---------------- Speakers ---------------- */}
       {hasProgramme && (
       <section id="speakers" className="py-20 sm:py-24 bg-white scroll-mt-16">
@@ -419,6 +439,49 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
                         {s.maxAttendees} seats
                       </span>
                     </div>
+
+                    {/* After the event, a session card stops advertising seats
+                        and starts handing over what was said in the room. */}
+                    {isPast && (s.recordingUrl || s.materials?.length) && (
+                      <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
+                        {(() => {
+                          const embed = resolveVideoEmbed(s.recordingUrl);
+                          if (embed) {
+                            return (
+                              <div className="aspect-video rounded-lg overflow-hidden bg-slate-900 max-w-lg">
+                                <iframe
+                                  src={embed.src}
+                                  title={`${s.title} recording`}
+                                  className="w-full h-full"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                />
+                              </div>
+                            );
+                          }
+                          if (s.recordingUrl) {
+                            return (
+                              <a href={s.recordingUrl} target="_blank" rel="noopener noreferrer"
+                                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 hover:underline">
+                                <PlayCircle className="w-3.5 h-3.5" /> Watch this session
+                              </a>
+                            );
+                          }
+                          return null;
+                        })()}
+                        {!!s.materials?.length && (
+                          <div className="flex flex-wrap gap-2">
+                            {s.materials.map((m) => (
+                              <a key={m.id} href={m.url} target="_blank" rel="noopener noreferrer"
+                                 className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-700 hover:border-blue-600 hover:text-blue-700 transition-colors">
+                                <FileText className="w-3 h-3" />
+                                {m.name}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );

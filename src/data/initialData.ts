@@ -1137,6 +1137,14 @@ export const EVENTS: EventConfig[] = [
       { label: 'Countries of origin', value: '11' },
       { label: 'Still meeting monthly', value: 'Yes' },
     ],
+    recap: {
+      summary:
+        'Three days before term for educators new to Chadwick, ending with each participant teaching a fifteen-minute segment to their new colleagues.',
+      takeaways: [
+        'The mission strands are learnable in a week; the culture around them takes a term. Pair people accordingly.',
+        'New staff wanted fewer sessions and more time in the rooms they would actually teach in.',
+      ],
+    },
   },
 
   {
@@ -1160,6 +1168,17 @@ export const EVENTS: EventConfig[] = [
       { label: 'Schools', value: '9' },
       { label: 'Policies revised', value: '3' },
     ],
+    recap: {
+      summary:
+        'A summit that spent as long on belonging as on wellbeing, on the argument that the first is usually the cause of the second.',
+      takeaways: [
+        'Students named arrival and transition points — not lessons — as where belonging is won or lost.',
+        'Advisory time works when it is protected and predictable, and not otherwise.',
+      ],
+      materials: [
+        { label: 'Summit summary and next steps', url: 'https://docs.google.com/document/d/SAMPLE-REPLACE-ME/edit' },
+      ],
+    },
   },
 
   {
@@ -1186,13 +1205,22 @@ export const EVENTS: EventConfig[] = [
     recap: {
       summary:
         'Two days that ended on a question nobody could answer tidily: what is a school for, once the answers are free? It became the premise of Chadwick Connects, and the closing plenary is worth watching in full.',
-      recordingUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      recordingUrl: 'https://www.youtube.com/watch?v=jNQXAC9IVRw', // SAMPLE — replace
       recordingLabel: 'Watch the closing plenary',
       highlights: [
         { label: 'Attendees', value: '210' },
         { label: 'Sessions', value: '28' },
         { label: 'Countries', value: '12' },
         { label: 'Satisfaction', value: '4.6' },
+      ],
+      takeaways: [
+        'The question is not what to teach when answers are free, but what to assess. Every school in the room had changed its teaching faster than its assessment.',
+        'Departments that redesigned one unit together made more progress in a term than those that wrote a policy.',
+        'Students asked to be taught how to argue with a machine, not how to avoid one.',
+      ],
+      materials: [
+        { label: 'Closing plenary slides', url: 'https://docs.google.com/presentation/d/SAMPLE-REPLACE-ME/edit', presenter: 'Ted Hill' },
+        { label: 'Symposium programme (PDF)', url: 'https://drive.google.com/file/d/SAMPLE-REPLACE-ME/view' },
       ],
       photoUrls: [
         'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80',
@@ -1235,6 +1263,18 @@ export const EVENTS: EventConfig[] = [
         body: 'The question is not whether to use AI but where the human has to stay in the loop, and why. We would rather leave with a disagreement named clearly than a consensus nobody believes.',
       },
     ],
+    recap: {
+      summary:
+        'Each community of practice reported what it had actually learned across the year, including what did not work. The colloquium closed on a disagreement about AI marking that was deliberately left unresolved.',
+      takeaways: [
+        'Communities that published a short written account of their year were read; those that presented slides were not.',
+        'The failures were the most-cited sessions in the feedback. Report them on purpose.',
+        'A named disagreement travels further than a manufactured consensus.',
+      ],
+      materials: [
+        { label: 'Colloquium proceedings', url: 'https://drive.google.com/file/d/SAMPLE-REPLACE-ME/view' },
+      ],
+    },
   },
 
   {
@@ -1267,6 +1307,19 @@ export const EVENTS: EventConfig[] = [
       { label: 'Schools', value: '31' },
       { label: 'Playbook', value: 'Designing for AGENCY' },
     ],
+    recap: {
+      summary:
+        'Eighty-six Korean educators spent a day putting the AGENCY framework against units they already teach. The most useful hour was the one where nothing worked: three groups found that the AI step they had added removed exactly the decision the unit was designed to teach.',
+      takeaways: [
+        'Ask what decision the student is making. If a tool makes that decision, it has replaced the lesson rather than supported it.',
+        'Agency is a design property of the task, not a setting in the software.',
+        'Teachers moved faster when they redesigned one existing unit than when they planned a new one.',
+      ],
+      materials: [
+        { label: 'Designing for AGENCY playbook', url: 'https://drive.google.com/file/d/SAMPLE-REPLACE-ME/view', presenter: 'Nick Garvin' },
+        { label: 'Workshop slides (Korean and English)', url: 'https://docs.google.com/presentation/d/SAMPLE-REPLACE-ME/edit' },
+      ],
+    },
   },
 
   {
