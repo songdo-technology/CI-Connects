@@ -1,10 +1,13 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   CalendarPlus, Pencil, Trash2, Eye, EyeOff, Star, AlertTriangle, Check, X, Plus,
+  Upload, Wand2, Loader2,
 } from 'lucide-react';
 import { EventConfig, EventCategory, UserProfile, eventStatus } from '../../types';
 import { can } from '../../lib/permissions';
 import { resolveVideoEmbed } from '../../lib/videoEmbed';
+import { uploadEventImage } from '../../lib/storage';
+import { generateEventImage } from '../../lib/aiImage';
 
 interface AdminEventsProps {
   events: EventConfig[];
@@ -53,6 +56,49 @@ export const AdminEvents: React.FC<AdminEventsProps> = ({
   const [editing, setEditing] = useState<EventConfig | null>(null);
   /** Whether the pasted recording link will actually embed, checked as it is
    *  typed rather than discovered by a visitor months later. */
+  const coverInput = useRef<HTMLInputElement>(null);
+  const [imageBusy, setImageBusy] = useState<'upload' | 'generate' | null>(null);
+  const [imageNote, setImageNote] = useState<{ tone: 'warn' | 'info'; text: string } | null>(null);
+
+  /** Both routes end the same way: bytes into Storage, a URL onto the event. */
+  const putImage = async (blob: Blob, extension: string) => {
+    if (!editing) return;
+    setImageBusy(blob instanceof File ? 'upload' : 'generate');
+    setImageNote(null);
+    try {
+      const url = await uploadEventImage(editing.id, blob, extension);
+      setEditing((e) => (e ? { ...e, heroImageUrl: url } : e));
+    } catch (err) {
+      setImageNote({ tone: 'warn', text: (err as Error).message });
+    } finally {
+      setImageBusy(null);
+    }
+  };
+
+  const makeImage = async () => {
+    if (!editing) return;
+    setImageBusy('generate'); setImageNote(null);
+    try {
+      // The event describes itself; asking the organiser to write a second
+      // description of the same thing is work the platform can do for them.
+      const brief = [editing.name, editing.tagline, editing.summary]
+        .filter(Boolean).join('. ').slice(0, 900);
+      const blob = await generateEventImage(brief);
+      const url = await uploadEventImage(editing.id, blob, 'png');
+      setEditing((e) => (e ? { ...e, heroImageUrl: url } : e));
+      setImageNote({
+        tone: 'info',
+        text: 'Generated and saved. Look at it before publishing — an illustration '
+          + 'of the campus is not a photograph of it, and a real photograph is better '
+          + 'wherever you have one.',
+      });
+    } catch (err) {
+      setImageNote({ tone: 'warn', text: (err as Error).message });
+    } finally {
+      setImageBusy(null);
+    }
+  };
+
   const recordingEmbed = useMemo(
     () => resolveVideoEmbed(editing?.recap?.recordingUrl),
     [editing?.recap?.recordingUrl],
@@ -232,10 +278,50 @@ export const AdminEvents: React.FC<AdminEventsProps> = ({
             </F>
           </div>
 
-          <F label="Cover image URL" hint="Paste any image URL. Uploading from your machine comes next.">
+          <F label="Cover image" hint="Upload one, describe one, or paste a URL.">
             <input className={input} value={editing.heroImageUrl}
-                   onChange={(e) => set('heroImageUrl', e.target.value)} />
+                   onChange={(e) => set('heroImageUrl', e.target.value)}
+                   placeholder="https://" />
           </F>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <input ref={coverInput} type="file" accept="image/*" className="hidden"
+                   onChange={(e) => { const f = e.target.files?.[0]; if (f) void putImage(f, f.name.split('.').pop() || 'jpg'); e.target.value = ''; }} />
+            <button
+              onClick={() => coverInput.current?.click()}
+              disabled={imageBusy !== null}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border-2 border-slate-200 text-xs font-semibold text-slate-700 hover:border-blue-600 hover:text-blue-700 disabled:opacity-40 transition-colors cursor-pointer"
+            >
+              {imageBusy === 'upload'
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : <Upload className="w-3.5 h-3.5" />}
+              Upload an image
+            </button>
+            <button
+              onClick={makeImage}
+              disabled={imageBusy !== null}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 disabled:opacity-40 transition-colors cursor-pointer"
+            >
+              {imageBusy === 'generate'
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : <Wand2 className="w-3.5 h-3.5" />}
+              {imageBusy === 'generate' ? 'Drawing…' : 'Generate one'}
+            </button>
+            <span className="text-[11px] text-slate-400">
+              Generated from this event’s own name and summary.
+            </span>
+          </div>
+
+          {imageNote && (
+            <div className={`flex items-start gap-2 p-3 rounded-lg text-[11px] leading-relaxed ${
+              imageNote.tone === 'warn'
+                ? 'bg-amber-50 border border-amber-300 text-amber-900'
+                : 'bg-blue-50 border border-blue-200 text-blue-900'
+            }`}>
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-px" />
+              <span>{imageNote.text}</span>
+            </div>
+          )}
           {editing.heroImageUrl && (
             <img src={editing.heroImageUrl} alt=""
                  className="w-full h-40 object-cover rounded-xl border border-slate-200" />

@@ -41,6 +41,24 @@ the school by whoever found it.
 4. Test: Admin -> Import -> paste a couple of lines of an agenda -> **Turn this
    into rows**.
 
+## Cover images
+
+The same `GEMINI_API_KEY` also powers **Generate one** on an event's cover
+image (Admin -> Events). The brief is built from the event's own name, tagline
+and summary, so there is no second description to write.
+
+The generated image is stored in Firebase Storage and the event keeps a URL —
+the same path an uploaded file takes. Image bytes never go into a Firestore
+document, which is allowed only a megabyte in total.
+
+The prompt steers away from the two things that would embarrass a school:
+lettering rendered into the image, which models still get wrong, and anything
+claiming to depict real, identifiable people. A generated illustration is
+better than an empty card and worse than a real photograph of the campus —
+use a real one wherever you have it.
+
+Model defaults to `imagen-3.0-generate-002`; override with `IMAGEN_MODEL`.
+
 ## Choosing a model
 
 Defaults are `gemini-2.0-flash` and `claude-sonnet-5`. Override without a code

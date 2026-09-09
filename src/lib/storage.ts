@@ -71,3 +71,38 @@ export async function uploadProfilePhoto(uid: string, file: File): Promise<strin
   await uploadBytes(handle, file, { contentType: file.type });
   return getDownloadURL(handle);
 }
+
+/** Cover images are wider than they are heavy; 8 MB matches the storage rule. */
+export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+
+export function describeImageProblem(file: Blob, name = 'That image'): string | null {
+  if (file.size > MAX_IMAGE_BYTES) {
+    return `${name} is ${(file.size / 1024 / 1024).toFixed(1)} MB. The limit is `
+      + `${MAX_IMAGE_BYTES / 1024 / 1024} MB — export it at a smaller size first.`;
+  }
+  if (!file.type.startsWith('image/')) return `${name} is not an image.`;
+  return null;
+}
+
+/**
+ * Stores an event's cover image and returns its public URL.
+ *
+ * Generated images arrive as bytes rather than a File, so this takes a Blob:
+ * an image the model produced and one the organiser chose from disk end up in
+ * the same place, and the event record holds a URL either way. Keeping the
+ * bytes out of Firestore matters — a base64 cover would eat most of the 1 MB
+ * a document is allowed.
+ */
+export async function uploadEventImage(
+  eventId: string,
+  blob: Blob,
+  extension = 'png',
+): Promise<string> {
+  if (!firebaseStorage) throw new Error('File storage is not configured.');
+  const problem = describeImageProblem(blob);
+  if (problem) throw new Error(problem);
+
+  const handle = ref(firebaseStorage, `events/${eventId}/cover-${Date.now()}.${extension}`);
+  await uploadBytes(handle, blob, { contentType: blob.type || 'image/png' });
+  return getDownloadURL(handle);
+}
