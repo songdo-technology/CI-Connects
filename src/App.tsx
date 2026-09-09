@@ -48,7 +48,7 @@ import { can } from './lib/permissions';
 import { profileGaps } from './lib/profileCompleteness';
 import { takeSignInIntent, hasSignInIntent, clearSignInIntent, markSignInIntent } from './lib/signInIntent';
 import { isGuestLinkInUrl } from './lib/auth';
-import { lookupDocFor } from './lib/inviteCodes';
+import { lookupDocFor, checkInviteCode } from './lib/inviteCodes';
 import { FeedbackView } from './components/FeedbackView';
 import { SignageDirectory } from './components/SignageDirectory';
 import { ProposeSession } from './components/ProposeSession';
@@ -57,11 +57,12 @@ import { VerifyCertificate } from './components/VerifyCertificate';
 import { MyCertificates } from './components/MyCertificates';
 import { GateStation } from './components/GateStation';
 import { SelfCheckIn } from './components/SelfCheckIn';
+import { MyLearning } from './components/MyLearning';
 
 /** The public surfaces of the product: a hub listing every event Chadwick
  *  runs, one page per event, a sign-in gate, and the attendee portal behind
  *  it. Signage resolves ahead of all of them, straight from the URL. */
-type Surface = 'hub' | 'event' | 'signin' | 'portal' | 'dashboard' | 'gate';
+type Surface = 'hub' | 'event' | 'signin' | 'portal' | 'dashboard' | 'gate' | 'learning';
 
 const now = () =>
   new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -305,12 +306,23 @@ export default function App() {
    * demo build kept sending organisers into a conference portal after the
    * live one had stopped.
    */
+  /**
+   * Where a person belongs once they are in.
+   *
+   * By role, and never inside a conference nobody chose. Landing everyone in
+   * one event's portal meant an administrator opened the platform onto a
+   * sample programme, and an attendee with no event this month opened it onto
+   * somebody else's. Each of these is somebody's own home, and gains features
+   * as their permissions do rather than being a different product.
+   */
   const homeSurfaceFor = (user: UserProfile, eventInMind: boolean): Surface => {
+    // Someone who followed a link to a specific event goes to that event.
+    if (eventInMind) return 'portal';
     // Front desk staff have exactly one job and it is not browsing a
-    // programme. Sending them anywhere else means a queue waits while
-    // somebody finds the scanner.
+    // programme. A queue waits while somebody finds the scanner.
     if (user.role === 'front_desk') return 'gate';
-    return can(user, 'events:create') && !eventInMind ? 'dashboard' : 'portal';
+    if (can(user, 'events:create')) return 'dashboard';
+    return 'learning';
   };
 
   const handleSignIn = (user: UserProfile, method: AuthMethod) => {
@@ -341,6 +353,55 @@ export default function App() {
       op: 'create' as const, key: 'inviteCodes' as const, item: { id: d.id, ...d.data },
     })));
     return docs.length;
+  };
+
+  /**
+   * Redeeming an invitation code.
+   *
+   * Checked against the same hashed lookup the sign-in screen used, so the
+   * code still proves an organiser issued it for this address — moving the
+   * step later did not weaken it. Returns the problem to show, or null.
+   */
+  const handleRedeemCode = async (code: string): Promise<string | null> => {
+    const match = await checkInviteCode(currentUser.email, code);
+    if (!match) {
+      return 'That code does not match an invitation for ' + currentUser.email
+        + '. Codes are issued for one address — if yours was sent to a different '
+        + 'one, sign in with that address instead.';
+    }
+    const invite = invites.find((i) => i.id === match.inviteId);
+    if (invite && !invite.claimedAt) {
+      await update('invites', invite.id, {
+        claimedAt: now(), claimedByUid: currentUser.id,
+      });
+    }
+    return null;
+  };
+
+  /**
+   * Asking for a place on something.
+   *
+   * A mail draft rather than a request queue: places are confirmed outside the
+   * platform — payment, headcount, whether the person is a fit — and inventing
+   * a workflow that ends in somebody being emailed anyway would add a step
+   * without adding a decision.
+   */
+  const handleRequestPlace = (eventId: string) => {
+    const event = allEvents.find((e) => e.id === eventId);
+    if (!event) return;
+    const subject = `Requesting a place: ${event.name}`;
+    const body = [
+      `I would like to attend ${event.name} (${event.dateLabel}).`,
+      '',
+      `Name: ${currentUser.fullName}`,
+      `Organisation: ${currentUser.organization || '—'}`,
+      `Role: ${currentUser.title || '—'}`,
+      `Account email: ${currentUser.email}`,
+      '',
+      'Please let me know about availability, cost and how to confirm.',
+    ].join('\n');
+    window.location.href = `mailto:songdo-technology@chadwickschool.org`
+      + `?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
   const handleSignOut = () => {
@@ -868,6 +929,33 @@ export default function App() {
         onSaveInvite={handleSaveInvite}
         onDeleteInvite={remover('invites')}
         onRepublishInviteCodes={republishInviteCodes}
+      />
+    );
+  }
+
+  // -------------------------------------------------- Surface: learning
+  if (surface === 'learning' && authSession) {
+    return (
+      <MyLearning
+        currentUser={viewUser}
+        events={allEvents}
+        sessions={sessions}
+        rooms={rooms}
+        certificates={certificates}
+        attendance={attendance}
+        invites={invites}
+        onOpenEventPortal={(slug) => {
+          setActiveEventSlug(slug);
+          setActiveTab('agenda');
+          setSurface('portal');
+          syncUrl(slug);
+        }}
+        onOpenPublicPage={openEvent}
+        onOpenHub={openHub}
+        onEditProfile={() => { setActiveTab('profile'); setSurface('portal'); }}
+        onRedeemCode={handleRedeemCode}
+        onRequestPlace={handleRequestPlace}
+        onSignOut={handleSignOut}
       />
     );
   }

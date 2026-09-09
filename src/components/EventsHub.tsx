@@ -285,13 +285,12 @@ export const EventsHub: React.FC<EventsHubProps> = ({
               className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
             >
               <LogIn className="w-4 h-4" />
-              {/* Named for who needs a platform-level door. Attendees sign in
-                  from the event they want a place at, where the button says
-                  Register. It still admits anyone — a returning attendee needs
-                  a way back to their badge, and refusing them here would be a
-                  worse mistake than an imprecise label. */}
-              <span className="hidden sm:inline">Organiser sign in</span>
-              <span className="sm:hidden">Sign in</span>
+              {/* One door, named for what it is. Calling it an organiser's
+                  door while opening the same screen for everybody was worse
+                  than no label: it told people it was not for them and then
+                  let them in anyway. What a signed-in person can reach is
+                  decided by their account, not by which button they pressed. */}
+              <span>Sign in</span>
             </button>
           )}
         </div>
@@ -359,8 +358,8 @@ export const EventsHub: React.FC<EventsHubProps> = ({
               >
                 <LogIn className="w-4 h-4" />
                 {signedInAs
-                  ? (isOrganiser ? 'Create a real event' : 'Open my portal')
-                  : 'Organiser sign in'}
+                  ? (isOrganiser ? 'Create a real event' : 'My learning')
+                  : 'Sign in or create an account'}
               </button>
             </div>
 
