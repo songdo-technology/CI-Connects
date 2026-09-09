@@ -22,6 +22,7 @@ export type Permission =
   // Programme
   | 'sessions:edit_any'
   | 'sessions:edit_own'
+  | 'sessions:upload_materials'
   | 'dining:manage'
   | 'sponsors:manage'
   | 'rooms:manage'
@@ -37,6 +38,10 @@ export type Permission =
   // Feedback
   | 'feedback:submit'
   | 'feedback:view_all'
+  // Event operations that only the people running it should reach
+  | 'luckydraw:manage'
+  | 'attendance:view_all'
+  | 'costs:view'
   // Participation
   | 'profile:edit_own'
   | 'reservations:manage_own'
@@ -59,17 +64,23 @@ const BASE: Permission[] = [
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   attendee: [...BASE],
 
+  // A speaker owns their own presence: profile, bio, links, and the materials
+  // attached to sessions they are presenting. Nothing beyond that.
   speaker: [
     ...BASE,
     'sessions:edit_own',
+    'sessions:upload_materials',
   ],
 
-  // Runs events end to end, and needs to see who is coming and what they said
-  // about it — but not to change anyone's role or touch integrations.
+  // Runs every event end to end — the same reach as an administrator over
+  // event content — but stops at the platform itself: no role assignment and
+  // no integrations. That boundary is the whole point of the separation.
   event_organizer: [
     ...BASE,
     'events:create',
+    'events:edit_any',
     'events:edit_own',
+    'events:delete',
     'events:publish',
     'sessions:edit_any',
     'sessions:edit_own',
@@ -82,6 +93,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'announcements:send',
     'signage:broadcast',
     'feedback:view_all',
+    'luckydraw:manage',
+    'attendance:view_all',
+    'costs:view',
+    'sessions:upload_materials',
     'data:export',
   ],
 
@@ -113,6 +128,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'announcements:send',
     'signage:broadcast',
     'feedback:view_all',
+    'luckydraw:manage',
+    'attendance:view_all',
+    'costs:view',
+    'sessions:upload_materials',
     'integrations:manage',
     'data:export',
   ],
@@ -141,18 +160,18 @@ export function canEdit(
 
 export const ROLE_LABEL: Record<UserRole, string> = {
   technical_admin: 'Technical Admin',
-  event_organizer: 'Event Organiser',
+  event_organizer: 'Event Manager',
   speaker: 'Speaker',
   front_desk: 'Front Desk',
   attendee: 'Attendee',
 };
 
 export const ROLE_DESCRIPTION: Record<UserRole, string> = {
-  technical_admin: 'Full access, including user roles and integrations.',
-  event_organizer: 'Creates and runs events; sees attendees and feedback.',
-  speaker: 'Edits their own sessions and profile.',
+  technical_admin: 'Everything an Event Manager can do, plus user roles, integrations and the platform itself.',
+  event_organizer: 'Runs every event — programme, rooms, dining, sponsors, signage, attendees and feedback. No role assignment or integrations.',
+  speaker: 'Edits their own profile, bio and links, and attaches slides or materials to sessions they present.',
   front_desk: 'Scans badges and checks people in at the door.',
-  attendee: 'Books sessions, chooses meals, posts, messages and gives feedback.',
+  attendee: 'Registers, books sessions, chooses meals, posts, messages and leaves feedback.',
 };
 
 /** Roles a given user is allowed to assign to someone else. */

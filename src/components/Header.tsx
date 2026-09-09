@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, QrCode, Users, MessageSquare, Award, ShieldCheck, Smartphone, Monitor, Layers, ChevronDown, Building2, BellRing, CheckCircle2, Sparkles, ExternalLink, UtensilsCrossed, Send, LogOut, Globe, Sun } from 'lucide-react';
+import { Calendar, QrCode, Users, MessageSquare, Award, ShieldCheck, Smartphone, Monitor, Layers, ChevronDown, Building2, BellRing, CheckCircle2, Sparkles, ExternalLink, UtensilsCrossed, Send, LogOut, Globe, Sun, UserRound } from 'lucide-react';
 import { can, ROLE_LABEL } from '../lib/permissions';
 import { ActiveTab, BroadcastAnnouncement, UserProfile } from '../types';
 
@@ -375,6 +375,19 @@ export const Header: React.FC<HeaderProps> = ({
                 {unreadMessageCount}
               </span>
             )}
+          </button>
+
+          <button
+            id="tab-profile"
+            onClick={() => setActiveTab('profile')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              activeTab === 'profile'
+                ? 'bg-white text-blue-700 shadow-xs border border-slate-200'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+            }`}
+          >
+            <UserRound className="w-4 h-4 text-slate-500" />
+            <span>My Profile</span>
           </button>
 
           <button

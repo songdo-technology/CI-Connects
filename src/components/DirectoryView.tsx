@@ -259,13 +259,20 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
 
               {/* Contact routes: email, LinkedIn, and in-platform messaging */}
               <div className="pt-3 border-t border-slate-100 space-y-2">
-                <button
-                  onClick={() => onMessage(profile.id)}
-                  className="w-full py-2 px-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>Message</span>
-                </button>
+                {profile.allowMessages === false ? (
+                  <div className="w-full py-2 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-400 flex items-center justify-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>Messages turned off</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => onMessage(profile.id)}
+                    className="w-full py-2 px-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>Message</span>
+                  </button>
+                )}
 
                 <div className="flex items-center gap-2">
                   <a

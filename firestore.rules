@@ -38,12 +38,15 @@ service cloud.firestore {
     function isDoorStaff() { return role() in ['technical_admin', 'event_organizer', 'front_desk']; }
 
     // Bootstrap problem: assigning a role requires an administrator, so the
-    // first administrator cannot be assigned by one. These addresses may
-    // provision themselves as technical_admin on first sign-in, and nobody
-    // else can. Keep this list short and in step with BOOTSTRAP_ADMIN_EMAILS
-    // in src/lib/auth.ts.
-    function bootstrapAdmins() {
-      return ['songdo-technology@chadwickschool.org'];
+    // first ones cannot be assigned by one. These addresses may provision
+    // themselves with the role named here on first sign-in, and nobody else
+    // can. Everyone else lands as an attendee and is promoted from the admin
+    // panel. Keep in step with BOOTSTRAP_ROLES in src/lib/auth.ts.
+    function bootstrapRole(email) {
+      return email == 'songdo-technology@chadwickschool.org' ? 'technical_admin'
+           : email == 'dnorman@chadwickschool.org'           ? 'technical_admin'
+           : email == 'wpaetzold@chadwickschool.org'         ? 'event_organizer'
+           : 'none';
     }
 
     // True when the incoming write leaves the named fields untouched.
@@ -56,14 +59,10 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
     }
 
-    // The event a document belongs to, and whether the caller runs it.
-    function eventDoc(eventId) {
-      return get(/databases/$(database)/documents/events/$(eventId)).data;
-    }
-    function ownsEvent(eventId) {
-      return isAdmin()
-        || (isOrganiser() && eventDoc(eventId).get('ownerId', '') == uid());
-    }
+    // Event managers run every event, not only ones they created, so event
+    // content is gated by role rather than by ownership. ownerId is still
+    // recorded — it says who created the event, and an audit reads it — but it
+    // no longer decides who may edit.
 
     // ------------------------------------------------------------------ users
     match /users/{userId} {
@@ -91,8 +90,7 @@ service cloud.firestore {
                     && request.resource.data.email == request.auth.token.email
                     && (
                       request.resource.data.role == 'attendee'
-                      || (request.auth.token.email in bootstrapAdmins()
-                          && request.resource.data.role == 'technical_admin')
+                      || request.resource.data.role == bootstrapRole(request.auth.token.email)
                     );
 
       allow delete: if isAdmin();
@@ -103,9 +101,8 @@ service cloud.firestore {
       // Published events are the public website. Drafts are organisers only.
       allow read: if resource.data.get('status', 'published') == 'published' || isOrganiser();
       allow create: if isOrganiser() && request.resource.data.ownerId == uid();
-      allow update: if isAdmin()
-                    || (isOrganiser() && resource.data.get('ownerId', '') == uid());
-      allow delete: if isAdmin();
+      allow update: if isOrganiser();
+      allow delete: if isOrganiser();
     }
 
     // -------------------------------------------------------------- programme
@@ -116,7 +113,7 @@ service cloud.firestore {
 
       allow update:
         // Organisers and admins: anything.
-        if ownsEvent(resource.data.eventId)
+        if isOrganiser()
         // A speaker may edit their own session, but not capacity, room or
         // reservations — the fields that would let them oversubscribe a room.
         || (role() == 'speaker'
@@ -190,8 +187,13 @@ service cloud.firestore {
     // excluded: running an event does not entitle anyone to read private mail.
     match /messages/{messageId} {
       allow read: if signedIn() && uid() in [resource.data.fromUserId, resource.data.toUserId];
+      // The recipient's opt-out is enforced here, not only in the interface —
+      // a client that skipped the check would otherwise still get through.
       allow create: if isAdmin()
-                    || (signedIn() && request.resource.data.fromUserId == uid());
+                    || (signedIn()
+                        && request.resource.data.fromUserId == uid()
+                        && get(/databases/$(database)/documents/users/$(request.resource.data.toUserId))
+                             .data.get('allowMessages', true) == true);
       // Only the recipient may mark a message read.
       allow update: if signedIn()
                     && resource.data.toUserId == uid()

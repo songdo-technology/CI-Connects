@@ -21,6 +21,17 @@ service firebase.storage {
                    && request.resource.contentType.matches('image/.*');
     }
 
+    // Session materials. A speaker uploads to sessions they present; the rule
+    // cannot read the session document to check that, so it is enforced by
+    // role here and by the Firestore rule on the session itself, which is what
+    // actually records the material against the session.
+    match /sessions/{sessionId}/{fileName} {
+      allow read: if true;
+      allow write: if role() in ['technical_admin', 'event_organizer', 'speaker']
+                   && request.resource.size < 25 * 1024 * 1024;
+      allow delete: if role() in ['technical_admin', 'event_organizer'];
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

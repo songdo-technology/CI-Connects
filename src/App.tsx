@@ -41,6 +41,7 @@ import { useData } from './lib/data/DataProvider';
 import { FirstRunSetup } from './components/FirstRunSetup';
 import { useAuth } from './lib/AuthProvider';
 import { AdminPanel } from './components/admin/AdminPanel';
+import { MyProfile } from './components/MyProfile';
 import { can } from './lib/permissions';
 import { FeedbackView } from './components/FeedbackView';
 import { SignageDirectory } from './components/SignageDirectory';
@@ -363,6 +364,25 @@ export default function App() {
     await remove('events', eventId);
   };
 
+  /** Save helper shared by the programme, room, dining and sponsor editors. */
+  const saver = <K extends 'sessions' | 'rooms' | 'mealServices' | 'sponsors'>(key: K) =>
+    async (item: { id: string }, isNew: boolean) => {
+      if (isNew) await create(key, item as never);
+      else await update(key, item.id, item as never);
+    };
+  const remover = (key: 'sessions' | 'rooms' | 'mealServices' | 'sponsors') =>
+    async (id: string) => { await remove(key, id); };
+
+  /** A person editing their own profile, from My Profile. */
+  const handleSaveOwnProfile = async (patch: Partial<UserProfile>) => {
+    await update('users', currentUser.id, patch);
+  };
+
+  /** A speaker attaching materials to a session they present. */
+  const handleSaveOwnSession = async (sessionId: string, patch: Partial<Session>) => {
+    await update('sessions', sessionId, patch);
+  };
+
   // ------------------------------------------------------- Feedback
   const handleSubmitFeedback = (
     entry: Omit<FeedbackEntry, 'id' | 'userId' | 'submittedAt'>,
@@ -580,9 +600,22 @@ export default function App() {
         }}
         isRemote={isRemote}
         onClose={() => setIsAdminPanelOpen(false)}
+        sessions={sessions}
+        tracks={tracks}
+        rooms={rooms}
+        mealServices={mealServices}
+        sponsors={sponsors}
         onChangeRole={handleChangeRole}
         onSaveEvent={handleSaveEvent}
         onDeleteEvent={handleDeleteEvent}
+        onSaveSession={saver('sessions')}
+        onDeleteSession={remover('sessions')}
+        onSaveRoom={saver('rooms')}
+        onDeleteRoom={remover('rooms')}
+        onSaveMeal={saver('mealServices')}
+        onDeleteMeal={remover('mealServices')}
+        onSaveSponsor={saver('sponsors')}
+        onDeleteSponsor={remover('sponsors')}
       />
     );
   }
@@ -709,6 +742,18 @@ export default function App() {
           initialThreadUserId={pendingThreadUserId}
           onSendMessage={handleSendMessage}
           onMarkRead={handleMarkRead}
+        />
+      )}
+
+      {activeTab === 'profile' && (
+        <MyProfile
+          currentUser={currentUser}
+          sessions={sessions}
+          rooms={rooms}
+          uploadsEnabled={isRemote}
+          onSaveProfile={handleSaveOwnProfile}
+          onTogglePrivacy={handleSaveOwnProfile}
+          onSaveSession={handleSaveOwnSession}
         />
       )}
 

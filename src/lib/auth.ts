@@ -19,15 +19,25 @@ import { initialsAvatar } from './avatar';
  */
 
 /**
- * Emails permitted to provision themselves as technical_admin on first
- * sign-in. Without this there is no way to create the first administrator:
- * assigning roles requires an administrator. Keep it short, and keep it in
- * step with the same list in firestore.rules, which is what actually enforces
- * it.
+ * Accounts permitted to provision themselves with an elevated role on first
+ * sign-in, and which role each may take.
+ *
+ * This exists to solve a bootstrap problem: assigning a role requires an
+ * administrator, so the first ones cannot be assigned by one. Everyone else
+ * lands as an attendee and is promoted from the admin panel.
+ *
+ * Keep it short and keep it in step with bootstrapRole() in firestore.rules,
+ * which is what actually enforces this. A name here with no matching entry
+ * there grants nothing.
  */
-export const BOOTSTRAP_ADMIN_EMAILS = [
-  'songdo-technology@chadwickschool.org',
-];
+export const BOOTSTRAP_ROLES: Record<string, UserRole> = {
+  'songdo-technology@chadwickschool.org': 'technical_admin',
+  'dnorman@chadwickschool.org': 'technical_admin',
+  'wpaetzold@chadwickschool.org': 'event_organizer',
+};
+
+/** Retained for existing call sites that only ask "is this a bootstrap account". */
+export const BOOTSTRAP_ADMIN_EMAILS = Object.keys(BOOTSTRAP_ROLES);
 
 export type AuthStatus = 'loading' | 'signed_out' | 'signed_in' | 'error';
 
@@ -145,8 +155,7 @@ export async function ensureUserDocument(user: User): Promise<UserRole> {
   }
 
   const email = (user.email ?? '').toLowerCase();
-  const role: UserRole =
-    BOOTSTRAP_ADMIN_EMAILS.includes(email) ? 'technical_admin' : 'attendee';
+  const role: UserRole = BOOTSTRAP_ROLES[email] ?? 'attendee';
 
   const fullName = user.displayName ?? email.split('@')[0] ?? 'New member';
 

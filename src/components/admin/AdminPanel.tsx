@@ -1,25 +1,43 @@
 import React, { useState } from 'react';
 import {
   ShieldCheck, CalendarPlus, Database, X, Cloud, CloudOff, ExternalLink,
+  CalendarDays, DoorOpen, UtensilsCrossed, Handshake,
 } from 'lucide-react';
-import { EventConfig, UserProfile, UserRole } from '../../types';
+import {
+  EventConfig, UserProfile, UserRole, Session, Track, Room, MealService, Sponsor,
+} from '../../types';
 import { can, ROLE_LABEL } from '../../lib/permissions';
 import { AdminPeople } from './AdminPeople';
 import { AdminEvents } from './AdminEvents';
+import { AdminProgramme } from './AdminProgramme';
+import { AdminRooms, AdminDining, AdminSponsors } from './AdminResources';
 
 interface AdminPanelProps {
   currentUser: UserProfile;
   users: UserProfile[];
   events: EventConfig[];
+  sessions: Session[];
+  tracks: Track[];
+  rooms: Room[];
+  mealServices: MealService[];
+  sponsors: Sponsor[];
   counts: Record<string, number>;
   isRemote: boolean;
   onClose: () => void;
   onChangeRole: (userId: string, role: UserRole) => Promise<void> | void;
   onSaveEvent: (event: EventConfig, isNew: boolean) => Promise<void> | void;
   onDeleteEvent: (eventId: string) => Promise<void> | void;
+  onSaveSession: (session: Session, isNew: boolean) => Promise<void> | void;
+  onDeleteSession: (id: string) => Promise<void> | void;
+  onSaveRoom: (room: Room, isNew: boolean) => Promise<void> | void;
+  onDeleteRoom: (id: string) => Promise<void> | void;
+  onSaveMeal: (service: MealService, isNew: boolean) => Promise<void> | void;
+  onDeleteMeal: (id: string) => Promise<void> | void;
+  onSaveSponsor: (sponsor: Sponsor, isNew: boolean) => Promise<void> | void;
+  onDeleteSponsor: (id: string) => Promise<void> | void;
 }
 
-type Section = 'people' | 'events' | 'system';
+type Section = 'people' | 'events' | 'programme' | 'rooms' | 'dining' | 'sponsors' | 'system';
 
 /**
  * Administration console.
@@ -33,16 +51,22 @@ type Section = 'people' | 'events' | 'system';
  * table and not to this file.
  */
 export const AdminPanel: React.FC<AdminPanelProps> = ({
-  currentUser, users, events, counts, isRemote, onClose,
-  onChangeRole, onSaveEvent, onDeleteEvent,
+  currentUser, users, events, sessions, tracks, rooms, mealServices, sponsors,
+  counts, isRemote, onClose, onChangeRole, onSaveEvent, onDeleteEvent,
+  onSaveSession, onDeleteSession, onSaveRoom, onDeleteRoom,
+  onSaveMeal, onDeleteMeal, onSaveSponsor, onDeleteSponsor,
 }) => {
   const mayManageRoles = can(currentUser, 'users:manage_roles');
   const mayManageEvents = can(currentUser, 'events:create');
   const mayManageSystem = can(currentUser, 'integrations:manage');
 
   const sections = ([
-    mayManageRoles && ['people', 'People & Roles', ShieldCheck],
     mayManageEvents && ['events', 'Events', CalendarPlus],
+    can(currentUser, 'sessions:edit_any') && ['programme', 'Programme', CalendarDays],
+    can(currentUser, 'rooms:manage') && ['rooms', 'Rooms', DoorOpen],
+    can(currentUser, 'dining:manage') && ['dining', 'Dining', UtensilsCrossed],
+    can(currentUser, 'sponsors:manage') && ['sponsors', 'Sponsors', Handshake],
+    mayManageRoles && ['people', 'People & Roles', ShieldCheck],
     mayManageSystem && ['system', 'System', Database],
   ].filter(Boolean) as [Section, string, typeof ShieldCheck][]);
 
@@ -97,6 +121,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             onSave={onSaveEvent}
             onDelete={onDeleteEvent}
           />
+        )}
+
+        {section === 'programme' && (
+          <AdminProgramme
+            events={events} sessions={sessions} tracks={tracks} rooms={rooms}
+            profiles={users} onSave={onSaveSession} onDelete={onDeleteSession}
+          />
+        )}
+
+        {section === 'rooms' && (
+          <AdminRooms rooms={rooms} sessions={sessions}
+                      onSave={onSaveRoom} onDelete={onDeleteRoom} />
+        )}
+
+        {section === 'dining' && (
+          <AdminDining mealServices={mealServices}
+                       onSave={onSaveMeal} onDelete={onDeleteMeal} />
+        )}
+
+        {section === 'sponsors' && (
+          <AdminSponsors sponsors={sponsors}
+                         onSave={onSaveSponsor} onDelete={onDeleteSponsor} />
         )}
 
         {section === 'system' && (

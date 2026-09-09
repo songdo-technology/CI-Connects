@@ -134,6 +134,12 @@ export interface UserProfile {
   accessCode?: string;
   /** Opt-in: allow the badge QR to hand over contact details when scanned. */
   shareContactOnScan: boolean;
+  /** Opt-out: when false, nobody can start a direct message with this person.
+   *  Defaults to allowed when absent, so existing accounts keep working. */
+  allowMessages?: boolean;
+  /** Free-form profile links — personal site, X, Instagram, ORCID. LinkedIn
+   *  keeps its own field because the directory surfaces it specifically. */
+  socialLinks?: { label: string; url: string }[];
   /** Sample entry to be replaced per event. Surfaces a visible marker on the
    *  public speaker card so placeholder copy is never mistaken for a booking. */
   isPlaceholder?: boolean;
@@ -202,8 +208,24 @@ export interface Session {
   supportingSponsorIds?: string[];
   slidesUrl?: string;
   slidesName?: string;
+  /** Files and links a speaker attaches to their own session. Uploads land in
+   *  Firebase Storage; links are stored as-is, since plenty of presentations
+   *  live in Slides or Canva and should not be copied into our bucket. */
+  materials?: SessionMaterial[];
   isFeatured?: boolean;
   tags: string[];
+}
+
+export interface SessionMaterial {
+  id: string;
+  name: string;
+  url: string;
+  kind: 'slides' | 'pdf' | 'link' | 'file';
+  /** Uid of whoever attached it, so a speaker may remove their own. */
+  addedBy: string;
+  addedAt: string;
+  /** Bytes, for uploads. Absent for links. */
+  sizeBytes?: number;
 }
 
 export interface CommunityTopic {
@@ -249,6 +271,7 @@ export type ActiveTab =
   | 'community'
   | 'directory'
   | 'messages'
+  | 'profile'
   | 'feedback'
   | 'admin'
   | 'luckydraw';
