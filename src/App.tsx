@@ -50,11 +50,12 @@ import { isGuestLinkInUrl } from './lib/auth';
 import { FeedbackView } from './components/FeedbackView';
 import { SignageDirectory } from './components/SignageDirectory';
 import { ProposeSession } from './components/ProposeSession';
+import { AdminDashboard } from './components/AdminDashboard';
 
 /** The public surfaces of the product: a hub listing every event Chadwick
  *  runs, one page per event, a sign-in gate, and the attendee portal behind
  *  it. Signage resolves ahead of all of them, straight from the URL. */
-type Surface = 'hub' | 'event' | 'signin' | 'portal';
+type Surface = 'hub' | 'event' | 'signin' | 'portal' | 'dashboard';
 
 const now = () =>
   new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -254,7 +255,12 @@ export default function App() {
 
       const intent = takeSignInIntent();
       if (intent?.eventSlug) setActiveEventSlug(intent.eventSlug);
-      setSurface((s) => (s === 'signin' || enteringPortal ? 'portal' : s));
+      // Running the platform is a different job from attending an event on it.
+      // Sending an organiser into a conference portal — necessarily one
+      // specific conference — was why signing in always landed on the sample
+      // flagship, and why there appeared to be no administration at all.
+      const home = homeSurfaceFor(currentUser, Boolean(intent?.eventSlug));
+      setSurface((s) => (s === 'signin' || enteringPortal ? home : s));
       setEnteringPortal(false);
     }
     if (auth.status === 'signed_out') {
@@ -277,10 +283,22 @@ export default function App() {
   }, [auth.live, auth.settled, auth.status, enteringPortal]);
 
   // ---------------------------------------------------------------- Auth
+
+  /**
+   * Where a person belongs once they are in.
+   *
+   * One rule, used by both sign-in paths. When the Firebase route and the
+   * demo route each decided this for themselves they drifted apart, and the
+   * demo build kept sending organisers into a conference portal after the
+   * live one had stopped.
+   */
+  const homeSurfaceFor = (user: UserProfile, eventInMind: boolean): Surface =>
+    (can(user, 'events:create') && !eventInMind ? 'dashboard' : 'portal');
+
   const handleSignIn = (user: UserProfile, method: AuthMethod) => {
     setAuthSession({ userId: user.id, method, signedInAt: now() });
     setActiveTab('agenda');
-    setSurface('portal');
+    setSurface(homeSurfaceFor(user, Boolean(takeSignInIntent()?.eventSlug)));
   };
 
   const handleSignOut = () => {
@@ -761,6 +779,58 @@ export default function App() {
     );
   }
 
+  // ------------------------------------------------- Surface: dashboard
+  if (surface === 'dashboard' && authSession && can(viewUser, 'events:create')) {
+    return (
+      <>
+        <AdminDashboard
+          currentUser={viewUser}
+          events={allEvents}
+          sessions={sessions}
+          rooms={rooms}
+          users={allUsers}
+          invites={invites}
+          attendance={attendance}
+          isTechnical={can(viewUser, 'integrations:manage')}
+          isRemote={isRemote}
+          onOpenAdmin={(section) => { setAdminIntent(section); setIsAdminPanelOpen(true); }}
+          onOpenEventPortal={(slug) => {
+            setActiveEventSlug(slug);
+            setActiveTab('agenda');
+            setSurface('portal');
+            syncUrl(slug);
+          }}
+          onOpenPublicPage={openEvent}
+          onOpenHub={openHub}
+          onSignOut={handleSignOut}
+        />
+        {isAdminPanelOpen && (
+          <AdminPanel
+            currentUser={viewUser} users={allUsers} events={events} sessions={sessions}
+            tracks={tracks} rooms={rooms} mealServices={mealServices} sponsors={sponsors}
+            prizes={prizes} costs={costs} invites={invites} attendance={attendance}
+            counts={{ users: allUsers.length, events: events.length, sessions: sessions.length,
+                      rooms: rooms.length, sponsors: sponsors.length }}
+            isRemote={isRemote}
+            onClose={() => { setIsAdminPanelOpen(false); setAdminIntent(undefined); }}
+            onChangeRole={handleChangeRole}
+            onSaveEvent={handleSaveEvent} onDeleteEvent={handleDeleteEvent}
+            onSaveSession={saver('sessions')} onDeleteSession={remover('sessions')}
+            onSaveRoom={saver('rooms')} onDeleteRoom={remover('rooms')}
+            onSaveMeal={saver('mealServices')} onDeleteMeal={remover('mealServices')}
+            onSaveSponsor={saver('sponsors')} onDeleteSponsor={remover('sponsors')}
+            onSavePrize={saver('prizes')} onDeletePrize={remover('prizes')}
+            onSaveCost={saver('costs')} onDeleteCost={remover('costs')}
+            onBulkImport={(ops) => batch(ops)} openTo={adminIntent}
+            communityTopics={communityTopics} messages={messages}
+            feedback={feedback} announcements={announcements}
+            onSaveInvite={saver('invites')} onDeleteInvite={remover('invites')}
+          />
+        )}
+      </>
+    );
+  }
+
   // ------------------------------------------------------- Surface: hub
   if (surface === 'hub') {
     return (
@@ -783,6 +853,16 @@ export default function App() {
         }}
         onSignOut={handleSignOut}
         onOpenEvent={openEvent}
+        onRegister={(slug) => {
+          // Remember which event before leaving for Google: the redirect comes
+          // back to a cold load with none of this state, and landing on the
+          // featured event instead of the one they chose is the whole problem.
+          setActiveEventSlug(slug);
+          syncUrl(slug);
+          setReturnSurface('hub');
+          setEnteringPortal(true);
+          setSurface('signin');
+        }}
         onSignIn={openSignIn}
       />
     );

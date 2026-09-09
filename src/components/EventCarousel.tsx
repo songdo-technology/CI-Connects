@@ -8,7 +8,8 @@ import { EventConfig, registrationState, eventStatus } from '../types';
 interface EventCarouselProps {
   events: EventConfig[];
   onOpenEvent: (slug: string) => void;
-  onSignIn: () => void;
+  /** Register for this specific event, carrying which one. */
+  onRegister: (slug: string) => void;
   /** Advance on its own. Off by default: a panel that moves while you are
    *  reading it is worse than one that waits. */
   autoPlay?: boolean;
@@ -26,7 +27,7 @@ const AUTOPLAY_MS = 6000;
  * container, so the two never disagree about where the panel is.
  */
 export const EventCarousel: React.FC<EventCarouselProps> = ({
-  events, onOpenEvent, onSignIn, autoPlay = false,
+  events, onOpenEvent, onRegister, autoPlay = false,
 }) => {
   const trackRef = useRef<HTMLDivElement>(null);
   const [atStart, setAtStart] = useState(true);
@@ -160,7 +161,7 @@ export const EventCarousel: React.FC<EventCarouselProps> = ({
                   {reg.state === 'open' ? (
                     <div className="flex gap-2">
                       <button
-                        onClick={onSignIn}
+                        onClick={() => onRegister(e.slug)}
                         className="flex-1 flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
                       >
                         Register

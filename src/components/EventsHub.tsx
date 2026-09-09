@@ -29,6 +29,10 @@ interface EventsHubProps {
    *  of its own. */
   sessions: Session[];
   onOpenEvent: (slug: string) => void;
+  /** Signing in with an event in mind. An attendee never wants to "sign in to
+   *  the platform" — they want a place at something, and carrying which thing
+   *  means they arrive at it rather than at whatever is featured. */
+  onRegister: (slug: string) => void;
   onSignIn: () => void;
 }
 
@@ -64,7 +68,7 @@ const CATEGORY_STYLE: Record<EventCategory, string> = {
 
 export const EventsHub: React.FC<EventsHubProps> = ({
   events, sessions, signedInAs, isOrganiser, onOpenPortal, onCreateEvent,
-  onSignOut, onOpenEvent, onSignIn,
+  onSignOut, onOpenEvent, onRegister, onSignIn,
 }) => {
   const [filter, setFilter] = useState<'all' | EventCategory>('all');
   const [layout, setLayout] = useState<'cards' | 'calendar'>('cards');
@@ -281,7 +285,12 @@ export const EventsHub: React.FC<EventsHubProps> = ({
               className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
             >
               <LogIn className="w-4 h-4" />
-              <span className="hidden sm:inline">Attendee sign in</span>
+              {/* Named for who needs a platform-level door. Attendees sign in
+                  from the event they want a place at, where the button says
+                  Register. It still admits anyone — a returning attendee needs
+                  a way back to their badge, and refusing them here would be a
+                  worse mistake than an imprecise label. */}
+              <span className="hidden sm:inline">Organiser sign in</span>
               <span className="sm:hidden">Sign in</span>
             </button>
           )}
@@ -351,7 +360,7 @@ export const EventsHub: React.FC<EventsHubProps> = ({
                 <LogIn className="w-4 h-4" />
                 {signedInAs
                   ? (isOrganiser ? 'Create a real event' : 'Open my portal')
-                  : 'Sign in to register'}
+                  : 'Organiser sign in'}
               </button>
             </div>
 
@@ -433,7 +442,7 @@ export const EventsHub: React.FC<EventsHubProps> = ({
           <EventCarousel
             events={showcase}
             onOpenEvent={onOpenEvent}
-            onSignIn={onSignIn}
+            onRegister={onRegister}
             autoPlay
           />
         </div>
