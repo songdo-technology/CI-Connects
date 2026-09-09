@@ -235,6 +235,18 @@ export const Header: React.FC<HeaderProps> = ({
               <span>System Specs</span>
             </button>
 
+            {/* Signing out belonged in the top row all along. It was at the far
+                end of the tab strip, after eleven tabs, on a row that scrolls —
+                so on any normal screen it was simply not there. */}
+            <button
+              onClick={onSignOut}
+              title="Sign out"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:border-slate-400 hover:text-slate-900 transition-colors cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden lg:inline">Sign out</span>
+            </button>
+
             {/* Persona Switcher Dropdown */}
             <div className="relative">
               <button
@@ -504,13 +516,7 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          <button
-            onClick={onSignOut}
-            className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-blue-700 hover:bg-slate-100/80 whitespace-nowrap transition-all cursor-pointer"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Sign out</span>
-          </button>
+
 
         </div>
       </div>

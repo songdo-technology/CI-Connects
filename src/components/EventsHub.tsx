@@ -3,7 +3,7 @@ import {
   Building2, CalendarDays, MapPin, ArrowRight, ArrowUpRight, LogIn, Sparkles, Check,
   LayoutGrid, CalendarRange, PlayCircle, Images, Ticket, QrCode, MessagesSquare,
   FileText, Lightbulb, Compass, ChevronDown, Users, Globe2, School, Presentation,
-  CalendarClock, CalendarCheck2,
+  CalendarClock, CalendarCheck2, Plus, LogOut,
 } from 'lucide-react';
 import { EventConfig, EventCategory, Session, UserProfile, eventStatus, registrationState } from '../types';
 import { EventCarousel } from './EventCarousel';
@@ -22,6 +22,9 @@ interface EventsHubProps {
   /** True when that person can run events, so the door names where it goes. */
   isOrganiser: boolean;
   onOpenPortal: () => void;
+  /** Straight into a blank event form, skipping the sample catalogue. */
+  onCreateEvent: () => void;
+  onSignOut: () => void;
   /** Only used to count the programme when a past event recorded no figure
    *  of its own. */
   sessions: Session[];
@@ -60,7 +63,8 @@ const CATEGORY_STYLE: Record<EventCategory, string> = {
 };
 
 export const EventsHub: React.FC<EventsHubProps> = ({
-  events, sessions, signedInAs, isOrganiser, onOpenPortal, onOpenEvent, onSignIn,
+  events, sessions, signedInAs, isOrganiser, onOpenPortal, onCreateEvent,
+  onSignOut, onOpenEvent, onSignIn,
 }) => {
   const [filter, setFilter] = useState<'all' | EventCategory>('all');
   const [layout, setLayout] = useState<'cards' | 'calendar'>('cards');
@@ -129,6 +133,13 @@ export const EventsHub: React.FC<EventsHubProps> = ({
         {past && (
           <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/90 text-slate-700 backdrop-blur-sm">
             Completed
+          </span>
+        )}
+        {/* Marked so a real event is never mistaken for one of the samples,
+            and so the samples can be left in place without confusing anyone. */}
+        {e.isTemplate && !past && (
+          <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100/95 text-amber-900 border border-amber-300 backdrop-blur-sm">
+            Sample
           </span>
         )}
       </div>
@@ -232,6 +243,23 @@ export const EventsHub: React.FC<EventsHubProps> = ({
             </div>
           </div>
           {signedInAs ? (
+            <div className="flex items-center gap-2 shrink-0">
+            {isOrganiser && (
+              <button
+                onClick={onCreateEvent}
+                className="hidden sm:flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-slate-700 text-sm font-semibold hover:border-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                New event
+              </button>
+            )}
+            <button
+              onClick={onSignOut}
+              title="Sign out"
+              className="p-2.5 rounded-xl border-2 border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-900 transition-colors cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
             <button
               onClick={onOpenPortal}
               className="shrink-0 flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
@@ -246,6 +274,7 @@ export const EventsHub: React.FC<EventsHubProps> = ({
               </span>
               <ArrowRight className="w-4 h-4 text-blue-200 shrink-0" />
             </button>
+            </div>
           ) : (
             <button
               onClick={onSignIn}
@@ -316,12 +345,12 @@ export const EventsHub: React.FC<EventsHubProps> = ({
                 Explore events
               </button>
               <button
-                onClick={signedInAs ? onOpenPortal : onSignIn}
+                onClick={signedInAs ? (isOrganiser ? onCreateEvent : onOpenPortal) : onSignIn}
                 className="inline-flex items-center gap-2 px-7 py-4 rounded-xl border-2 border-white/30 text-white font-bold hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <LogIn className="w-4 h-4" />
                 {signedInAs
-                  ? (isOrganiser ? 'Manage events' : 'Open my portal')
+                  ? (isOrganiser ? 'Create a real event' : 'Open my portal')
                   : 'Sign in to register'}
               </button>
             </div>

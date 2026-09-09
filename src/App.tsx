@@ -143,6 +143,8 @@ export default function App() {
   const [isArchitectureOpen, setIsArchitectureOpen] = useState(false);
   const [isPrintBadgeOpen, setIsPrintBadgeOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  /** Set when the panel is opened for a specific job rather than to browse. */
+  const [adminIntent, setAdminIntent] = useState<'events-new' | undefined>(undefined);
   /** Lets a technical admin view the app as another role. Affects only what
    *  this browser renders — the security rules still see the real account, so
    *  previewing a lower role cannot be used to escape one. */
@@ -722,7 +724,7 @@ export default function App() {
           prizes: prizes.length, costs: costs.length, invites: invites.length,
         }}
         isRemote={isRemote}
-        onClose={() => setIsAdminPanelOpen(false)}
+        onClose={() => { setIsAdminPanelOpen(false); setAdminIntent(undefined); }}
         sessions={sessions}
         tracks={tracks}
         rooms={rooms}
@@ -748,6 +750,7 @@ export default function App() {
         invites={invites}
         attendance={attendance}
         onBulkImport={(ops) => batch(ops)}
+        openTo={adminIntent}
         communityTopics={communityTopics}
         messages={messages}
         feedback={feedback}
@@ -769,9 +772,16 @@ export default function App() {
         onOpenPortal={() => {
           // Straight to what they manage. An organiser arriving from the front
           // page is going to work, not browsing the catalogue they just left.
+          setAdminIntent(undefined);
           if (can(currentUser, 'events:create')) setIsAdminPanelOpen(true);
           setSurface('portal');
         }}
+        onCreateEvent={() => {
+          setAdminIntent('events-new');
+          setIsAdminPanelOpen(true);
+          setSurface('portal');
+        }}
+        onSignOut={handleSignOut}
         onOpenEvent={openEvent}
         onSignIn={openSignIn}
       />

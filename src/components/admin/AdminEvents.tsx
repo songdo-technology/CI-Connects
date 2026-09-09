@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   CalendarPlus, Pencil, Trash2, Eye, EyeOff, Star, AlertTriangle, Check, X, Plus,
   Upload, Wand2, Loader2,
@@ -10,6 +10,10 @@ import { uploadEventImage } from '../../lib/storage';
 import { generateEventImage } from '../../lib/aiImage';
 
 interface AdminEventsProps {
+  /** Changes whenever something asks for a blank event form. A counter rather
+   *  than a boolean, so a second request after the form has been closed still
+   *  reopens it — a flag that is already true fires no effect. */
+  newEventSignal?: number;
   events: EventConfig[];
   currentUser: UserProfile;
   onSave: (event: EventConfig, isNew: boolean) => Promise<void> | void;
@@ -51,6 +55,7 @@ const blankEvent = (ownerId: string): EventConfig => ({
  * Publishing is the deliberate, separate step.
  */
 export const AdminEvents: React.FC<AdminEventsProps> = ({
+  newEventSignal = 0,
   events, currentUser, onSave, onDelete,
 }) => {
   const [editing, setEditing] = useState<EventConfig | null>(null);
@@ -120,6 +125,13 @@ export const AdminEvents: React.FC<AdminEventsProps> = ({
     setIsNew(true);
     setError(null);
   };
+
+  /** Arriving from "New event" on the front page lands on the form itself,
+   *  not on a list of eleven samples to scroll past first. */
+  useEffect(() => {
+    if (newEventSignal > 0) startNew();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newEventSignal]);
 
   const edit = (e: EventConfig) => {
     setEditing({ ...e });

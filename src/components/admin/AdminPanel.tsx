@@ -19,6 +19,7 @@ import { AdminGuests } from './AdminGuests';
 import { AdminImport } from './AdminImport';
 import { AdminProposals } from './AdminProposals';
 import { AdminReset } from './AdminReset';
+import { AdminGettingStarted } from './AdminGettingStarted';
 import { AdminAttendance } from './AdminAttendance';
 
 interface AdminPanelProps {
@@ -56,6 +57,8 @@ interface AdminPanelProps {
   onDeleteInvite: (id: string) => Promise<void> | void;
   /** Applies a whole spreadsheet as one write. */
   onBulkImport: (ops: BatchOperation[]) => Promise<void>;
+  /** Where to land, when opened for a specific job rather than browsing. */
+  openTo?: 'events-new';
   communityTopics: { id: string }[];
   messages: { id: string }[];
   feedback: { id: string }[];
@@ -83,7 +86,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onSaveSession, onDeleteSession, onSaveRoom, onDeleteRoom,
   onSaveMeal, onDeleteMeal, onSaveSponsor, onDeleteSponsor,
   onSavePrize, onDeletePrize, onSaveCost, onDeleteCost, onSaveInvite, onDeleteInvite,
-  onBulkImport, communityTopics, messages, feedback, announcements,
+  onBulkImport, communityTopics, messages, feedback, announcements, openTo,
 }) => {
   const mayManageRoles = can(currentUser, 'users:manage_roles');
   const mayManageEvents = can(currentUser, 'events:create');
@@ -105,7 +108,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     mayManageSystem && ['system', 'System', Database],
   ].filter(Boolean) as [Section, string, typeof ShieldCheck][]);
 
-  const [section, setSection] = useState<Section>(sections[0]?.[0] ?? 'system');
+  /** Bumped by the checklist to open a blank form in the editor below. */
+  const [newEventNonce, setNewEventNonce] = useState(0);
+  const [section, setSection] = useState<Section>(
+    openTo === 'events-new' ? 'events' : sections[0]?.[0] ?? 'system');
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -150,12 +156,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         )}
 
         {section === 'events' && (
-          <AdminEvents
+          <>
+          <AdminGettingStarted
+            events={events} sessions={sessions} rooms={rooms} invites={invites}
+            onCreateEvent={() => setNewEventNonce((n) => n + 1)}
+            onGo={(s) => setSection(s as Section)}
+          />
+          <AdminEvents newEventSignal={(openTo === 'events-new' ? 1 : 0) + newEventNonce}
             events={events}
             currentUser={currentUser}
             onSave={onSaveEvent}
             onDelete={onDeleteEvent}
           />
+          </>
         )}
 
         {section === 'programme' && (
