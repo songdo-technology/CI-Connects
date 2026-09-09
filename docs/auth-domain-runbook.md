@@ -101,7 +101,12 @@ Authentication -> Settings -> Authorized domains must include
 
     curl -s "https://identitytoolkit.googleapis.com/v1/projects?key=$VITE_FIREBASE_API_KEY"
 
-## Step 3 — Point the app at its own auth domain
+## Step 3 — Point the app at its own auth domain — DONE
+
+Completed. `VITE_FIREBASE_AUTH_DOMAIN=ci-events.pages.dev` is set and
+deployed; the SDK was observed building its OAuth URL against
+`https://ci-events.pages.dev/__/auth/handler`. The previous value is kept in
+`.env.local.rollback`.
 
 Only once step 1 verifies as `registered`. In `.env.local`:
 
