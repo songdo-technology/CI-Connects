@@ -44,6 +44,7 @@ import { AdminPanel } from './components/admin/AdminPanel';
 import { MyProfile } from './components/MyProfile';
 import { GuestLinkReturn } from './components/GuestLinkReturn';
 import { can } from './lib/permissions';
+import { profileGaps } from './lib/profileCompleteness';
 import { FeedbackView } from './components/FeedbackView';
 import { SignageDirectory } from './components/SignageDirectory';
 
@@ -85,13 +86,23 @@ export default function App() {
     store,
   } = useData();
 
+  /**
+   * Every event the platform knows about.
+   *
+   * Live records win. The seed constants are the fallback only for the design
+   * preview and for the first paint, before the first snapshot lands —
+   * otherwise an event created or edited in the admin panel would never reach
+   * the public hub, the calendar, or an invitation's /?event= link, because
+   * those would still be reading a compiled-in copy of the original data.
+   */
+  const allEvents = events.length > 0 ? events : EVENTS;
+
   // Auth & surface routing
   /** Read once from the URL so /?event=<slug> is a real, shareable address
-   *  rather than only an in-app transition. */
-  const initialEventSlug = (() => {
-    const slug = new URLSearchParams(window.location.search).get('event');
-    return slug && EVENTS.some(e => e.slug === slug) ? slug : null;
-  })();
+   *  rather than only an in-app transition. The slug is not checked against a
+   *  list here: at first paint the store has answered nothing, so every slug
+   *  would look unknown. It is resolved below, once the data is in. */
+  const initialEventSlug = new URLSearchParams(window.location.search).get('event');
 
   const [surface, setSurface] = useState<Surface>(initialEventSlug ? 'event' : 'hub');
   /** Which event the public pages and the portal are scoped to. */
@@ -118,8 +129,11 @@ export default function App() {
   const [pendingThreadUserId, setPendingThreadUserId] = useState<string | null>(null);
 
   const activeEvent = useMemo(
-    () => EVENTS.find(e => e.slug === activeEventSlug) ?? EVENT_CONFIG,
-    [activeEventSlug],
+    () => allEvents.find(e => e.slug === activeEventSlug)
+      ?? allEvents.find(e => e.isFeatured)
+      ?? allEvents[0]
+      ?? EVENT_CONFIG,
+    [allEvents, activeEventSlug],
   );
 
   /** Sessions belonging to the active event. Only the flagship has a
@@ -144,6 +158,21 @@ export default function App() {
     syncUrl(slug);
     window.scrollTo(0, 0);
   };
+
+  /**
+   * A link to an event that no longer exists lands on the hub.
+   *
+   * Judged only once the store has answered: before that, every slug looks
+   * unknown and this would bounce a perfectly good link. Without it, a stale
+   * invitation would quietly open a *different* event — the featured one —
+   * which is worse than an honest "here is everything on".
+   */
+  useEffect(() => {
+    if (!ready || surface !== 'event' || allEvents.length === 0) return;
+    if (allEvents.some(e => e.slug === activeEventSlug)) return;
+    setSurface('hub');
+    syncUrl(null);
+  }, [ready, surface, allEvents, activeEventSlug]);
 
   const openHub = () => {
     setSurface('hub');
@@ -655,7 +684,7 @@ export default function App() {
   if (surface === 'hub') {
     return (
       <EventsHub
-        events={EVENTS}
+        events={allEvents}
         onOpenEvent={openEvent}
         onSignIn={() => setSurface('signin')}
       />
@@ -844,6 +873,7 @@ export default function App() {
         onOpenArchitecture={() => setIsArchitectureOpen(true)}
         bookmarkedCount={bookmarkedSessionsCount}
         unreadMessageCount={unreadMessageCount}
+        profileGapCount={profileGaps(currentUser).length}
         onSignOut={handleSignOut}
         onViewPublicPage={() => { setSurface('event'); window.scrollTo(0, 0); }}
         onOpenAdmin={() => setIsAdminPanelOpen(true)}

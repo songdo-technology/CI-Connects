@@ -1,9 +1,10 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Presentation, Linkedin, Upload, Link2, Trash2, Check, FileText, Loader2, Mail, UserRound, Plus, EyeOff, MessageSquareOff, ScanLine } from 'lucide-react';
+import { Presentation, Linkedin, Upload, Link2, Trash2, Check, FileText, Loader2, Mail, UserRound, Plus, EyeOff, MessageSquareOff, ScanLine, ListChecks } from 'lucide-react';
 import { Session, UserProfile, SessionMaterial, Room } from '../types';
 import { Field, inputClass, Notice } from './admin/formKit';
 import { initialsAvatar } from '../lib/avatar';
-import { uploadSessionMaterial, materialKindFor, describeUploadProblem } from '../lib/storage';
+import { profileGaps } from '../lib/profileCompleteness';
+import { uploadSessionMaterial, materialKindFor, describeUploadProblem, uploadProfilePhoto } from '../lib/storage';
 import { can } from '../lib/permissions';
 
 interface MyProfileProps {
@@ -41,6 +42,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({
 }) => {
   const [profile, setProfile] = useState({
     fullName: currentUser.fullName,
+    preferredName: currentUser.preferredName ?? '',
     title: currentUser.title,
     department: currentUser.department,
     organization: currentUser.organization,
@@ -49,6 +51,8 @@ export const MyProfile: React.FC<MyProfileProps> = ({
     interests: (currentUser.interests ?? []).join(', '),
     socialLinks: currentUser.socialLinks ?? [],
   });
+  const photoInput = useRef<HTMLInputElement>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
   const [profileBusy, setProfileBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,11 +64,25 @@ export const MyProfile: React.FC<MyProfileProps> = ({
     [sessions, currentUser.id],
   );
 
+  const onPhoto = async (file: File) => {
+    setPhotoBusy(true); setError(null);
+    try {
+      const url = await uploadProfilePhoto(currentUser.id, file);
+      await onSaveProfile({ avatarUrl: url });
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setPhotoBusy(false);
+      if (photoInput.current) photoInput.current.value = '';
+    }
+  };
+
   const saveProfile = async () => {
     setProfileBusy(true); setError(null);
     try {
       await onSaveProfile({
         fullName: profile.fullName,
+        preferredName: profile.preferredName.trim() || undefined,
         title: profile.title,
         department: profile.department,
         organization: profile.organization,
@@ -72,8 +90,11 @@ export const MyProfile: React.FC<MyProfileProps> = ({
         linkedInUrl: profile.linkedInUrl || undefined,
         interests: profile.interests.split(',').map((x) => x.trim()).filter(Boolean),
         socialLinks: profile.socialLinks.filter((l) => l.url.trim()),
-        // The avatar is generated from the name, so it has to follow a rename.
-        avatarUrl: initialsAvatar(profile.fullName),
+        // A generated avatar follows a rename; a real photograph does not get
+        // overwritten by one just because the name changed.
+        ...(currentUser.avatarUrl.startsWith('data:')
+          ? { avatarUrl: initialsAvatar(profile.preferredName.trim() || profile.fullName) }
+          : {}),
         // Editing your own speaker page is the clearest possible signal that
         // the placeholder copy has been replaced.
         isPlaceholder: false,
@@ -87,8 +108,38 @@ export const MyProfile: React.FC<MyProfileProps> = ({
     }
   };
 
+  const gaps = profileGaps(currentUser);
+
   return (
     <div className="space-y-5">
+      {/* The same list the invitation email asks for. Shown until it is done,
+          rather than dismissible: an organiser chasing five people for a
+          photo the week of an event is exactly the work this replaces. */}
+      {gaps.length > 0 && (
+        <div className="bg-amber-50 border border-amber-300 rounded-2xl p-5">
+          <div className="flex items-center gap-2.5 mb-1">
+            <ListChecks className="w-5 h-5 text-amber-700" />
+            <h3 className="font-bold text-amber-900">
+              {gaps.length === 1 ? 'One thing left' : `${gaps.length} things left`}
+            </h3>
+          </div>
+          <p className="text-xs text-amber-800 mb-3">
+            Everything below is seen by other people at the event. It takes a minute.
+          </p>
+          <ul className="space-y-1.5">
+            {gaps.map((g) => (
+              <li key={g.key} className="flex items-start gap-2 text-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-600 mt-1.5 shrink-0" />
+                <span>
+                  <span className="font-semibold text-amber-900">{g.label}</span>
+                  <span className="text-amber-800"> — {g.why}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* ---------------- Profile ---------------- */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6">
         <div className="flex items-center gap-2.5 mb-1">
@@ -101,20 +152,52 @@ export const MyProfile: React.FC<MyProfileProps> = ({
         </p>
 
         <div className="flex items-start gap-5 mb-5">
-          <img src={initialsAvatar(profile.fullName || currentUser.fullName)} alt=""
+          <img src={currentUser.avatarUrl} alt=""
                className="w-20 h-20 rounded-2xl object-cover shrink-0 border border-slate-200" />
-          <p className="text-xs text-slate-500 leading-relaxed pt-1">
-            Profile pictures are generated from your name, so everyone on the
-            page looks consistent and nobody has to supply a headshot. It updates
-            when you change your name below.
-          </p>
+          <div className="min-w-0 pt-0.5">
+            <input
+              ref={photoInput}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) void onPhoto(f); }}
+            />
+            <div className="flex flex-wrap items-center gap-2 mb-1.5">
+              <button
+                onClick={() => photoInput.current?.click()}
+                disabled={photoBusy || !uploadsEnabled}
+                title={uploadsEnabled ? undefined : 'Photo upload is unavailable in the demo build.'}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                {photoBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                {currentUser.avatarUrl.startsWith('data:') ? 'Add a photo' : 'Change photo'}
+              </button>
+              {!currentUser.avatarUrl.startsWith('data:') && (
+                <button
+                  onClick={() => onSaveProfile({
+                    avatarUrl: initialsAvatar(profile.preferredName.trim() || profile.fullName),
+                  })}
+                  className="text-xs font-semibold text-slate-400 hover:text-amber-700 cursor-pointer"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              A clear, professional headshot — head and shoulders, plain background.
+              It appears on your badge and in the directory. Without one we
+              generate initials, which works but is less useful to someone trying
+              to find you.
+            </p>
+          </div>
         </div>
 
         <div className="space-y-4">
           <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="Full name">
+            <Field label="Full name" hint="First and last name, as it should appear on records.">
               <input className={inputClass} value={profile.fullName}
-                     onChange={(e) => setProfile({ ...profile, fullName: e.target.value })} />
+                     onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
+                     placeholder="Alexandra Whitfield" />
             </Field>
             <Field label="Title" hint="How you are introduced.">
               <input className={inputClass} value={profile.title}
@@ -132,6 +215,15 @@ export const MyProfile: React.FC<MyProfileProps> = ({
                      onChange={(e) => setProfile({ ...profile, organization: e.target.value })} />
             </Field>
           </div>
+          <Field
+            label="Preferred name"
+            hint="What you are actually called. This is printed large on your badge — leave it blank to use your first name."
+          >
+            <input className={inputClass} value={profile.preferredName}
+                   onChange={(e) => setProfile({ ...profile, preferredName: e.target.value })}
+                   placeholder="Alex" />
+          </Field>
+
           <Field label="Biography" hint="Two or three sentences reads best on the speaker card.">
             <textarea className={`${inputClass} resize-none`} rows={4} value={profile.bio}
                       onChange={(e) => setProfile({ ...profile, bio: e.target.value })} />

@@ -55,3 +55,19 @@ export function materialKindFor(file: File): 'slides' | 'pdf' | 'file' {
   if (file.type.includes('presentation') || file.type.includes('powerpoint')) return 'slides';
   return 'file';
 }
+
+/** Uploads a profile photo and returns its URL. Scoped to the caller's own
+ *  folder, which is what the storage rule checks. */
+export async function uploadProfilePhoto(uid: string, file: File): Promise<string> {
+  if (!firebaseStorage) throw new Error('File storage is not configured.');
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Choose an image — JPEG or PNG works best.');
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error(`That image is ${(file.size / 1024 / 1024).toFixed(1)} MB. The limit is 5 MB.`);
+  }
+  const safeName = file.name.replace(/[^A-Za-z0-9._-]/g, '_');
+  const handle = ref(firebaseStorage, `profiles/${uid}/${Date.now()}-${safeName}`);
+  await uploadBytes(handle, file, { contentType: file.type });
+  return getDownloadURL(handle);
+}

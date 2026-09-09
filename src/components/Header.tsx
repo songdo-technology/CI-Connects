@@ -16,6 +16,8 @@ interface HeaderProps {
   onOpenArchitecture: () => void;
   bookmarkedCount: number;
   unreadMessageCount: number;
+  /** How many profile fields other people can see are still empty. */
+  profileGapCount: number;
   onSignOut: () => void;
   onViewPublicPage: () => void;
   onOpenAdmin: () => void;
@@ -28,6 +30,7 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
   unreadMessageCount,
+  profileGapCount,
   onSignOut,
   onViewPublicPage,
   onOpenAdmin,
@@ -424,6 +427,13 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <UserRound className="w-4 h-4 text-slate-500" />
             <span>My Profile</span>
+            {/* A count, not a bare dot: "3" is a job you can size before
+                opening it, where a dot only says "something, somewhere". */}
+            {profileGapCount > 0 && (
+              <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500 text-white font-bold">
+                {profileGapCount}
+              </span>
+            )}
           </button>
 
           <button

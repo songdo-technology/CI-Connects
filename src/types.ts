@@ -115,6 +115,9 @@ export interface UserProfile {
   id: string;
   email: string;
   fullName: string;
+  /** What they are actually called. Printed large on the badge, because the
+   *  name on a passport is rarely the name someone answers to across a room. */
+  preferredName?: string;
   title: string;
   department: string;
   organization: string;

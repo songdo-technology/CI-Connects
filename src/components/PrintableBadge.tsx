@@ -116,7 +116,11 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
 
   // ---------------------------------------------------------------- Front
   const Front: React.FC<{ u: UserProfile }> = ({ u }) => {
-    const { first, rest } = splitName(u.fullName);
+    // Preferred name wins outright: the badge exists to be read across a room,
+    // and "Bill" is what he answers to even when the record says "William".
+    const parsed = splitName(u.fullName);
+    const first = u.preferredName?.trim() || parsed.first;
+    const rest = u.preferredName?.trim() ? u.fullName : parsed.rest;
     const mine = sessionsFor(u);
     const band = ROLE_BAND[u.role];
     const meals = mealsFor(u);

@@ -42,6 +42,7 @@ export const AdminGuests: React.FC<AdminGuestsProps> = ({
   const [isNew, setIsNew] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
 
   const eventId = events.find((e) => e.isFeatured)?.id ?? events[0]?.id;
 
@@ -75,14 +76,66 @@ export const AdminGuests: React.FC<AdminGuestsProps> = ({
     catch (e) { setError((e as Error).message); }
   };
 
+  /**
+   * The message an organiser sends.
+   *
+   * Firebase's own email is a bare "click to sign in" and cannot carry any of
+   * this, so the instructions have to travel in the invitation. It is written
+   * to be pasted whole and to answer, in order, the questions a first-time
+   * attendee actually has: where do I go, how do I get in, and what do you
+   * need from me.
+   */
+  const inviteText = (invite: Invite) => {
+    const event = events.find((e) => e.id === invite.eventId);
+    const eventUrl = event
+      ? `${window.location.origin}/?event=${event.slug}`
+      : window.location.origin;
+
+    return [
+      `You are invited to ${event?.name ?? 'a Chadwick International event'}.`,
+      event?.dateLabel ? `${event.dateLabel} · ${event.venueName}` : '',
+      '',
+      `Event details and full programme: ${eventUrl}`,
+      '',
+      'HOW TO SIGN IN',
+      `1. Go to ${window.location.origin}`,
+      '2. Choose "I\'m attending as a guest"',
+      `3. Enter this email address: ${invite.email}`,
+      '4. We will email you a one-tap sign-in link — no password to create or remember.',
+      '',
+      `Your access code is ${invite.accessCode}. Keep it for the registration desk.`,
+      '',
+      'PLEASE COMPLETE YOUR PROFILE',
+      'Once signed in, open "My Profile". A few minutes here makes the event work',
+      'better for you and for everyone trying to find you.',
+      '',
+      '• Full name — your first and last name.',
+      '• Preferred name — what you actually go by. This is printed large on your',
+      '  badge, so "Alex" rather than "Alexandra" if that is what you answer to.',
+      '• School or organisation — printed on your badge under your name.',
+      '• Your role or job title.',
+      '• A professional photo — head and shoulders, plain background. It appears on',
+      '  your badge and in the colleague directory.',
+      '• LinkedIn, X or any other links you are happy for colleagues to have. These',
+      '  become clickable in the directory, which is how most people follow up',
+      '  afterwards.',
+      '',
+      'You can also reserve sessions, choose your meals, and control who may',
+      'contact you — all from the same place.',
+      '',
+      'See you there.',
+    ].filter((line, i, all) => !(line === '' && all[i - 1] === '')).join('\n');
+  };
+
   const copy = async (invite: Invite) => {
-    const text =
-      `You are invited to ${events.find((e) => e.id === invite.eventId)?.name ?? 'a Chadwick event'}.\n\n` +
-      `Sign in at ${window.location.origin} using this email address: ${invite.email}\n` +
-      `Choose "I'm attending as a guest" and we will email you a one-tap sign-in link.\n\n` +
-      `Your access code is ${invite.accessCode} — keep it for the registration desk.`;
-    try { await navigator.clipboard.writeText(text); setCopied(invite.id); setTimeout(() => setCopied(null), 2000); }
-    catch { /* clipboard blocked; the text is on screen */ }
+    try {
+      await navigator.clipboard.writeText(inviteText(invite));
+      setCopied(invite.id);
+      setTimeout(() => setCopied(null), 2000);
+    } catch {
+      // Clipboard can be blocked; fall back to showing the text to copy by hand.
+      setPreview(invite.id);
+    }
   };
 
   if (editing) {
@@ -226,8 +279,20 @@ export const AdminGuests: React.FC<AdminGuestsProps> = ({
                     {copied === i.id ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                     {copied === i.id ? 'Copied' : 'Copy invite text'}
                   </button>
+                  <button
+                    onClick={() => setPreview(preview === i.id ? null : i.id)}
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-600 hover:border-blue-600 cursor-pointer"
+                  >
+                    {preview === i.id ? 'Hide' : 'Preview'}
+                  </button>
                   <ConfirmDelete onConfirm={() => onDelete(i.id)} />
                 </div>
+
+                {preview === i.id && (
+                  <pre className="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200 text-[10px] leading-relaxed text-slate-700 whitespace-pre-wrap font-sans max-h-72 overflow-y-auto">
+                    {inviteText(i)}
+                  </pre>
+                )}
               </div>
             </div>
           );

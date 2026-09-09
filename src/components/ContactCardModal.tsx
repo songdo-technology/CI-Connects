@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Mail, Linkedin, Building2, ShieldOff, Copy, Check, MessageSquare, Download } from 'lucide-react';
 import { UserProfile } from '../types';
 import { DIETARY_META } from '../lib/dietary';
+import { SocialLinkRow } from '../lib/socialLinks';
 
 interface ContactCardModalProps {
   profile: UserProfile | null;
@@ -133,16 +134,17 @@ export const ContactCardModal: React.FC<ContactCardModalProps> = ({
                 {copied ? <Check className="w-4 h-4 text-emerald-600 shrink-0" /> : <Copy className="w-4 h-4 text-slate-300 shrink-0" />}
               </button>
 
-              {profile.linkedInUrl && (
-                <a
-                  href={profile.linkedInUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-200 hover:border-blue-600 transition-colors"
-                >
-                  <Linkedin className="w-4 h-4 text-blue-600 shrink-0" />
-                  <span className="text-sm text-slate-700 truncate flex-1">LinkedIn profile</span>
-                </a>
+              {(profile.linkedInUrl || profile.socialLinks?.length) && (
+                <div className="px-1 pt-1">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                    Find them online
+                  </div>
+                  <SocialLinkRow
+                    linkedInUrl={profile.linkedInUrl}
+                    links={profile.socialLinks}
+                    size="md"
+                  />
+                </div>
               )}
             </div>
 

@@ -14,6 +14,7 @@ import {
   Sparkles,
   Lock, Linkedin } from 'lucide-react';
 import { can } from '../lib/permissions';
+import { SocialLinkRow } from '../lib/socialLinks';
 import { UserProfile, AttendeeType } from '../types';
 
 interface DirectoryViewProps {
@@ -284,22 +285,12 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
                     <span>Email</span>
                   </a>
 
-                  {profile.linkedInUrl ? (
-                    <a
-                      href={profile.linkedInUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 py-1.5 px-2.5 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 text-xs font-semibold text-blue-700 flex items-center justify-center gap-1.5 transition-colors"
-                      title={`Open ${profile.fullName}'s LinkedIn profile`}
-                    >
-                      <Linkedin className="w-3.5 h-3.5 text-blue-600" />
-                      <span>LinkedIn</span>
-                    </a>
-                  ) : (
-                    <span className="flex-1 text-center text-[11px] text-slate-400 italic py-1.5">
-                      No LinkedIn
-                    </span>
-                  )}
+                  <div className="flex-1 flex items-center justify-end">
+                    <SocialLinkRow
+                      linkedInUrl={profile.linkedInUrl}
+                      links={profile.socialLinks}
+                    />
+                  </div>
                 </div>
 
                 <button
