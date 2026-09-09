@@ -923,6 +923,7 @@ export default function App() {
         profileGapCount={profileGaps(currentUser).length}
         onSignOut={handleSignOut}
         onViewPublicPage={() => { setSurface('event'); window.scrollTo(0, 0); }}
+        onGoHome={openHub}
         onOpenAdmin={() => setIsAdminPanelOpen(true)}
         realRole={currentUser.role}
         previewRole={previewRole}

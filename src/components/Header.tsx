@@ -20,6 +20,10 @@ interface HeaderProps {
   profileGapCount: number;
   onSignOut: () => void;
   onViewPublicPage: () => void;
+  /** The platform's front door. The brand block goes here, because a logo
+   *  reading "CI Connects" that lands on one conference is a lie about where
+   *  it goes. */
+  onGoHome: () => void;
   onOpenAdmin: () => void;
   realRole: UserRole;
   previewRole: UserRole | null;
@@ -33,6 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
   profileGapCount,
   onSignOut,
   onViewPublicPage,
+  onGoHome,
   onOpenAdmin,
   realRole,
   previewRole,
@@ -127,8 +132,8 @@ export const Header: React.FC<HeaderProps> = ({
           
           {/* Brand & Event Identity */}
           <button
-            onClick={onViewPublicPage}
-            title="Back to the public event page"
+            onClick={onGoHome}
+            title="All Chadwick events"
             className="flex items-center gap-3 min-w-0 text-left rounded-xl hover:opacity-80 transition-opacity cursor-pointer"
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-slate-900 via-indigo-950 to-blue-900 flex items-center justify-center text-white shadow-md shadow-slate-900/10 shrink-0">
