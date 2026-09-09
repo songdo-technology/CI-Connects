@@ -1,366 +1,370 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
-import { 
-  Sparkles, 
-  Award, 
-  Trophy, 
-  RefreshCw, 
-  CheckCircle2, 
-  Users, 
-  Filter, 
-  Gift, 
-  Volume2, 
-  VolumeX,
-  ShieldCheck
+import {
+  Gift, Play, Users, Trophy, RotateCcw, Volume2, VolumeX, Undo2, Sparkles, Timer,
 } from 'lucide-react';
-import { UserProfile, Session } from '../types';
+import { UserProfile, Prize, Sponsor, EventConfig } from '../types';
+import { can } from '../lib/permissions';
 
 interface LuckyDrawProps {
   profiles: UserProfile[];
-  sessions: Session[];
+  prizes: Prize[];
+  sponsors: Sponsor[];
+  events: EventConfig[];
+  currentUser: UserProfile;
+  /** Records a win against the prize. Undo passes the shortened list back. */
+  onUpdatePrize: (prizeId: string, wonBy: NonNullable<Prize['wonBy']>) => Promise<void> | void;
 }
 
-interface WinnerRecord {
-  id: string;
-  user: UserProfile;
-  prize: string;
-  timestamp: string;
-}
+type Phase = 'idle' | 'spinning' | 'revealed';
 
+/**
+ * The closing draw, built to be projected.
+ *
+ * Everyone checked in is entered automatically — there is no ticket to collect
+ * and nothing for an organiser to type at the front of a room. Winners are
+ * removed from the pool by default, because a second win for the same person
+ * reads as rigged whatever the maths says, though that can be turned off for a
+ * small event where it would otherwise exhaust the pool.
+ *
+ * Eligibility is attendance, not registration. Someone who registered and did
+ * not come should not win the iPad, and the door scans are what make that
+ * distinguishable.
+ */
 export const LuckyDraw: React.FC<LuckyDrawProps> = ({
-  profiles,
-  sessions,
+  profiles, prizes, sponsors, events, currentUser, onUpdatePrize,
 }) => {
-  const [selectedCriteria, setSelectedCriteria] = useState<'checkedIn' | 'activeWorkshops' | 'all'>('checkedIn');
-  const [selectedPrize, setSelectedPrize] = useState<string>('Grand Prize: Apple iPad Air (64GB) + Apple Pencil');
-  const [isSpinning, setIsSpinning] = useState(false);
-  const [currentDisplayedUser, setCurrentDisplayedUser] = useState<UserProfile | null>(null);
+  const mayDraw = can(currentUser, 'luckydraw:manage');
+
+  const [eventId, setEventId] = useState(
+    () => events.find((e) => e.isFeatured)?.id ?? events[0]?.id ?? '');
+  const [prizeId, setPrizeId] = useState<string>('');
+  const [phase, setPhase] = useState<Phase>('idle');
+  const [displayName, setDisplayName] = useState<string>('');
   const [winner, setWinner] = useState<UserProfile | null>(null);
-  const [pastWinners, setPastWinners] = useState<WinnerRecord[]>([]);
-  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [durationSec, setDurationSec] = useState(5);
+  const [excludeWinners, setExcludeWinners] = useState(true);
+  const [checkedInOnly, setCheckedInOnly] = useState(true);
+  const [soundOn, setSoundOn] = useState(true);
 
-  // Eligible pool based on criteria
-  const eligibleAttendees = profiles.filter(p => {
-    if (selectedCriteria === 'checkedIn') {
-      return p.checkedIn;
-    }
-    if (selectedCriteria === 'activeWorkshops') {
-      const userReservedCount = sessions.filter(s => s.reservedUserIds.includes(p.id)).length;
-      return p.checkedIn && userReservedCount >= 2;
-    }
-    return true;
-  });
+  const timers = useRef<number[]>([]);
+  const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = []; };
+  useEffect(() => () => clearTimers(), []);
 
-  const prizes = [
-    'Grand Prize: Apple iPad Air (64GB) + Apple Pencil',
-    'Diamond Award: Bose Noise-Cancelling Wireless Headphones',
-    'Innovation Runner-Up: Anker Prime Power Bank & Fast Charger Suite',
-    'Faculty Book & EdTech Subscription Bundle ($200 Campus Grant)',
-  ];
+  const eventPrizes = useMemo(
+    () => prizes.filter((p) => p.eventId === eventId).sort((a, b) => a.orderIndex - b.orderIndex),
+    [prizes, eventId]);
 
-  const playClickSound = (frequency: number = 600) => {
-    if (!audioEnabled) return;
-    try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.05);
-    } catch {
-      // Audio not permitted
-    }
-  };
+  const prize = eventPrizes.find((p) => p.id === prizeId) ?? eventPrizes[0];
+  const drawn = prize?.wonBy?.length ?? 0;
+  const remaining = prize ? prize.quantity - drawn : 0;
 
-  const playVictoryFanfare = () => {
-    if (!audioEnabled) return;
-    try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-      notes.forEach((freq, idx) => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.12);
-        gain.gain.setValueAtTime(0.12, audioCtx.currentTime + idx * 0.12);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.12 + 0.35);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start(audioCtx.currentTime + idx * 0.12);
-        osc.stop(audioCtx.currentTime + idx * 0.12 + 0.35);
-      });
-    } catch {
-      // Audio not permitted
-    }
-  };
+  /** Everyone who has already won anything, across every prize for this event. */
+  const allWinnerIds = useMemo(
+    () => new Set(eventPrizes.flatMap((p) => (p.wonBy ?? []).map((w) => w.userId))),
+    [eventPrizes]);
 
-  const startDraw = () => {
-    if (eligibleAttendees.length === 0 || isSpinning) return;
+  const pool = useMemo(
+    () => profiles.filter((p) =>
+      p.role !== 'front_desk' &&
+      (!checkedInOnly || p.checkedIn) &&
+      (!excludeWinners || !allWinnerIds.has(p.id))),
+    [profiles, checkedInOnly, excludeWinners, allWinnerIds]);
 
-    setIsSpinning(true);
+  /** Every win so far, newest first, for the results board. */
+  const results = useMemo(
+    () => eventPrizes
+      .flatMap((p) => (p.wonBy ?? []).map((w) => ({ prize: p, ...w })))
+      .sort((a, b) => b.drawnAt.localeCompare(a.drawnAt)),
+    [eventPrizes]);
+
+  const celebrate = useCallback(() => {
+    // Two bursts from the lower corners reads better on a wide projector than
+    // a single centre burst, which mostly lands off-screen.
+    const opts = { particleCount: 90, spread: 70, startVelocity: 45, ticks: 220 };
+    confetti({ ...opts, origin: { x: 0.15, y: 0.75 }, angle: 60 });
+    confetti({ ...opts, origin: { x: 0.85, y: 0.75 }, angle: 120 });
+  }, []);
+
+  const spin = () => {
+    if (!prize || pool.length === 0 || remaining <= 0) return;
+    clearTimers();
+    setPhase('spinning');
     setWinner(null);
 
-    let counter = 0;
-    const totalFlips = 35;
-    let speed = 40; // ms
+    const chosen = pool[Math.floor(Math.random() * pool.length)];
+    const totalMs = durationSec * 1000;
 
-    const runFlip = () => {
-      const randomIdx = Math.floor(Math.random() * eligibleAttendees.length);
-      const chosen = eligibleAttendees[randomIdx];
-      setCurrentDisplayedUser(chosen);
-      playClickSound(400 + (counter * 15));
-      counter++;
+    // Names cycle fast and then slow down, because a constant rate looks like
+    // a loading spinner rather than a draw. Intervals grow geometrically until
+    // they exceed the budget.
+    let elapsed = 0;
+    let gap = 45;
+    while (elapsed < totalMs) {
+      const at = elapsed;
+      timers.current.push(window.setTimeout(() => {
+        setDisplayName(pool[Math.floor(Math.random() * pool.length)]?.fullName ?? '');
+      }, at));
+      elapsed += gap;
+      gap = Math.min(320, gap * 1.09);
+    }
 
-      if (counter < totalFlips) {
-        speed = speed * 1.07; // gradually decelerate
-        setTimeout(runFlip, speed);
-      } else {
-        // Final Winner Selected
-        const finalWinner = chosen;
-        setWinner(finalWinner);
-        setIsSpinning(false);
-        playVictoryFanfare();
-
-        // Confetti celebration
-        confetti({
-          particleCount: 90,
-          spread: 80,
-          origin: { y: 0.6 },
-          colors: ['#2563eb', '#7c3aed', '#10b981', '#f59e0b'],
-        });
-
-        // Add to records
-        setPastWinners(prev => [
-          {
-            id: `win-${Date.now()}`,
-            user: finalWinner,
-            prize: selectedPrize,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          },
-          ...prev,
-        ]);
-      }
-    };
-
-    runFlip();
+    timers.current.push(window.setTimeout(async () => {
+      setDisplayName(chosen.fullName);
+      setWinner(chosen);
+      setPhase('revealed');
+      celebrate();
+      if (soundOn && 'vibrate' in navigator) navigator.vibrate?.([60, 40, 120]);
+      await onUpdatePrize(prize.id, [
+        ...(prize.wonBy ?? []),
+        { userId: chosen.id, drawnAt: new Date().toISOString() },
+      ]);
+    }, totalMs));
   };
 
-  return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 rounded-3xl p-6 text-white border border-purple-900/50 shadow-lg space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                Closing Ceremony Gamification
-              </span>
-              <span className="text-xs text-slate-400">Keynote Stage Terminal</span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-              Summit Lucky Draw & Verified Raffle Engine
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
-              Randomized fair prize drawing strictly restricted to verified on-site attendees. Projected on main auditorium screens during the closing plenary.
-            </p>
-          </div>
+  const undoLast = async () => {
+    const last = results[0];
+    if (!last) return;
+    const next = (last.prize.wonBy ?? []).filter(
+      (w) => !(w.userId === last.userId && w.drawnAt === last.drawnAt));
+    await onUpdatePrize(last.prize.id, next);
+    setPhase('idle'); setWinner(null); setDisplayName('');
+  };
 
+  const sponsorOf = (p: Prize) => sponsors.find((s) => s.id === p.sponsorId);
+
+  return (
+    <div className="space-y-5">
+      {/* ---------------- Stage ---------------- */}
+      <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-blue-950 text-white">
+        <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10">
+          <div className="flex items-center gap-2.5">
+            <Sparkles className="w-5 h-5 text-blue-200" />
+            <div>
+              <h2 className="text-lg font-bold leading-tight">Lucky Draw</h2>
+              <p className="text-xs text-blue-200/70">
+                {pool.length} eligible · {results.length} drawn so far
+              </p>
+            </div>
+          </div>
           <button
-            onClick={() => setAudioEnabled(!audioEnabled)}
-            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 transition-colors self-start sm:self-auto cursor-pointer"
-            title={audioEnabled ? 'Mute Sound' : 'Enable Sound'}
+            onClick={() => setSoundOn((v) => !v)}
+            className="shrink-0 p-2 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20 transition-colors cursor-pointer"
+            title={soundOn ? 'Haptics on' : 'Haptics off'}
           >
-            {audioEnabled ? <Volume2 className="w-4 h-4 text-purple-300" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
+            {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           </button>
         </div>
-      </div>
 
-      {/* Control Configuration Bar */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-          
-          {/* Prize Tier */}
-          <div>
-            <label className="block font-bold text-slate-700 mb-1 flex items-center gap-1.5">
-              <Gift className="w-4 h-4 text-purple-600" />
-              <span>Current Drawing Prize:</span>
-            </label>
-            <select
-              value={selectedPrize}
-              onChange={(e) => setSelectedPrize(e.target.value)}
-              disabled={isSpinning}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium"
-            >
-              {prizes.map((p, idx) => (
-                <option key={idx} value={p}>{p}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Eligibility Criteria */}
-          <div>
-            <label className="block font-bold text-slate-700 mb-1 flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Verified Eligibility Filter:</span>
-            </label>
-            <select
-              value={selectedCriteria}
-              onChange={(e) => setSelectedCriteria(e.target.value as any)}
-              disabled={isSpinning}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium"
-            >
-              <option value="checkedIn">
-                Verified Present at Venue (Checked-In Only)
-              </option>
-              <option value="activeWorkshops">
-                Checked-In + Active Participant (2+ Workshops Booked)
-              </option>
-              <option value="all">
-                All Registered Summit Attendees
-              </option>
-            </select>
-          </div>
-
-        </div>
-
-        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <span className="flex items-center gap-1.5 font-medium">
-            <Users className="w-4 h-4 text-slate-400" />
-            Eligible Attendees in Pool: <strong className="text-slate-800">{eligibleAttendees.length}</strong>
-          </span>
-          <span className="text-[11px] text-slate-400">
-            Cryptographically pseudo-random draw
-          </span>
-        </div>
-      </div>
-
-      {/* Main Drawing Visualizer Stage */}
-      <div className="bg-slate-950 rounded-3xl p-8 text-center text-white border border-slate-800 shadow-xl relative overflow-hidden flex flex-col items-center justify-center min-h-[320px]">
-        
-        {/* Glow backdrop */}
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 via-transparent to-blue-500/10 pointer-events-none" />
-
-        {/* Display Box */}
-        <div className="relative z-10 max-w-md w-full space-y-4">
-          
-          <div className="text-xs font-bold uppercase tracking-widest text-purple-300">
-            {isSpinning ? 'SELECTING LUCKY WINNER...' : winner ? '🎉 WINNER ANNOUNCED! 🎉' : 'READY FOR CLOSING DRAW'}
-          </div>
-
-          <div className={`p-6 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-center space-y-3 ${
-            winner
-              ? 'bg-purple-900/40 border-purple-400 shadow-[0_0_35px_rgba(168,85,247,0.35)] animate-in zoom-in-95'
-              : isSpinning
-              ? 'bg-slate-900/80 border-blue-400/80'
-              : 'bg-slate-900/50 border-slate-800'
-          }`}>
-            
-            {/* Avatar */}
-            <div className="relative">
-              {currentDisplayedUser || winner ? (
-                <img
-                  src={(winner || currentDisplayedUser)?.avatarUrl}
-                  alt={(winner || currentDisplayedUser)?.fullName}
-                  className={`w-24 h-24 rounded-full object-cover border-4 transition-transform duration-100 ${
-                    winner ? 'border-amber-400 scale-105 shadow-xl' : 'border-purple-400'
-                  }`}
-                />
-              ) : (
-                <div className="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center text-slate-500 border-4 border-slate-700">
-                  <Trophy className="w-10 h-10" />
-                </div>
-              )}
-
-              {winner && (
-                <div className="absolute -bottom-2 -right-2 bg-amber-400 text-slate-950 rounded-full p-1 shadow-md font-bold">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-              )}
-            </div>
-
-            {/* Name & Dept */}
-            <div className="space-y-1">
-              <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                {(winner || currentDisplayedUser)?.fullName || 'Click Draw to Spin'}
-              </h3>
-              <p className="text-xs sm:text-sm text-purple-200">
-                {(winner || currentDisplayedUser) 
-                  ? `${(winner || currentDisplayedUser)?.title} • ${(winner || currentDisplayedUser)?.department}`
-                  : 'Eligible attendees loaded'}
-              </p>
-              {(winner || currentDisplayedUser) && (
-                <p className="text-[11px] text-slate-400 font-mono">
-                  {(winner || currentDisplayedUser)?.organization}
-                </p>
-              )}
-            </div>
-
-            {/* Winner Confirmed Badge */}
-            {winner && (
-              <div className="mt-2 bg-amber-400/20 border border-amber-400/40 text-amber-300 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                Claiming: {selectedPrize}
+        <div className="px-6 py-12 sm:py-16 text-center min-h-[16rem] flex flex-col items-center justify-center">
+          {prize && (
+            <div className="mb-6">
+              <div className="text-xs font-bold tracking-[0.25em] text-blue-200/70 uppercase mb-1.5">
+                Drawing for
               </div>
+              <div className="text-xl sm:text-2xl font-bold">{prize.name}</div>
+              {sponsorOf(prize) && (
+                <div className="text-xs text-blue-200/70 mt-1">
+                  Donated by {sponsorOf(prize)!.name}
+                </div>
+              )}
+              <div className="text-xs text-blue-200/60 mt-1">
+                {remaining} of {prize.quantity} remaining
+              </div>
+            </div>
+          )}
+
+          {phase === 'idle' && !winner && (
+            <p className="text-blue-200/60 text-sm">Ready when you are.</p>
+          )}
+
+          {phase === 'spinning' && (
+            <div className="text-3xl sm:text-5xl font-bold tracking-tight tabular-nums animate-pulse">
+              {displayName || '…'}
+            </div>
+          )}
+
+          {phase === 'revealed' && winner && (
+            <div>
+              <div className="text-xs font-bold tracking-[0.25em] text-blue-200/70 uppercase mb-2">
+                Winner
+              </div>
+              <div className="text-4xl sm:text-6xl font-bold tracking-tight mb-2">
+                {winner.fullName}
+              </div>
+              <div className="text-sm text-blue-200/80">
+                {[winner.title, winner.organization].filter(Boolean).join(' · ')}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {mayDraw && (
+          <div className="px-6 py-4 bg-black/25 flex flex-wrap items-center gap-3">
+            <button
+              onClick={spin}
+              disabled={phase === 'spinning' || !prize || pool.length === 0 || remaining <= 0}
+              className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white text-blue-800 font-bold hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            >
+              <Play className="w-4 h-4" />
+              {phase === 'spinning' ? 'Drawing…'
+                : remaining <= 0 ? 'All drawn'
+                : results.length ? 'Draw again' : 'Start the draw'}
+            </button>
+
+            {phase === 'revealed' && (
+              <button
+                onClick={() => { setPhase('idle'); setWinner(null); setDisplayName(''); }}
+                className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-sm font-semibold hover:bg-white/20 transition-colors cursor-pointer"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Clear
+              </button>
+            )}
+
+            {results.length > 0 && phase !== 'spinning' && (
+              <button
+                onClick={undoLast}
+                className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-sm font-semibold hover:bg-white/20 transition-colors cursor-pointer"
+                title="Removes the most recent win and returns that person to the pool"
+              >
+                <Undo2 className="w-4 h-4" />
+                Undo last
+              </button>
             )}
           </div>
-
-          {/* Spin Button */}
-          <div className="pt-2">
-            <button
-              onClick={startDraw}
-              disabled={isSpinning || eligibleAttendees.length === 0}
-              className={`px-8 py-3.5 rounded-2xl text-sm font-bold tracking-wide transition-all shadow-lg flex items-center gap-2 mx-auto cursor-pointer ${
-                isSpinning
-                  ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white active:scale-95'
-              }`}
-            >
-              <RefreshCw className={`w-4 h-4 ${isSpinning ? 'animate-spin' : ''}`} />
-              <span>{isSpinning ? 'Drawing Winner...' : 'Draw Next Winner'}</span>
-            </button>
-          </div>
-
-        </div>
+        )}
       </div>
 
-      {/* Past Winners Gallery */}
-      {pastWinners.length > 0 && (
-        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
-          <div className="flex items-center gap-2">
-            <Trophy className="w-4 h-4 text-amber-500" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-              Session Winners Roll
-            </h3>
+      {mayDraw && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-5">
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Event</label>
+              <select
+                value={eventId}
+                onChange={(e) => { setEventId(e.target.value); setPrizeId(''); }}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+              >
+                {events.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Prize</label>
+              <select
+                value={prize?.id ?? ''}
+                onChange={(e) => { setPrizeId(e.target.value); setPhase('idle'); setWinner(null); }}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+              >
+                {eventPrizes.length === 0 && <option value="">No prizes configured</option>}
+                {eventPrizes.map((p) => {
+                  const left = p.quantity - (p.wonBy?.length ?? 0);
+                  return (
+                    <option key={p.id} value={p.id}>
+                      {p.name} — {left} of {p.quantity} left
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {pastWinners.map(win => (
-              <div key={win.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-3">
-                <img
-                  src={win.user.avatarUrl}
-                  alt={win.user.fullName}
-                  className="w-10 h-10 rounded-full object-cover border border-slate-300"
-                />
-                <div className="min-w-0 flex-1 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 truncate">{win.user.fullName}</span>
-                    <span className="text-[10px] text-slate-400">{win.timestamp}</span>
-                  </div>
-                  <p className="text-[11px] text-purple-700 font-semibold truncate">{win.prize}</p>
-                  <p className="text-[10px] text-slate-500 truncate">{win.user.department}</p>
+          <div>
+            <label className="flex items-center justify-between text-xs font-semibold text-slate-600 mb-2">
+              <span className="flex items-center gap-1.5">
+                <Timer className="w-3.5 h-3.5" />
+                Draw length
+              </span>
+              <span className="text-slate-500">{durationSec} seconds</span>
+            </label>
+            <input
+              type="range" min={3} max={10} step={1} value={durationSec}
+              onChange={(e) => setDurationSec(Number(e.target.value))}
+              className="w-full accent-blue-600"
+            />
+            <div className="flex justify-between text-[10px] text-slate-400 mt-1">
+              <span>3s — brisk</span><span>10s — build the tension</span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {([
+              {
+                on: checkedInOnly, set: setCheckedInOnly,
+                title: 'Only people scanned in at the venue',
+                body: 'Eligibility is attendance, not registration. Someone who signed up and did not come should not win.',
+              },
+              {
+                on: excludeWinners, set: setExcludeWinners,
+                title: 'Remove winners from the pool',
+                body: 'A second win for the same person reads as rigged whatever the maths says. Turn this off only for a pool too small to sustain it.',
+              },
+            ]).map(({ on, set, title, body }) => (
+              <button
+                key={title}
+                onClick={() => set(!on)}
+                className={`w-full flex items-start gap-3 p-3.5 rounded-xl border-2 text-left transition-colors cursor-pointer ${
+                  on ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'
+                }`}
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-bold text-slate-800">{title}</div>
+                  <div className="text-xs text-slate-500 leading-snug mt-0.5">{body}</div>
                 </div>
-              </div>
+                <span className={`shrink-0 mt-0.5 w-10 h-6 rounded-full transition-colors relative ${on ? 'bg-blue-600' : 'bg-slate-300'}`}>
+                  <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${on ? 'left-5' : 'left-1'}`} />
+                </span>
+              </button>
             ))}
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <Users className="w-3.5 h-3.5" />
+            {pool.length} in the pool
+            {checkedInOnly && ` · ${profiles.length - pool.length} excluded`}
           </div>
         </div>
       )}
 
+      {/* ---------------- Results board ---------------- */}
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2.5">
+          <Trophy className="w-5 h-5 text-amber-500" />
+          <h3 className="font-bold text-slate-900">Winners</h3>
+          <span className="text-xs text-slate-400">{results.length} so far</span>
+        </div>
+        {results.length === 0 ? (
+          <p className="p-8 text-center text-sm text-slate-400 italic">Nothing drawn yet.</p>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {results.map((r, i) => {
+              const person = profiles.find((p) => p.id === r.userId);
+              return (
+                <div key={`${r.prize.id}-${r.userId}-${i}`} className="p-4 flex items-center gap-4">
+                  <img src={person?.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-bold text-slate-900 truncate">
+                      {person?.fullName ?? 'Unknown'}
+                    </div>
+                    <div className="text-[11px] text-slate-500 truncate">
+                      {[person?.title, person?.organization].filter(Boolean).join(' · ')}
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-sm font-semibold text-slate-800 flex items-center gap-1.5 justify-end">
+                      <Gift className="w-3.5 h-3.5 text-slate-400" />
+                      {r.prize.name}
+                    </div>
+                    <div className="text-[11px] text-slate-400">
+                      {new Date(r.drawnAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

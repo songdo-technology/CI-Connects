@@ -780,7 +780,11 @@ export default function App() {
       {activeTab === 'luckydraw' && (
         <LuckyDraw
           profiles={allUsers}
-          sessions={sessions}
+          prizes={prizes}
+          sponsors={sponsors}
+          events={events}
+          currentUser={currentUser}
+          onUpdatePrize={(prizeId, wonBy) => update('prizes', prizeId, { wonBy })}
         />
       )}
 
