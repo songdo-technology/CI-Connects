@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import {
   Upload, FileSpreadsheet, Download, Check, AlertTriangle, RefreshCw, Loader2,
-  ClipboardPaste, ArrowRight, Sparkles,
+  ClipboardPaste, ArrowRight, Sparkles, Wand2,
 } from 'lucide-react';
 import {
   Room, Sponsor, MealService, Session, Track, UserProfile, Invite, EventConfig,
@@ -10,6 +10,7 @@ import { BatchOperation } from '../../lib/data/store';
 import { parseCsv, mapColumns, toCsv } from '../../lib/csvImport';
 import { IMPORT_SPECS, ImportSpec, ImportContext, RowResult } from '../../lib/importSpecs';
 import { Field, inputClass, Notice } from './formKit';
+import { structureWithAi, NotConfiguredError } from '../../lib/aiStructure';
 
 interface AdminImportProps {
   events: EventConfig[];
@@ -50,6 +51,12 @@ export const AdminImport: React.FC<AdminImportProps> = ({
   const [done, setDone] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+
+  /** The freeform half: prose in, rows out, straight into the box above. */
+  const [prose, setProse] = useState('');
+  const [thinking, setThinking] = useState(false);
+  const [aiSetup, setAiSetup] = useState<string | null>(null);
+  const [aiNote, setAiNote] = useState<string | null>(null);
 
   const spec = IMPORT_SPECS.find((s) => s.key === specKey) ?? IMPORT_SPECS[0];
 
@@ -103,6 +110,26 @@ export const AdminImport: React.FC<AdminImportProps> = ({
     link.download = `ci-connects-${spec.key}-template.csv`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const structure = async () => {
+    if (!prose.trim()) return;
+    setThinking(true); setError(null); setAiSetup(null); setAiNote(null);
+    try {
+      const result = await structureWithAi(spec.label, spec.fields, prose);
+      // Straight into the CSV box, not into the database. Everything below —
+      // column matching, validation, duplicate detection, confirmation —
+      // happens exactly as it would for a hand-made file.
+      setText(result.csv);
+      setAiNote(`${result.rows} row${result.rows === 1 ? '' : 's'} drafted. `
+        + 'Read them before importing — check anything with consequences, '
+        + 'especially times, capacities and email addresses.');
+    } catch (e) {
+      if (e instanceof NotConfiguredError) setAiSetup(e.message);
+      else setError((e as Error).message);
+    } finally {
+      setThinking(false);
+    }
   };
 
   const commit = async () => {
@@ -210,6 +237,72 @@ export const AdminImport: React.FC<AdminImportProps> = ({
           Copy the rows out of Excel or Google Sheets, including the header row. Column
           names are matched loosely, so “Start Time”, “start_time” and “Begins” all work.
         </p>
+      </div>
+
+      {/* ---------- Prose ---------- */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="flex items-center gap-2 mb-1">
+          <Wand2 className="w-4 h-4 text-blue-600" />
+          <span className="text-sm font-bold text-slate-900">
+            Or paste it however you have it
+          </span>
+        </div>
+        <p className="text-xs text-slate-500 mb-3">
+          An email from the caterer, a schedule out of a Word document, a list of
+          sponsors with no columns at all. It is turned into rows above, which you then
+          read and confirm like any other file — nothing is saved from here directly.
+        </p>
+        <textarea
+          value={prose}
+          onChange={(e) => setProse(e.target.value)}
+          rows={5}
+          placeholder={'Friday 15 October\n11:00–12:15  Argument in the Age of Autocomplete — Dr Sarah Lin, B-201\n13:45–15:00  Quiet Leadership — Prof David Kim, Black Box'}
+          className={`${inputClass} resize-y text-xs leading-relaxed`}
+        />
+        <div className="flex flex-wrap items-center gap-2 mt-3">
+          <button
+            onClick={structure}
+            disabled={thinking || !prose.trim()}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 disabled:opacity-40 transition-colors cursor-pointer"
+          >
+            {thinking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+            {thinking ? 'Reading it…' : 'Turn this into rows'}
+          </button>
+          {prose && !thinking && (
+            <button
+              onClick={() => { setProse(''); setAiNote(null); }}
+              className="px-4 py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 text-xs font-semibold hover:border-slate-400 transition-colors cursor-pointer"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
+        {aiNote && (
+          <div className="flex items-start gap-2 mt-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
+            <Sparkles className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+            <p className="text-[11px] text-blue-900 leading-relaxed">{aiNote}</p>
+          </div>
+        )}
+
+        {aiSetup && (
+          <div className="mt-3 p-4 rounded-xl bg-amber-50 border border-amber-300">
+            <p className="text-xs font-bold text-amber-900 mb-1.5">Not switched on yet</p>
+            <p className="text-[11px] text-amber-900 leading-relaxed mb-2">
+              This needs an API key, held on the server rather than in the browser. In
+              the Cloudflare dashboard: Workers &amp; Pages → ci-events → Settings →
+              Variables and Secrets, add one of
+            </p>
+            <ul className="text-[11px] text-amber-900 leading-relaxed list-disc pl-4 space-y-0.5">
+              <li><code className="font-mono">GEMINI_API_KEY</code> — from Google AI Studio</li>
+              <li><code className="font-mono">ANTHROPIC_API_KEY</code> — from the Anthropic console</li>
+            </ul>
+            <p className="text-[11px] text-amber-900 leading-relaxed mt-2">
+              Add <code className="font-mono">FIREBASE_API_KEY</code> as well, which the
+              endpoint uses to confirm the caller is a signed-in Chadwick account.
+            </p>
+          </div>
+        )}
       </div>
 
       {error && <Notice>{error}</Notice>}
