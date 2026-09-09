@@ -72,6 +72,8 @@ export default function App() {
     attendance,
     messages,
     feedback,
+    prizes,
+    costs,
     create,
     update,
     remove,
@@ -365,12 +367,12 @@ export default function App() {
   };
 
   /** Save helper shared by the programme, room, dining and sponsor editors. */
-  const saver = <K extends 'sessions' | 'rooms' | 'mealServices' | 'sponsors'>(key: K) =>
+  const saver = <K extends 'sessions' | 'rooms' | 'mealServices' | 'sponsors' | 'prizes' | 'costs'>(key: K) =>
     async (item: { id: string }, isNew: boolean) => {
       if (isNew) await create(key, item as never);
       else await update(key, item.id, item as never);
     };
-  const remover = (key: 'sessions' | 'rooms' | 'mealServices' | 'sponsors') =>
+  const remover = (key: 'sessions' | 'rooms' | 'mealServices' | 'sponsors' | 'prizes' | 'costs') =>
     async (id: string) => { await remove(key, id); };
 
   /** A person editing their own profile, from My Profile. */
@@ -597,6 +599,7 @@ export default function App() {
           mealServices: mealServices.length, announcements: announcements.length,
           communityTopics: communityTopics.length, attendance: attendance.length,
           messages: messages.length, feedback: feedback.length,
+          prizes: prizes.length, costs: costs.length,
         }}
         isRemote={isRemote}
         onClose={() => setIsAdminPanelOpen(false)}
@@ -616,6 +619,12 @@ export default function App() {
         onDeleteMeal={remover('mealServices')}
         onSaveSponsor={saver('sponsors')}
         onDeleteSponsor={remover('sponsors')}
+        prizes={prizes}
+        costs={costs}
+        onSavePrize={saver('prizes')}
+        onDeletePrize={remover('prizes')}
+        onSaveCost={saver('costs')}
+        onDeleteCost={remover('costs')}
       />
     );
   }
@@ -912,6 +921,7 @@ export default function App() {
         rooms={rooms}
         tracks={tracks}
         sponsors={sponsors}
+        mealServices={mealServices}
       />
 
       {/* Architectural Blueprint Modal */}

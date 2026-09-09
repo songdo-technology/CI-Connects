@@ -100,6 +100,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'data:export',
   ],
 
+  // A sponsor delegate is an attendee with a company behind them. They book,
+  // network and give feedback like anyone else; representing an organisation
+  // confers no editorial rights over the event.
+  sponsor: [...BASE],
+
   // Door and desk only. Deliberately has no content permissions and no access
   // to contact details — verifying someone is at the venue should not require
   // the ability to read their profile.
@@ -162,6 +167,7 @@ export const ROLE_LABEL: Record<UserRole, string> = {
   technical_admin: 'Technical Admin',
   event_organizer: 'Event Manager',
   speaker: 'Speaker',
+  sponsor: 'Sponsor',
   front_desk: 'Front Desk',
   attendee: 'Attendee',
 };
@@ -170,6 +176,7 @@ export const ROLE_DESCRIPTION: Record<UserRole, string> = {
   technical_admin: 'Everything an Event Manager can do, plus user roles, integrations and the platform itself.',
   event_organizer: 'Runs every event — programme, rooms, dining, sponsors, signage, attendees and feedback. No role assignment or integrations.',
   speaker: 'Edits their own profile, bio and links, and attaches slides or materials to sessions they present.',
+  sponsor: 'Attends on behalf of a sponsoring organisation. Books, networks and gives feedback like any attendee.',
   front_desk: 'Scans badges and checks people in at the door.',
   attendee: 'Registers, books sessions, chooses meals, posts, messages and leaves feedback.',
 };
@@ -177,5 +184,5 @@ export const ROLE_DESCRIPTION: Record<UserRole, string> = {
 /** Roles a given user is allowed to assign to someone else. */
 export function assignableRoles(user: UserProfile | null | undefined): UserRole[] {
   if (!can(user, 'users:manage_roles')) return [];
-  return ['technical_admin', 'event_organizer', 'speaker', 'front_desk', 'attendee'];
+  return ['technical_admin', 'event_organizer', 'speaker', 'sponsor', 'front_desk', 'attendee'];
 }

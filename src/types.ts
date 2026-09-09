@@ -6,6 +6,7 @@ export type UserRole =
   | 'technical_admin'
   | 'event_organizer'
   | 'speaker'
+  | 'sponsor'
   | 'front_desk'
   | 'attendee';
 
@@ -137,6 +138,9 @@ export interface UserProfile {
   /** Opt-out: when false, nobody can start a direct message with this person.
    *  Defaults to allowed when absent, so existing accounts keep working. */
   allowMessages?: boolean;
+  /** For sponsor delegates: which sponsor organisation they represent. Drives
+   *  the organisation shown on their badge. */
+  sponsorId?: string;
   /** Free-form profile links — personal site, X, Instagram, ORCID. LinkedIn
    *  keeps its own field because the directory surfaces it specifically. */
   socialLinks?: { label: string; url: string }[];
@@ -358,4 +362,66 @@ export function eventStatus(e: EventConfig, today = new Date()): EventStatus {
   if (today > end) return 'past';
   if (today >= start) return 'live';
   return 'upcoming';
+}
+
+/* ============================================================
+   Prizes and spend — the operational side an event manager owns.
+   ============================================================ */
+
+/** A prize in the closing draw. Managed by organisers, drawn on the day. */
+export interface Prize {
+  id: string;
+  eventId: string;
+  name: string;
+  description?: string;
+  /** Donating sponsor, when there is one. */
+  sponsorId?: string;
+  /** How many of this prize there are. */
+  quantity: number;
+  orderIndex: number;
+  /** Set once drawn. A prize is drawn at most once per unit of quantity. */
+  wonBy?: { userId: string; drawnAt: string }[];
+}
+
+export type CostCategory =
+  | 'Catering'
+  | 'Venue'
+  | 'Speakers'
+  | 'Materials'
+  | 'Technology'
+  | 'Travel'
+  | 'Marketing'
+  | 'Other';
+
+/**
+ * A single line of event spend. Budgeted and actual are separate fields
+ * rather than one number, because the useful question during planning is the
+ * gap between them, and after the event it is whether the gap was real.
+ */
+export interface CostEntry {
+  id: string;
+  eventId: string;
+  label: string;
+  category: CostCategory;
+  /** Minor units of the currency, to avoid float arithmetic on money. */
+  budgetedMinor: number;
+  actualMinor: number;
+  currency: string;
+  note?: string;
+  /** Uid of whoever recorded it. */
+  recordedBy: string;
+  recordedAt: string;
+}
+
+export const COST_CATEGORIES: CostCategory[] = [
+  'Catering', 'Venue', 'Speakers', 'Materials', 'Technology', 'Travel', 'Marketing', 'Other',
+];
+
+/** Money is stored in minor units; this is the only place it becomes a string. */
+export function formatMoney(minor: number, currency = 'KRW'): string {
+  const major = currency === 'KRW' ? minor : minor / 100;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency', currency,
+    maximumFractionDigits: currency === 'KRW' ? 0 : 2,
+  }).format(major);
 }

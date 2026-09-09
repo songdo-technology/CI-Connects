@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { X, Printer, Users, User, Building2, CalendarDays, MapPin } from 'lucide-react';
-import { UserProfile, Session, Room, Track, EventConfig, Sponsor } from '../types';
+import {
+  UserProfile, Session, Room, Track, EventConfig, Sponsor, MealService, SponsorTier,
+} from '../types';
 import { DIETARY_META } from '../lib/dietary';
 import { LANYARD_SIZES, LanyardSize, badgeScale, buildBadgePayload } from '../lib/badge';
 
@@ -15,6 +17,7 @@ interface PrintableBadgeProps {
   rooms: Room[];
   tracks: Track[];
   sponsors: Sponsor[];
+  mealServices: MealService[];
 }
 
 /**
@@ -60,16 +63,29 @@ const splitName = (fullName: string) => {
   return { first: parts[0], rest: parts.slice(1).join(' ') };
 };
 
+/** Sponsor prominence on the reverse. The size gradient is what a sponsor is
+ *  actually buying, so it has to survive onto the printed card, not only the
+ *  website. */
+const SPONSOR_BANNER: Record<SponsorTier, { font: number; weight: number }> = {
+  Host:      { font: 7.5, weight: 700 },
+  Platinum:  { font: 11,  weight: 700 },
+  Gold:      { font: 8,   weight: 700 },
+  Silver:    { font: 6.5, weight: 600 },
+  Bronze:    { font: 6,   weight: 600 },
+  Exhibitor: { font: 5,   weight: 500 },
+};
+
 const ROLE_BAND: Record<UserProfile['role'], { label: string; bg: string }> = {
   attendee:        { label: 'ATTENDEE',  bg: '#002b54' },
   speaker:         { label: 'SPEAKER',   bg: '#b04318' },
+  sponsor:         { label: 'SPONSOR',   bg: '#2a6791' },
   event_organizer: { label: 'ORGANISER', bg: '#5e6513' },
   technical_admin: { label: 'ORGANISER', bg: '#5e6513' },
   front_desk:      { label: 'FRONT DESK', bg: '#6b605a' },
 };
 
 export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
-  isOpen, onClose, event, profiles, currentUser, sessions, rooms, tracks, sponsors,
+  isOpen, onClose, event, profiles, currentUser, sessions, rooms, tracks, sponsors, mealServices,
 }) => {
   const [scope, setScope] = useState<'me' | 'all'>('me');
   const [side, setSide] = useState<'both' | 'front' | 'back'>('both');
@@ -85,6 +101,14 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
 
   if (!isOpen) return null;
 
+  /** Every meal this person has chosen, with the option they picked. */
+  const mealsFor = (u: UserProfile) =>
+    mealServices
+      .filter((m) => m.selections[u.id])
+      .sort((a, b) => a.day - b.day || a.startMinutes - b.startMinutes)
+      .map((m) => ({ service: m, option: m.options.find((o) => o.id === m.selections[u.id]) }))
+      .filter((x) => x.option);
+
   const sessionsFor = (u: UserProfile) =>
     sessions
       .filter((s) => s.reservedUserIds.includes(u.id))
@@ -95,6 +119,11 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
     const { first, rest } = splitName(u.fullName);
     const mine = sessionsFor(u);
     const band = ROLE_BAND[u.role];
+    const meals = mealsFor(u);
+    // A sponsor delegate wears the company they represent, not a department.
+    const org = u.role === 'sponsor'
+      ? sponsors.find((s) => s.id === u.sponsorId)?.name ?? u.organization
+      : u.organization;
 
     return (
       <div className="badge-card">
@@ -104,14 +133,19 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
         </div>
 
         <div className="badge-body">
+          <div className="badge-identity">
+            {/* Whatever the profile holds — a generated initials mark today, a
+                real photo once someone uploads one. */}
+            <img className="badge-photo" src={u.avatarUrl} alt="" />
           <div className="badge-name-block">
             <div className="badge-first" style={{ fontSize: firstNameSize(first, scale.firstNameMax) }}>{first}</div>
             {rest && <div className="badge-last">{rest}</div>}
           </div>
+          </div>
 
           <div className="badge-meta">
-            <div className="badge-title">{u.title}</div>
-            <div className="badge-org">{u.organization}</div>
+            <div className="badge-org">{org}</div>
+            {u.title && <div className="badge-title">{u.title}</div>}
           </div>
 
           <div className="badge-lower">
@@ -132,7 +166,7 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
               {mine.length === 0 ? (
                 <div className="badge-session-empty">No sessions reserved</div>
               ) : (
-                mine.slice(0, 4).map((s) => {
+                mine.map((s) => {
                   const room = rooms.find((r) => r.id === s.roomId);
                   const track = tracks.find((t) => t.id === s.trackId);
                   return (
@@ -144,12 +178,21 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
                   );
                 })
               )}
-              {mine.length > 4 && (
-                <div className="badge-session-more">+{mine.length - 4} more in the app</div>
-              )}
             </div>
             )}
           </div>
+
+          {scale.showSessions && meals.length > 0 && (
+            <div className="badge-meals">
+              <div className="badge-sessions-head">Meals</div>
+              {meals.map(({ service, option }) => (
+                <div key={service.id} className="badge-meal">
+                  <span className="badge-meal-name">{service.name}</span>
+                  <span className="badge-meal-choice">{DIETARY_META[option!.dietary].short}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
           {u.dietaryTag && scale.showDietary && (
             <div className="badge-diet">
@@ -177,19 +220,29 @@ export const PrintableBadge: React.FC<PrintableBadgeProps> = ({
         <div className="badge-back-venue-addr">{event.venueAddress}</div>
       </div>
 
-      {sponsors.length > 0 && (
-        <div className="badge-back-sponsors">
-          <div className="badge-back-sponsors-head">With thanks to our partners</div>
-          <div className="badge-back-sponsor-list">
-            {sponsors.map((s) => (
-              <div key={s.id} className="badge-back-sponsor">
-                <span className="badge-back-sponsor-name">{s.name}</span>
-                <span className="badge-back-sponsor-tier">{s.tier}</span>
+      <div className="badge-back-sponsors">
+        {(['Platinum', 'Gold', 'Silver', 'Bronze', 'Exhibitor'] as SponsorTier[]).map((tier) => {
+          const list = sponsors.filter((s) => s.tier === tier && !s.isPlaceholder);
+          if (!list.length) return null;
+          const spec = SPONSOR_BANNER[tier];
+          return (
+            <div key={tier} className="badge-back-tier">
+              <div className="badge-back-tier-label">{tier}</div>
+              <div className={`badge-back-tier-list badge-back-tier-list--${tier.toLowerCase()}`}>
+                {list.map((s) => (
+                  <span
+                    key={s.id}
+                    className="badge-back-sponsor"
+                    style={{ fontSize: `${spec.font}pt`, fontWeight: spec.weight }}
+                  >
+                    {s.name}
+                  </span>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+            </div>
+          );
+        })}
+      </div>
 
       <div className="badge-back-foot">
         <div className="badge-back-foot-row">
@@ -418,6 +471,31 @@ const PRINT_CSS = `
 }
 .badge-back-sponsor-name { font-size: 7pt; font-weight: 600; }
 .badge-back-sponsor-tier { font-size: 5.5pt; color: rgba(255,255,255,.45); letter-spacing: 0.06em; text-transform: uppercase; }
+
+.badge-identity { display: flex; align-items: center; gap: 0.1in; }
+.badge-photo {
+  width: 0.62in; height: 0.62in; border-radius: 0.1in; object-fit: cover;
+  border: 1px solid #e2e8f0; flex-shrink: 0;
+}
+.badge-meals { margin-top: 0.07in; }
+.badge-meal { display: flex; align-items: baseline; justify-content: space-between; gap: 0.06in; margin-bottom: 0.02in; }
+.badge-meal-name   { font-size: 6pt; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.badge-meal-choice { font-size: 6pt; font-weight: 700; color: #002b54; flex-shrink: 0; }
+
+.badge-back-tier { margin-bottom: 0.07in; }
+.badge-back-tier-label {
+  font-size: 4.5pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(255,255,255,.4); margin-bottom: 0.02in;
+}
+.badge-back-tier-list {
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline;
+  gap: 0.02in 0.08in;
+}
+.badge-back-tier-list--platinum { flex-direction: column; gap: 0.015in; }
+.badge-back-sponsor { color: #fff; line-height: 1.2; }
+.badge-back-tier-list--silver .badge-back-sponsor,
+.badge-back-tier-list--bronze .badge-back-sponsor { color: rgba(255,255,255,.85); }
+.badge-back-tier-list--exhibitor .badge-back-sponsor { color: rgba(255,255,255,.6); }
 
 .badge-back-foot { margin-top: auto; text-align: center; padding-top: 0.12in; }
 .badge-back-foot-row { font-size: 5.5pt; color: rgba(255,255,255,.55); line-height: 1.5; }

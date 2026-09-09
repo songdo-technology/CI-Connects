@@ -201,6 +201,22 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ----------------------------------------------------------- lucky draw
+    // Prizes are public so the wheel can show what is on offer; only
+    // organisers create them or record a winner.
+    match /prizes/{prizeId} {
+      allow read: if true;
+      allow write: if isOrganiser();
+    }
+
+    // ---------------------------------------------------------------- spend
+    // Budget lines are not public. What an event cost is an internal matter,
+    // and putting it behind the organiser role keeps it that way.
+    match /costs/{costId} {
+      allow read: if isOrganiser();
+      allow write: if isOrganiser();
+    }
+
     // -------------------------------------------------------- signage takeover
     // Read by unauthenticated display players, so world-readable by design.
     // Keep nothing sensitive in here.

@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import {
   ShieldCheck, CalendarPlus, Database, X, Cloud, CloudOff, ExternalLink,
-  CalendarDays, DoorOpen, UtensilsCrossed, Handshake,
+  CalendarDays, DoorOpen, UtensilsCrossed, Handshake, Gift, Wallet,
 } from 'lucide-react';
 import {
   EventConfig, UserProfile, UserRole, Session, Track, Room, MealService, Sponsor,
+  Prize, CostEntry,
 } from '../../types';
 import { can, ROLE_LABEL } from '../../lib/permissions';
 import { AdminPeople } from './AdminPeople';
 import { AdminEvents } from './AdminEvents';
 import { AdminProgramme } from './AdminProgramme';
 import { AdminRooms, AdminDining, AdminSponsors } from './AdminResources';
+import { AdminPrizes, AdminCosts } from './AdminOperations';
 
 interface AdminPanelProps {
   currentUser: UserProfile;
@@ -21,6 +23,8 @@ interface AdminPanelProps {
   rooms: Room[];
   mealServices: MealService[];
   sponsors: Sponsor[];
+  prizes: Prize[];
+  costs: CostEntry[];
   counts: Record<string, number>;
   isRemote: boolean;
   onClose: () => void;
@@ -35,9 +39,15 @@ interface AdminPanelProps {
   onDeleteMeal: (id: string) => Promise<void> | void;
   onSaveSponsor: (sponsor: Sponsor, isNew: boolean) => Promise<void> | void;
   onDeleteSponsor: (id: string) => Promise<void> | void;
+  onSavePrize: (prize: Prize, isNew: boolean) => Promise<void> | void;
+  onDeletePrize: (id: string) => Promise<void> | void;
+  onSaveCost: (cost: CostEntry, isNew: boolean) => Promise<void> | void;
+  onDeleteCost: (id: string) => Promise<void> | void;
 }
 
-type Section = 'people' | 'events' | 'programme' | 'rooms' | 'dining' | 'sponsors' | 'system';
+type Section =
+  | 'people' | 'events' | 'programme' | 'rooms' | 'dining' | 'sponsors'
+  | 'prizes' | 'costs' | 'system';
 
 /**
  * Administration console.
@@ -52,9 +62,10 @@ type Section = 'people' | 'events' | 'programme' | 'rooms' | 'dining' | 'sponsor
  */
 export const AdminPanel: React.FC<AdminPanelProps> = ({
   currentUser, users, events, sessions, tracks, rooms, mealServices, sponsors,
-  counts, isRemote, onClose, onChangeRole, onSaveEvent, onDeleteEvent,
+  prizes, costs, counts, isRemote, onClose, onChangeRole, onSaveEvent, onDeleteEvent,
   onSaveSession, onDeleteSession, onSaveRoom, onDeleteRoom,
   onSaveMeal, onDeleteMeal, onSaveSponsor, onDeleteSponsor,
+  onSavePrize, onDeletePrize, onSaveCost, onDeleteCost,
 }) => {
   const mayManageRoles = can(currentUser, 'users:manage_roles');
   const mayManageEvents = can(currentUser, 'events:create');
@@ -66,6 +77,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     can(currentUser, 'rooms:manage') && ['rooms', 'Rooms', DoorOpen],
     can(currentUser, 'dining:manage') && ['dining', 'Dining', UtensilsCrossed],
     can(currentUser, 'sponsors:manage') && ['sponsors', 'Sponsors', Handshake],
+    can(currentUser, 'luckydraw:manage') && ['prizes', 'Lucky Draw', Gift],
+    can(currentUser, 'costs:view') && ['costs', 'Spend', Wallet],
     mayManageRoles && ['people', 'People & Roles', ShieldCheck],
     mayManageSystem && ['system', 'System', Database],
   ].filter(Boolean) as [Section, string, typeof ShieldCheck][]);
@@ -143,6 +156,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         {section === 'sponsors' && (
           <AdminSponsors sponsors={sponsors}
                          onSave={onSaveSponsor} onDelete={onDeleteSponsor} />
+        )}
+
+        {section === 'prizes' && (
+          <AdminPrizes prizes={prizes} events={events} sponsors={sponsors} profiles={users}
+                       onSave={onSavePrize} onDelete={onDeletePrize} />
+        )}
+
+        {section === 'costs' && (
+          <AdminCosts costs={costs} events={events} currentUser={currentUser}
+                      onSave={onSaveCost} onDelete={onDeleteCost} />
         )}
 
         {section === 'system' && (

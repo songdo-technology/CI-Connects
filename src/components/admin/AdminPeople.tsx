@@ -11,12 +11,13 @@ interface AdminPeopleProps {
 }
 
 const ROLE_ORDER: UserRole[] =
-  ['technical_admin', 'event_organizer', 'speaker', 'front_desk', 'attendee'];
+  ['technical_admin', 'event_organizer', 'speaker', 'sponsor', 'front_desk', 'attendee'];
 
 const ROLE_CHIP: Record<UserRole, string> = {
   technical_admin: 'bg-blue-600 text-white',
   event_organizer: 'bg-emerald-700 text-white',
   speaker:         'bg-amber-600 text-white',
+  sponsor:         'bg-indigo-600 text-white',
   front_desk:      'bg-slate-600 text-white',
   attendee:        'bg-slate-100 text-slate-700 border border-slate-300',
 };
