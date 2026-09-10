@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link, Navigate, Outlet, useNavigate, useOutletContext, useParams } from 'react-router';
 import { QRCodeSVG } from 'qrcode.react';
 import {
@@ -39,6 +39,7 @@ export const EventLayout: React.FC = () => {
   // The threshold, every time this event is arrived at from outside.
   const [welcome, setWelcome] = useState(true);
   useEffect(() => { setWelcome(true); }, [slug]);
+  const closeWelcome = useCallback(() => setWelcome(false), []);
   if (!ready) return <Spinner />;
   if (!event) return <Navigate to="/dashboard" replace />;
   const base = `/e/${event.slug}`;
@@ -62,9 +63,9 @@ export const EventLayout: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-6 lg:py-8">
-      {welcome && profile && data.ready && (
-        <EventWelcome event={event} profile={profile} isStaff={isStaff(profile)} sessionCount={data.sessions.length}
-          roomCount={data.rooms.length} reservedCount={mine.length} onDone={() => setWelcome(false)} />
+      {welcome && profile && (
+        <EventWelcome event={event} profile={profile} isStaff={isStaff(profile)} ready={data.ready} sessionCount={data.sessions.length}
+          roomCount={data.rooms.length} reservedCount={mine.length} onDone={closeWelcome} />
       )}
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex items-start justify-between gap-4">

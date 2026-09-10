@@ -83,6 +83,8 @@
   .d4 { animation-delay: .55s; } .d5 { animation-delay: .7s; } .d6 { animation-delay: .9s; }
   .breathe { animation: breathe 6s ease-in-out infinite; }
   .progress-run { transform-origin: left; animation: grow linear both; }
+  /* The event threshold's orbit, turning once every half minute. */
+  .welcome-ring { animation: welcome-spin 32s linear infinite; transform-origin: 50% 50%; will-change: transform; }
 }
 
 /* ---- the feel: scroll reveals, page arrivals, cursor, marquee, curtain ---- */
@@ -139,10 +141,11 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes welcome-spin { to { transform: rotate(360deg); } }
 @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes breathe { 0%, 100% { transform: scale(1); opacity: .45; } 50% { transform: scale(1.08); opacity: .8; } }
 @media (prefers-reduced-motion: reduce) {
-  .rise, .rise-slow, .breathe, .progress-run, .page-in, .drawer-in, .scrim-in, .marquee__track, .spin-slow { animation: none !important; }
+  .rise, .rise-slow, .breathe, .progress-run, .page-in, .drawer-in, .scrim-in, .marquee__track, .spin-slow, .welcome-ring { animation: none !important; }
   .fade-up, .stagger > * { opacity: 1 !important; transform: none !important; transition: none !important; }
   .grain, .cursor { display: none; }
 }

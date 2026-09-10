@@ -1,0 +1,2292 @@
+{
+  "events": [
+    {
+      "id": "korcos-2025",
+      "slug": "korcos-2025",
+      "name": "KORCOS 2025",
+      "tagline": "KORCOS International Educator Conference 2025 — the programme as it ran.",
+      "description": "KORCOS International Educator Conference 2025: 82 sessions in 32 rooms across 11 strands, as published on korcosiec2025.sched.com.",
+      "startDate": "2025-10-18",
+      "endDate": "2025-10-18",
+      "venueName": "Chadwick International, Songdo",
+      "venueAddress": "45 Art center-daero 97beon-gil, Yeonsu-gu, Incheon",
+      "coverUrl": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1600&q=80&auto=format&fit=crop",
+      "status": "published",
+      "registrationOpen": false,
+      "createdBy": "dvJmHITUlbgjsgaDJ4c1h0vFy2v2",
+      "createdAt": "2026-09-10T06:13:03.686Z"
+    }
+  ],
+  "rooms": [
+    {
+      "id": "korcos-2025-r-main-theater",
+      "eventId": "korcos-2025",
+      "name": "Main Theater",
+      "capacity": 0,
+      "order": 1
+    },
+    {
+      "id": "korcos-2025-r-black-box-theatre",
+      "eventId": "korcos-2025",
+      "name": "Black Box Theatre",
+      "capacity": 0,
+      "order": 2
+    },
+    {
+      "id": "korcos-2025-r-b-202",
+      "eventId": "korcos-2025",
+      "name": "B-202",
+      "capacity": 0,
+      "order": 3
+    },
+    {
+      "id": "korcos-2025-r-b-204",
+      "eventId": "korcos-2025",
+      "name": "B-204",
+      "capacity": 0,
+      "order": 4
+    },
+    {
+      "id": "korcos-2025-r-b-205",
+      "eventId": "korcos-2025",
+      "name": "B-205",
+      "capacity": 0,
+      "order": 5
+    },
+    {
+      "id": "korcos-2025-r-b-207",
+      "eventId": "korcos-2025",
+      "name": "B-207",
+      "capacity": 0,
+      "order": 6
+    },
+    {
+      "id": "korcos-2025-r-b-208",
+      "eventId": "korcos-2025",
+      "name": "B-208",
+      "capacity": 0,
+      "order": 7
+    },
+    {
+      "id": "korcos-2025-r-b-210",
+      "eventId": "korcos-2025",
+      "name": "B-210",
+      "capacity": 0,
+      "order": 8
+    },
+    {
+      "id": "korcos-2025-r-b-211",
+      "eventId": "korcos-2025",
+      "name": "B-211",
+      "capacity": 0,
+      "order": 9
+    },
+    {
+      "id": "korcos-2025-r-b-213",
+      "eventId": "korcos-2025",
+      "name": "B-213",
+      "capacity": 0,
+      "order": 10
+    },
+    {
+      "id": "korcos-2025-r-b-216",
+      "eventId": "korcos-2025",
+      "name": "B-216",
+      "capacity": 0,
+      "order": 11
+    },
+    {
+      "id": "korcos-2025-r-b-218",
+      "eventId": "korcos-2025",
+      "name": "B-218",
+      "capacity": 0,
+      "order": 12
+    },
+    {
+      "id": "korcos-2025-r-b-219",
+      "eventId": "korcos-2025",
+      "name": "B-219",
+      "capacity": 0,
+      "order": 13
+    },
+    {
+      "id": "korcos-2025-r-b-221",
+      "eventId": "korcos-2025",
+      "name": "B-221",
+      "capacity": 0,
+      "order": 14
+    },
+    {
+      "id": "korcos-2025-r-b-224-3",
+      "eventId": "korcos-2025",
+      "name": "B-224.3",
+      "capacity": 0,
+      "order": 15
+    },
+    {
+      "id": "korcos-2025-r-b-302",
+      "eventId": "korcos-2025",
+      "name": "B-302",
+      "capacity": 0,
+      "order": 16
+    },
+    {
+      "id": "korcos-2025-r-b-304",
+      "eventId": "korcos-2025",
+      "name": "B-304",
+      "capacity": 0,
+      "order": 17
+    },
+    {
+      "id": "korcos-2025-r-b-305",
+      "eventId": "korcos-2025",
+      "name": "B-305",
+      "capacity": 0,
+      "order": 18
+    },
+    {
+      "id": "korcos-2025-r-b-322",
+      "eventId": "korcos-2025",
+      "name": "B-322",
+      "capacity": 0,
+      "order": 19
+    },
+    {
+      "id": "korcos-2025-r-b-326",
+      "eventId": "korcos-2025",
+      "name": "B-326",
+      "capacity": 0,
+      "order": 20
+    },
+    {
+      "id": "korcos-2025-r-b-327-and-327-1",
+      "eventId": "korcos-2025",
+      "name": "B-327 & 327.1",
+      "capacity": 0,
+      "order": 21
+    },
+    {
+      "id": "korcos-2025-r-b224-2",
+      "eventId": "korcos-2025",
+      "name": "B224.2",
+      "capacity": 0,
+      "order": 22
+    },
+    {
+      "id": "korcos-2025-r-c-202a",
+      "eventId": "korcos-2025",
+      "name": "C-202A",
+      "capacity": 0,
+      "order": 23
+    },
+    {
+      "id": "korcos-2025-r-cafeteria",
+      "eventId": "korcos-2025",
+      "name": "Cafeteria",
+      "capacity": 0,
+      "order": 24
+    },
+    {
+      "id": "korcos-2025-r-collaboration-and-innovation-hub",
+      "eventId": "korcos-2025",
+      "name": "Collaboration & Innovation Hub",
+      "capacity": 0,
+      "order": 25
+    },
+    {
+      "id": "korcos-2025-r-location-to-be-announced",
+      "eventId": "korcos-2025",
+      "name": "Location to be announced",
+      "capacity": 0,
+      "order": 26
+    },
+    {
+      "id": "korcos-2025-r-mpr-2",
+      "eventId": "korcos-2025",
+      "name": "MPR 2",
+      "capacity": 0,
+      "order": 27
+    },
+    {
+      "id": "korcos-2025-r-mpr2-b004",
+      "eventId": "korcos-2025",
+      "name": "MPR2 - B004",
+      "capacity": 0,
+      "order": 28
+    },
+    {
+      "id": "korcos-2025-r-ms-us-library",
+      "eventId": "korcos-2025",
+      "name": "MS/US Library",
+      "capacity": 0,
+      "order": 29
+    },
+    {
+      "id": "korcos-2025-r-ms-us-lobby",
+      "eventId": "korcos-2025",
+      "name": "MS/US Lobby",
+      "capacity": 0,
+      "order": 30
+    },
+    {
+      "id": "korcos-2025-r-shelly-luke-wille-professional-learning-center",
+      "eventId": "korcos-2025",
+      "name": "Shelly Luke Wille Professional Learning Center",
+      "capacity": 0,
+      "order": 31
+    },
+    {
+      "id": "korcos-2025-r-vs-makerspace-a-140",
+      "eventId": "korcos-2025",
+      "name": "VS Makerspace A-140",
+      "capacity": 0,
+      "order": 32
+    }
+  ],
+  "tracks": [
+    {
+      "id": "korcos-2025-t-keynote",
+      "eventId": "korcos-2025",
+      "name": "Keynote",
+      "color": "#002B54",
+      "order": 1
+    },
+    {
+      "id": "korcos-2025-t-co-curricular",
+      "eventId": "korcos-2025",
+      "name": "Co-Curricular",
+      "color": "#2563EB",
+      "order": 2
+    },
+    {
+      "id": "korcos-2025-t-job-alike",
+      "eventId": "korcos-2025",
+      "name": "Job Alike",
+      "color": "#0E7490",
+      "order": 3
+    },
+    {
+      "id": "korcos-2025-t-lunch",
+      "eventId": "korcos-2025",
+      "name": "Lunch",
+      "color": "#047857",
+      "order": 4
+    },
+    {
+      "id": "korcos-2025-t-product-demo",
+      "eventId": "korcos-2025",
+      "name": "Product Demo",
+      "color": "#B45309",
+      "order": 5
+    },
+    {
+      "id": "korcos-2025-t-professional-learning",
+      "eventId": "korcos-2025",
+      "name": "Professional Learning",
+      "color": "#9333EA",
+      "order": 6
+    },
+    {
+      "id": "korcos-2025-t-social",
+      "eventId": "korcos-2025",
+      "name": "Social",
+      "color": "#BE123C",
+      "order": 7
+    },
+    {
+      "id": "korcos-2025-t-specials",
+      "eventId": "korcos-2025",
+      "name": "Specials",
+      "color": "#4D7C0F",
+      "order": 8
+    },
+    {
+      "id": "korcos-2025-t-student-support",
+      "eventId": "korcos-2025",
+      "name": "Student Support",
+      "color": "#0369A1",
+      "order": 9
+    },
+    {
+      "id": "korcos-2025-t-teaching-and-learning",
+      "eventId": "korcos-2025",
+      "name": "Teaching and Learning",
+      "color": "#A16207",
+      "order": 10
+    },
+    {
+      "id": "korcos-2025-t-world-languages",
+      "eventId": "korcos-2025",
+      "name": "World Languages",
+      "color": "#6D28D9",
+      "order": 11
+    }
+  ],
+  "sessions": [
+    {
+      "id": "korcos-2025-28m9M",
+      "eventId": "korcos-2025",
+      "title": "Registration, Coffee & Tea and Snacks and Meet our Sponsors",
+      "abstract": "",
+      "type": "social",
+      "date": "2025-10-18",
+      "start": "08:00",
+      "end": "08:45",
+      "roomId": "korcos-2025-r-ms-us-lobby",
+      "trackId": "korcos-2025-t-social",
+      "speakers": [],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-2AIbV",
+      "eventId": "korcos-2025",
+      "title": "Student Performance Opening Ceremony",
+      "abstract": "",
+      "type": "keynote",
+      "date": "2025-10-18",
+      "start": "08:45",
+      "end": "09:00",
+      "roomId": "korcos-2025-r-main-theater",
+      "trackId": "korcos-2025-t-keynote",
+      "speakers": [],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "featured": true
+    },
+    {
+      "id": "korcos-2025-28m9P",
+      "eventId": "korcos-2025",
+      "title": "Keynote Presentation",
+      "abstract": "Reimagining Learning with AI: A Pathway To Empowerment\nThis talk will explore the promises and perils of leveraging AI in education. On one hand, AI holds the potential to create more personalized learning experiences. On the other hand, issues such as bias, problematic data, flawed design, and over-reliance on AI risk deepening existing pitfalls. We'll delve into strategies for maximizing AI's benefits while addressing its risks, ensuring that AI becomes a tool for true empowerment in education. AI can be used and designed for good, and we have to lead the way.",
+      "type": "keynote",
+      "date": "2025-10-18",
+      "start": "09:00",
+      "end": "10:00",
+      "roomId": "korcos-2025-r-main-theater",
+      "trackId": "korcos-2025-t-keynote",
+      "speakers": [
+        {
+          "name": "Ken Shelton",
+          "title": "Educator, Author, Learning Designer",
+          "org": "Ken Shelton"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "KORCOS Korean Translation",
+          "url": "https://hosted-files.sched.co/korcosiec2025/d9/KORCOS-Korean%20Translation.pdf"
+        }
+      ],
+      "featured": true
+    },
+    {
+      "id": "korcos-2025-28m6m",
+      "eventId": "korcos-2025",
+      "title": "What if we reimagined Health information communication in school?",
+      "abstract": "Participants will explore communication that supports student success, gain strategies for sharing health information among parents, faculty, and staff, and develop approaches to strengthen collaboration.",
+      "type": "panel",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-b-219",
+      "trackId": "korcos-2025-t-job-alike",
+      "speakers": [
+        {
+          "name": "Aya Underhill",
+          "title": "Head Nurse: Health Office",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m82",
+      "eventId": "korcos-2025",
+      "title": "Micro-Credentials: Your Key to Free PD",
+      "abstract": "Are you interested in free PD? Of course you are! Come browse the world of Micro-credentials. Learn about several new and exciting opportunities to learn on your own time and at your own pace. Micro-credentials are often disregarded as marketing campaigns, and some are just that, but most are effective and efficient ways to learn new skills and abilities.\nPresentation",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-b-211",
+      "trackId": "korcos-2025-t-professional-learning",
+      "speakers": [
+        {
+          "name": "Tim Bray",
+          "title": "Director of Technology",
+          "org": "St. Johnsbury Academy Jeju"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "Micro Credential Your key to free PD",
+          "url": "https://hosted-files.sched.co/korcosiec2025/55/Micro-Credential_%20Your%20key%20to%20free%20PD.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28wMj",
+      "eventId": "korcos-2025",
+      "title": "Unlocking Creativity: AI-Powered Visual Storytelling, Compelling Visuals, and Creativity for Educators",
+      "abstract": "Unlock the power of AI to revolutionize your visual storytelling. This hands-on workshop introduces educators to cutting-edge AI tools that elevate visual designs, stories, and communications. Learn how to harness AI's potential to transform your ideas into compelling visual narratives that captivate and educate. Explore how AI can enhance your creative process, from generating unique imagery to refining designs and streamlining workflows. Discover techniques for creating immersive visual experiences that resonate with students and colleagues. Whether you're a tech novice or an experienced digital creator, this workshop will equip you with practical skills to integrate AI into your visual storytelling toolkit.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-main-theater",
+      "trackId": "korcos-2025-t-professional-learning",
+      "speakers": [
+        {
+          "name": "Ken Shelton",
+          "title": "Educator, Author, Learning Designer",
+          "org": "Ken Shelton"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m63",
+      "eventId": "korcos-2025",
+      "title": "What If KORCOS Leveraged Its Strengths, Overcame Its Weaknesses, Tackled Its Threats, and Seized Its Opportunities?",
+      "abstract": "In this interactive workshop, participants will examine the latest SWOT analysis data for KORCOS, identifying key strengths, weaknesses, threats, and opportunities. Using these insights, we’ll explore “What if?” questions to spark fresh ideas for innovation, collaboration, and growth within the KORCOS community.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-b-207",
+      "trackId": "korcos-2025-t-professional-learning",
+      "speakers": [
+        {
+          "name": "Nico Visahan",
+          "title": "Head of Grade 10/KORCOS President",
+          "org": "Seoul Foreign School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "KORCOS SWOT Analysis Survey (Responses)",
+          "url": "https://hosted-files.sched.co/korcosiec2025/09/KORCOS%20SWOT%20Analysis%20Survey%20%28Responses%29.xlsx"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28xr3",
+      "eventId": "korcos-2025",
+      "title": "What if we could rewire fear?",
+      "abstract": "What if your biggest fear could become one of your greatest strengths? Public speaking is one of the most common fears, and teachers aren’t immune; especially when the audience is filled with parents, colleagues, or administrators. This session unpacks the brain science behind why speaking in front of adults feels so intimidating. We’ll explore practical, science-backed strategies to “trick” your brain, reduce stress, and reframe your nerves as confidence. There’s no one-size-fits-all solution, but you’ll leave with a clearer understanding of what’s really happening in your brain and concrete steps to go from fearful to fearless.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-b-204",
+      "trackId": "korcos-2025-t-professional-learning",
+      "speakers": [
+        {
+          "name": "Christina Thalhuber",
+          "title": "PE/Health Teacher",
+          "org": "Seoul International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m71",
+      "eventId": "korcos-2025",
+      "title": "“What If Every Subject Told Its Story Through Art?”",
+      "abstract": "“What if art could transform every subject? Join this hands-on session blending creativity, AI, and SEL to spark new ways of teaching and learning together.”",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-c-202a",
+      "trackId": "korcos-2025-t-specials",
+      "speakers": [
+        {
+          "name": "Yoonie Chou",
+          "title": "Visual Art / Design Teacher",
+          "org": "Seoul Foreign School"
+        },
+        {
+          "name": "Adam Bernard",
+          "title": "Visual Art Teacher",
+          "org": "Seoul Foreign School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m5i",
+      "eventId": "korcos-2025",
+      "title": "What if Your Ideas Could Come to Life with Scratch?",
+      "abstract": "What if coding helped students express themselves? This workshop shows how to use Scratch to support student voice, creativity, and agency through hands-on, reflective, and choice-driven projects.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-b-210",
+      "trackId": "korcos-2025-t-specials",
+      "speakers": [
+        {
+          "name": "Andre Quimpo",
+          "title": "MYP Design Teacher / VEX Robotics Coach",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28nuY",
+      "eventId": "korcos-2025",
+      "title": "What if emotions in classrooms were visible every day?",
+      "abstract": "Discover how AI journaling makes invisible emotions visible, helping schools reimagine SEL, support networks, and student well-being in a connected, empathetic classroom.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-b-205",
+      "trackId": "korcos-2025-t-student-support",
+      "speakers": [
+        {
+          "name": "James Oh",
+          "title": "IT/EdTech Supporter",
+          "org": "Tebahsoft, Inc."
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28xrJ",
+      "eventId": "korcos-2025",
+      "title": "What if Students Could Learn Through ALL Their Languages? – An Interactive Translanguaging Demo",
+      "abstract": "Translanguaging can transform multilingual classrooms—but it’s more powerful in practice than in theory. In this interactive session, teachers will participate in hands-on lessons, explore real classroom examples, and discover strategies to integrate translanguaging in their schools. Participants leave ready to turn students’ full linguistic abilities into learning advantages.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-ms-us-library",
+      "trackId": "korcos-2025-t-student-support",
+      "speakers": [
+        {
+          "name": "Mirela Matesan",
+          "title": "EAL Teacher",
+          "org": "Chadwick International"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m7q",
+      "eventId": "korcos-2025",
+      "title": "AUTUMN-Matic Student Engagement - A Bit.ly Breakin Experience",
+      "abstract": "Attendees will participate in an interactive Bit.ly Breakin session highlighting a gamification model used in the classroom designed to access higher order thinking skills. In this Bit.ly Breakin, participants will partake in a series of activities and tasks, analyze gamification research, explore tech tools, and engage in discussion protocols.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-b-216",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "John Helgeson",
+          "title": "Classroom Teacher",
+          "org": "Korea International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "KORCOS 2025 Helgeson Handout",
+          "url": "https://hosted-files.sched.co/korcosiec2025/7b/KORCOS%202025%20Helgeson%20Handout.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28m6y",
+      "eventId": "korcos-2025",
+      "title": "What if AI becomes our partner in inquiry? Reimagining Inquiry, Personalization, and Critical Thinking in the Digital Age",
+      "abstract": "What if artificial intelligence tools could become a partner in inquiry—one that strengthens, rather than replaces, human relationships? In this workshop, presenters will share a classroom learning experience focusing on the ethics of data collection in the real world. The learning experience showcases students at the high school level using an AI tool as a thinking and learning partner to examine real-world issues around data collection and consent, using ethical theories to frame their perspectives.\nParticipants will step into the learner’s role by working with an AI partner themselves to explore an inquiry question. This hands-on experience highlights how AI can foster deep critical thinking, encourage multiple viewpoints, and personalize learning while allowing teachers to monitor engagement in a safe environment.\nBy modeling the “Redefinition” stage of the SAMR framework, the session demonstrates how technology can move beyond enhancement to create new possibilities for inquiry and critical thinking. Educators will leave with practical strategies for integrating AI ethically and creatively into their own classrooms, ensuring that technology amplifies—not diminishes—the human dimensions of learning.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-b-327-and-327-1",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Yasemin Bozoglu Erdinc",
+          "title": "Core Coordinator",
+          "org": "Chadwick International School"
+        },
+        {
+          "name": "Maria Socorro Escaño Picornell",
+          "title": "Psychology/Theory of Knowledge; CAS&Clubs Coordinator",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "AI Inquiry Partner",
+          "url": "https://hosted-files.sched.co/korcosiec2025/0d/AI%20Inquiry%20Partner.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28m7S",
+      "eventId": "korcos-2025",
+      "title": "What If AI Can Differentiate but Only Teachers Can Humanize?",
+      "abstract": "Explore the power and limits of AI and examine how AI tools can differentiate, while teachers bring the irreplaceable human touch: anecdotal notes, relational insights, and equity-centered judgment.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-b-218",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Kelley Hall",
+          "title": "Grade 4 EAL & Team Leader",
+          "org": "St. Johnsbury Academy Jeju"
+        },
+        {
+          "name": "Tia Opdenweyer",
+          "title": "Grade 4 Teacher",
+          "org": "St. Johnsbury Academy Jeju"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m6p",
+      "eventId": "korcos-2025",
+      "title": "What If All Students Saw Themselves as a \"Math Person\"?",
+      "abstract": "Math classrooms can be competitive environments. This workshop will highlight ways to create a positive, inclusive class community where all learners see themselves as capable mathematicians.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-collaboration-and-innovation-hub",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Megan Walker",
+          "title": "Student Learning Support",
+          "org": "Seoul Foreign School"
+        },
+        {
+          "name": "Lauren Teather",
+          "title": "Middle School Math & Science",
+          "org": "Seoul Foreign School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m60",
+      "eventId": "korcos-2025",
+      "title": "What if Behavior Wasn’t the Problem? Rethinking Discipline Through Relationships",
+      "abstract": "What if student behavior isn’t the problem—but a signal calling for connection?\n\nIn this workshop, participants will be introduced to the Conscious Discipline framework through the concept of the School Family—a compassionate, brain-aligned approach to classroom management rooted in safety, connection, and emotional regulation. You’ll learn how one teacher implemented School Family practices to create a more connected, cooperative classroom.\n\nTogether, we’ll explore common student behaviors and examine the root causes behind them, such as disconnection, stress, or unmet emotional needs. This session will offer practical strategies you can begin using right away—like meaningful classroom jobs, daily connection rituals, and Safe Place routines—to build a strong sense of belonging and shift from managing behavior to building relationships.\n\nWhether you’re new to Conscious Discipline or looking to take your next step, this session will leave you inspired and equipped to create a classroom where all students feel safe, seen, and valued.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-black-box-theatre",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Lisa Lilyerd",
+          "title": "Classroom Teacher",
+          "org": "YoungHoon Elementary School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m7M",
+      "eventId": "korcos-2025",
+      "title": "What if students drove their own learning journey?",
+      "abstract": "What happens when we hand over the wheel of learning to our students? In this workshop, we will share powerful stories of student-driven inquiry across Pre-Kindergarten to Grade 5, showing how ownership transforms engagement, identity, and action.\nFrom the start of the school year, what if children built essential agreements themselves by designing artifacts that symbolized the kind of community they wanted to create? Can Kindergarteners steer a discussion amongst themselves without raising their hands? How did Grade 3 students run their own business by managing their loans, designing their own products and services, and advertising for their business? What if grade 4 students authentically take action when they spot different areas for improvement around the school?\nEveryday, students show us that they are more than just learners—they are creators, problem-solvers, and leaders. When teachers step back, we gain new insights into students’ interests, communication styles, and hidden capabilities. Join us to explore how student voice and agency can drive authentic and meaningful learning experiences.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-b-213",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "SoYeon Shawn Park",
+          "title": "Classroom Teacher",
+          "org": "Chadwick International School"
+        },
+        {
+          "name": "Susan Kwon",
+          "title": "Classroom Teacher",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28tuD",
+      "eventId": "korcos-2025",
+      "title": "What if students used their voice? Exploring spoken word as a form of writing",
+      "abstract": "​​Educators will participate in the mentor text approach to reading and writing through the lens of dueling slam poetry performances. Come prepared to make observations and write throughout the workshop.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-b-202",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Matt Gill (he / him)",
+          "title": "Classroom Teacher",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "Gill What if Ss had a voice like a mic (Shareable Version)",
+          "url": "https://hosted-files.sched.co/korcosiec2025/fb/Gill%20What%20if%20Ss%20had%20a%20voice%20like%20a%20mic_%20%28Shareable%20Version%29.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28m9X",
+      "eventId": "korcos-2025",
+      "title": "What if: From Agency to Evidence - Using AI, UDL & Inclusive Pedagogy to Empower Language Learners",
+      "abstract": "As teachers, we face the challenge of meeting diverse learner needs while keeping students engaged and empowered. This interactive workshop explores how AI can support inclusive pedagogy through the lenses of student agency, Universal Design for Learning (UDL), and Culturally Responsive Pedagogy (CRP). Using examples from world language classrooms, we will unpack how to design learning progressions, gather evidence of learning, and rethink assessment practices with AI as a partner tool. Participants will leave with a framework for inclusive teaching and practical strategies that can be adapted across subject areas to amplify student voice and support diverse pathways to proficiency.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-b-208",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Yi Jin Ma",
+          "org": "Shanghai American School"
+        },
+        {
+          "name": "Rachel Zhang",
+          "title": "Classroom Teacher",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28nuS",
+      "eventId": "korcos-2025",
+      "title": "What if? Unlocking Growth with MAP Data: From Reports to Results for All",
+      "abstract": "This session will guide teachers and school leaders in making the most of NWEA’s MAP data to support student learning and school improvement. Participants will explore how to interpret both achievement and growth metrics, gaining a clear understanding of current performance and progress over time. We will highlight the most impactful reports to access immediately after testing, as well as those that provide meaningful insights throughout the year.\n\nThe session will demonstrate how to use MAP data at multiple levels (individual student, classroom, grade level, and schoolwide) to identify strengths and areas requiring targeted support. Participants will learn how these insights can inform instructional decisions, differentiation, and long-term planning. Practical examples will show how data can guide goal setting and interventions that respond to students’ unique learning needs.\n\nIn addition, comparative data will be shared across EARCOS schools, offering a regional perspective to better understand trends in literacy and math benchmark performance.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "10:15",
+      "end": "11:15",
+      "roomId": "korcos-2025-r-mpr-2",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Dr. Amanda L. DeCardy",
+          "title": "International Account Manager and Data Consultant",
+          "org": "NWEA"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "DeCardy KORCOS Conference Deck 2025 Final",
+          "url": "https://hosted-files.sched.co/korcosiec2025/fb/DeCardy%20KORCOS%20Conference%20Deck%202025%20Final.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-293PZ",
+      "eventId": "korcos-2025",
+      "title": "Break",
+      "abstract": "",
+      "type": "break",
+      "date": "2025-10-18",
+      "start": "11:15",
+      "end": "11:30",
+      "roomId": "korcos-2025-r-location-to-be-announced",
+      "trackId": "korcos-2025-t-social",
+      "speakers": [],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28xrD",
+      "eventId": "korcos-2025",
+      "title": "What If Teachers Could Regain the Joy of Teaching English Using AI?",
+      "abstract": "Experience how MCE's AI solutions enrich English teaching. Use AI to provide instant feedback, automate grading, and ignite students' love for language.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-b224-2",
+      "trackId": "korcos-2025-t-product-demo",
+      "speakers": [
+        {
+          "name": "Kelvin Tan",
+          "title": "Educational Partner",
+          "org": "Marshall Cavendish Education"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28xrP",
+      "eventId": "korcos-2025",
+      "title": "What if we could make AI accessible to every student through hands-on robotics?\"",
+      "abstract": "Discover VEX AIM: an innovative platform making AI education accessible through hands-on\nrobotics. Experience interactive lessons designed for diverse learners.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-b-202",
+      "trackId": "korcos-2025-t-product-demo",
+      "speakers": [
+        {
+          "name": "Donghyun Kim",
+          "title": "IT / Ed Tech Department Member",
+          "org": "East Jin International (VEX Robotics Korea)"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m7G",
+      "eventId": "korcos-2025",
+      "title": "What if educators prioritized their own balanced wellbeing to strengthen student outcomes and relationships?",
+      "abstract": "What if educators prioritized their own balanced wellbeing to strengthen student outcomes and relationships? This interactive session introduces the Wellness Triangle—intellectual, physical, and emotional wellbeing—as a framework for sustaining balance in both professional and personal life. Participants will reflect on their current state of wellness, explore practical strategies to prevent burnout, and connect their own wellbeing directly to stronger student learning and authentic relationships.\n\nThe workshop blends research, reflection, and application, guiding participants to identify simple, impactful practices that foster balance. By the end, each educator will create a personalized Balanced Wellness Plan, offering a clear and actionable path to greater energy, connection, and resilience—benefiting both themselves and their students.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-ms-us-library",
+      "trackId": "korcos-2025-t-professional-learning",
+      "speakers": [
+        {
+          "name": "Brendan Furnari",
+          "title": "Student Learning Support",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28xrB",
+      "eventId": "korcos-2025",
+      "title": "What if our lowest moments in teaching serve as the beginning to a whole new understanding of what teaching could be?: Belief, Breakdowns and Becoming",
+      "abstract": "From NY training to my first IB classroom in Korea, I’ll share how collisions of belief and reality reshaped me—and invite you to reflect: what if teaching is less about perfection, and more about becoming?",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-b-207",
+      "trackId": "korcos-2025-t-professional-learning",
+      "speakers": [
+        {
+          "name": "Erin Mendez",
+          "title": "Classroom Teacher",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28u0Q",
+      "eventId": "korcos-2025",
+      "title": "Why is Hello Kitty’s Head So Big? Intro to Korean History & Cultural Sensitivity",
+      "abstract": "This workshop is the product of several years of cultural orientation program for new staff at SIS that developed into a series on cultural sensitivity. It aims to promote diversity, equity, and inclusion by facilitating cross-cultural communication. Participants will learn about local culture and history to adjust to life in Korea and interact effectively with Korean colleagues, students, and parents. The session will equip participants with guidelines to increase cultural awareness and competence while fostering positive cross-cultural relations. Attendees will leave with a clear definition, philosophy, and techniques for effective cross-cultural communication.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-b-219",
+      "trackId": "korcos-2025-t-professional-learning",
+      "speakers": [
+        {
+          "name": "Hye Yong Min",
+          "title": "Deputy Director, Office of Admissions & Advancement",
+          "org": "Seoul International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m5Z",
+      "eventId": "korcos-2025",
+      "title": "What if High School Teachers Approached the Wandering Mind as a Design Opportunity?",
+      "abstract": "Through applying UDL principles, this workshop hopes to give teachers simple, structured ways to stop losing Learners with Attention-Difference in the pressure cooker of fast-paced, exam-driven classrooms. The workshop facilitator is a licensed Exceptional Student Educator, 6-year UDL practitioner, and MYP I&S/DP Economics teacher. He's also the supervisor of Angel's Haven, a club and community partnership between Seoul Foreign School that targets building bridges between HS students and neurodiverse peers. He brings a lot of insight from overcoming unique personal learning and social hurdles, which taught focus, patience, and the importance of ally-ship.\n\nRelevance: Teachers that lose Learners with Attention-Difference is a rising concern in all classrooms, especially in high-stakes environments like the IBDP.\n\nSlides Link\nPadlet Link (Password: KORCOS2025)",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-b-211",
+      "trackId": "korcos-2025-t-student-support",
+      "speakers": [
+        {
+          "name": "Tim Bazin",
+          "title": "DP & MYP Teacher",
+          "org": "Seoul Foreign School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "KORCOS 2025 TFB Wandering Mind",
+          "url": "https://hosted-files.sched.co/korcosiec2025/eb/KORCOS%202025_TFB_Wandering%20Mind.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28m7Y",
+      "eventId": "korcos-2025",
+      "title": "What If Hope Was Our Strategy? Building Grit and Resilience with the Solution-Focused Approach",
+      "abstract": "What if we could equip students to thrive in uncertainty by focusing on their strengths? In today’s world, change is constant: AI is reshaping education, climate change affects daily life, and global conflicts fuel rising anxiety. More than ever, our students need resilience, creativity, and hope. This workshop invites educators to reimagine classrooms and school culture through the Solution-Focused (SF) approach.\n\nThe SF approach shifts conversations away from problems and toward strengths and possibilities. By asking questions that uncover resilience and highlight hope, noticing exceptions, and using scaling to track progress, educators can help students recognize what already works and build on it. This process fosters grit, resilience, and the capacity to cope with change.\n\nParticipants will learn the core principles of solution-focused practice, practice SF strategies to use with students, parents, and colleagues, and explore how reframing Student Support Team (SST) meetings can transform school culture.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-b-216",
+      "trackId": "korcos-2025-t-student-support",
+      "speakers": [
+        {
+          "name": "Caroline Scott",
+          "title": "Counselor",
+          "org": "Seoul Foreign School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "What if hope was our strategy",
+          "url": "https://hosted-files.sched.co/korcosiec2025/d1/What%20if%20hope%20was%20our%20strategy.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28m5r",
+      "eventId": "korcos-2025",
+      "title": "What if I had a better understanding of my students and parents through the perspectives and cognition of different cultures (Western and Asian Comparison).",
+      "abstract": "This workshop will help audiences understand their students and parents through the perspectives and cognition of different cultures (Western and Asian Comparison). It will provide an opportunity to introduce and reflect on the cultural difference using various experimental examples to the audiences.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-b-205",
+      "trackId": "korcos-2025-t-student-support",
+      "speakers": [
+        {
+          "name": "YoungJung Seo",
+          "title": "Classroom Teacher",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m7P",
+      "eventId": "korcos-2025",
+      "title": "What If Monitoring Student Growth on Tier 3 Academic Support was Simple, Streamlined, and Fast",
+      "abstract": "Target audience: Learning Support, EAL Support and other Support staff.\nKeeping track of student progress doesn’t have to be overwhelming. In this session, I will share how I monitor student growth and manage documentation for my learning support caseload using digital tools, AI, Google extended apps, and PowerSchool. This is not about reinventing the wheel—it’s about making the wheel run smoother. Participants will see real examples of how to streamline data collection, track growth more effectively, and reduce time spent on paperwork, so they can spend more time where it matters most: with students. The workshop will be hands-on, with opportunities to try out digital templates and discuss how these practices could be adapted in different contexts.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-black-box-theatre",
+      "trackId": "korcos-2025-t-student-support",
+      "speakers": [
+        {
+          "name": "Sean Kirsten So",
+          "title": "Student Learning Support Specialist",
+          "org": "St. Johnsbury Academy Jeju"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m7n",
+      "eventId": "korcos-2025",
+      "title": "What if we don't know everything there is to know about differentiation for students with autism in the classroom.",
+      "abstract": "I'll be teaching fellow educators effective strategies for supporting students with Autism Spectrum Disorder (ASD) in the classroom. Join me to learn practical techniques and gain insights that will enhance our inclusive teaching practices!",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-mpr-2",
+      "trackId": "korcos-2025-t-student-support",
+      "speakers": [
+        {
+          "name": "Kwailan Achat",
+          "title": "Grade 1 Teacher- Director of Teacher Relations and Welfare",
+          "org": "Mountain Cherry Academy"
+        },
+        {
+          "name": "Hayley Atraya Fester",
+          "title": "Grade 3 Classroom Teacher",
+          "org": "Mountain Cherry Academy"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m5x",
+      "eventId": "korcos-2025",
+      "title": "What if We Practice What We Teach? Embedding Inclusion, Integrity, and Alignment in Our Everyday Systems",
+      "abstract": "What if We Practice What We Teach?\nThis workshop challenges the disconnect between what our schools say and what they do. Are our mission statements about inclusion and integrity truly reflected in our daily practices?\n\nJoin this session to explore practical, systemic ways to practice what we teach. We'll practice systems-level thinking to identify inconsistencies and build a more inclusive school culture from the ground up—from leadership decisions to classroom norms.\n\nLeave with a clear, actionable commitment to align your daily work with your school's values, making a real impact on equity and belonging.\n\nThis workshop is designed as a think tank—a collaborative space where we'll work through challenges together, not just listen to a lecture.\n\nPlease come ready to engage. To make our time as productive as possible, I encourage you to reflect on the following question beforehand:\n\n\"What's an example of a policy or practice at your school that you've noticed could be more aligned with a stated value like inclusion or equity? \"\n\nThere's no pressure to share specific information about your school, but having an example in mind will help us jump into our activities!",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-b-218",
+      "trackId": "korcos-2025-t-student-support",
+      "speakers": [
+        {
+          "name": "Rachel Arnold",
+          "title": "Board Certified Behavior Therapist & Licensed Educator",
+          "org": "REA Innovation Consultancy"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "What if We Practice What We Teach",
+          "url": "https://hosted-files.sched.co/korcosiec2025/01/What%20if%20We%20Practice%20What%20We%20Teach.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28m7D",
+      "eventId": "korcos-2025",
+      "title": "What if assessment were an adventure?",
+      "abstract": "What if assessments didn’t feel like tests, but like adventures? In this interactive session, educators will experience and learn to create an “escape room” style assessment where groups solve challenges to unlock the next stage. At the end of our presentation, we will debrief strategies for designing assessments that are both rigorous and adventurous.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-b-224-3",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Jessica Cha",
+          "title": "Classroom Teacher, Head of Secondary",
+          "org": "Mountain Cherry Academy"
+        },
+        {
+          "name": "Hyeri Yoo",
+          "title": "Classroom Teacher",
+          "org": "Mountain Cherry Academy"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "KORCOS 2025 What If Assessments Were An Adventure Presentation",
+          "url": "https://hosted-files.sched.co/korcosiec2025/46/KORCOS%202025%20What%20If%20Assessments%20Were%20An%20Adventure%20Presentation.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28m6X",
+      "eventId": "korcos-2025",
+      "title": "What If Every Child Could Learn in a Way That Meets Their Unique Needs? Reimagining Literacy Through Individualized Instruction",
+      "abstract": "What if every child, regardless of ability or background, could achieve literacy success through individualized, research validated instruction? This session explores how structured, research-validated instruction empowers educators to meet diverse learning needs while aligning with the Science of Reading. Participants will discover how explicit instructional routines can transform literacy outcomes for all students. Through interactive demonstrations and practical strategies, attendees will leave equipped to reimagine literacy instruction with a focus on differentiation and equity.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-b-327-and-327-1",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Alycia Kidwell",
+          "title": "Academic Specialist",
+          "org": "McGraw Hill"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m6d",
+      "eventId": "korcos-2025",
+      "title": "What if Pedagogical Changes Can Increase Student Achievement",
+      "abstract": "Educational research has increased significantly over the last number of years around pedagogical strategies and tools that increase student performance. This session will explore the results of this research and what pedagogical approaches that need to be supported in our schools and districts. Practical application will be the focus of the time together.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-b-210",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "DJ West",
+          "title": "Vice President of Professional Learning",
+          "org": "McGrawHill Education"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m7k",
+      "eventId": "korcos-2025",
+      "title": "What if Station Rotations Unlocked Deeper Learning",
+      "abstract": "In this interactive workshop, we’ll explore best practices for using station rotations to increase engagement and support differentiated learning. Participants will experience a model station rotation, followed by discussion on how to adapt strategies to their own classrooms. The session will provide practical tips, examples, and time to reflect on how station rotations can be used to maximize student participation and deepen learning.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-b-204",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Andrew Sydow",
+          "title": "Classroom Teacher",
+          "org": "Seoul International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m6U",
+      "eventId": "korcos-2025",
+      "title": "What If We Could Spark Thinking in Science",
+      "abstract": "In this session, we will explore how to design science learning experiences that truly spark thinking. Participants will examine the philosophy of science and consider practical strategies for helping students think deeply about what science really is. We will also explore how to use storytelling to structure science lessons and units, transforming abstract concepts into engaging narratives that connect with students’ lives.\nA central focus will be on three-dimensional learning from the NGSS, where disciplinary core ideas, science and engineering practices, and crosscutting concepts work together to develop both content mastery and higher-order thinking. By reimagining how we frame science teaching, educators will walk away with new strategies to help students see science not just as a body of knowledge, but as a way of thinking, questioning, and making sense of the world.\nThis interactive session invites teachers to rethink their approach and leave with concrete tools to build more meaningful, thinking-centered science classrooms.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-b-208",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Sean Lee",
+          "title": "Company/Educational Partner",
+          "org": "McGraw Hill"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m5o",
+      "eventId": "korcos-2025",
+      "title": "What If We Stopped Demanding Effort and Started Inspiring It?",
+      "abstract": "Why do some students come eager to learn while others shut down or resist?\nWhat if effort isn’t about pushing harder—but sparking something deeper?\n\nThis session invites educators to rethink motivation—not as something to control, but something to ignite. Drawing on the work of researchers like John Guthrie and Allan Wigfield, who highlight curiosity’s role; Linda Gambrell and Barbara Marinak, who emphasize choice and value; and Mike Anderson, who champions student voice and autonomy—we explore how to shift from pressure to purpose.\n\nYou’ll learn how six key drivers—attitude, interest, value, self-efficacy, self-concept, and goal-setting—can be woven into everyday teaching. With practical tools and examples, this session helps educators move beyond rewards and reminders to build classrooms where motivation grows from within.\n\nThis is not about lowering expectations—it’s about lighting the path so students can rise to them. You’ll leave with practical tools to inspire effort from within, reframe resistance as feedback, and create classrooms where students feel safe, ready, and motivated to grow.\n\nBecause when students believe they can, effort becomes a choice—not a demand.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-b-326",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Michelle Fabre",
+          "title": "Classroom Teacher",
+          "org": "YoungHoon Elementary School"
+        },
+        {
+          "name": "Julia Murra",
+          "title": "Classroom Teacher",
+          "org": "Young Hoon Elementary School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "Motivation (1)",
+          "url": "https://hosted-files.sched.co/korcosiec2025/99/Motivation%20%281%29.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28m5K",
+      "eventId": "korcos-2025",
+      "title": "What if You could Code Without Code? Build AI Solutions in Minutes with Vibe Coding",
+      "abstract": "Code Without Code: Build AI Solutions in Minutes.\n\nDiscover the next wave in AI: Agentic AI and Vibe Coding. In this hands-on session, you'll turn everyday problems and ideas into real solutions in under 15 minutes—no coding experience necessary.\nWhat You Will Do:\nVibe Code a Solution: Identify a common problem and use your intent to create a working solution with AI.Master AI Platforms: Get hands-on with powerful tools like Gemini, ChatGPT, Claude, and Co-Pilot.Unlock Data Insights: Learn to use AI to analyze data, personalize learning, and support every student.Who Should Attend: This session is for everyone—educators, leaders, and students—from absolute beginners to tech experts.\nWhy You Should Attend: Walk away with the confidence and hands-on skills to use AI immediately. Stop just talking about the future of education and start building it.\nAbout the Presenters\n\nLearn more about what to expect from our session here\n\nPresentation Slides",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-collaboration-and-innovation-hub",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Nick Garvin",
+          "title": "Village School Educational Technology Coach",
+          "org": "Chadwick International"
+        },
+        {
+          "name": "Dion Norman",
+          "title": "Director of Educational Technology",
+          "org": "Chadwick International"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m7w",
+      "eventId": "korcos-2025",
+      "title": "What if every WL class began with motivation and ended with learning how to learn?",
+      "abstract": "In this workshop, we explore how motivation and metacognition can shape WL acquisition, turning every lesson into an opportunity to create self-motivated, reflective learners. With hands-on strategies and classroom-ready ideas, teachers will walk away inspired and equipped to make “what if” a reality.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "11:30",
+      "end": "12:30",
+      "roomId": "korcos-2025-r-b-213",
+      "trackId": "korcos-2025-t-world-languages",
+      "speakers": [
+        {
+          "name": "Ricki Liang",
+          "title": "WL classroom Teacher",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-2977T",
+      "eventId": "korcos-2025",
+      "title": "Lunch A",
+      "abstract": "Please choose Lunch A or B",
+      "type": "break",
+      "date": "2025-10-18",
+      "start": "12:30",
+      "end": "13:00",
+      "roomId": "korcos-2025-r-cafeteria",
+      "trackId": "korcos-2025-t-lunch",
+      "speakers": [],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-2977V",
+      "eventId": "korcos-2025",
+      "title": "Lunch B",
+      "abstract": "Please sign up for Lunch A or Lunch B",
+      "type": "break",
+      "date": "2025-10-18",
+      "start": "13:00",
+      "end": "13:30",
+      "roomId": "korcos-2025-r-cafeteria",
+      "trackId": "korcos-2025-t-lunch",
+      "speakers": [],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28xlb",
+      "eventId": "korcos-2025",
+      "title": "What if English Testing Evolved? Reimagining Global Success with the Updated TOEFL iBT®",
+      "abstract": "As education adapts to a rapidly changing world, how can assessments keep pace? This session introduces the 2026 updates to the TOEFL iBT® test—the world’s first and most recognized high-stakes English test. Designed to be fairer, faster, and more aligned with real academic life, the updated TOEFL equips students from all backgrounds with an equal opportunity to demonstrate their English skills. Participants will learn how modernized content, reflective of real academic and professional settings, helps better prepare learners for success in classrooms, careers, and communities worldwide.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-b-305",
+      "trackId": "korcos-2025-t-product-demo",
+      "speakers": [
+        {
+          "name": "ETS TOEFL",
+          "org": "ETS TOEFL"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m7z",
+      "eventId": "korcos-2025",
+      "title": "What If Students Could Experience the Joy of Learning Math Using AI?",
+      "abstract": "Discover how MCE's AI tools create personalized math learning journeys. Automate tasks, gain insights, and empower students to master concepts at their own pace.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-b-219",
+      "trackId": "korcos-2025-t-product-demo",
+      "speakers": [
+        {
+          "name": "Farhana Abdul Rahim",
+          "org": "Marshall Cavendish Education"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28wMf",
+      "eventId": "korcos-2025",
+      "title": "Building an AI Literacy: Strategies to become an Effective AI Educator",
+      "abstract": "Artificial intelligence (AI) is not only shaping education but also transforming many of the things we do. This comprehensive workshop will take you through a historical and foundational understanding of artificial intelligence while centering the conversation in the broader context of reimagining learning. We'll spotlight various facets of AI, such as generative AI, large language models, and image generators, and consider the benefits and potential risks. We will examine what true AI Literacy means and how we can use AI as a tool for empowerment rather than exclusion. You'll leave this workshop with an AI applications analysis guide, the 'humanizing pedagogy framework, and some chatbot design protocols.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-black-box-theatre",
+      "trackId": "korcos-2025-t-professional-learning",
+      "speakers": [
+        {
+          "name": "Ken Shelton",
+          "title": "Educator, Author, Learning Designer",
+          "org": "Ken Shelton"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28xrH",
+      "eventId": "korcos-2025",
+      "title": "What if ADHD was seen as a strength in both teachers and students?",
+      "abstract": "What if ADHD wasn’t a barrier in education, but a bridge to deeper understanding and connection? In this workshop, we will explore the lived experiences of educators with ADHD and reflect on how their early classroom environments shaped their learning and teaching practices today. Participants will also examine how ADHD often presents differently in girls and boys, gaining insight into why some students remain overlooked or misunderstood. Together, we will discuss practical, classroom-ready strategies to support students with ADHD—tools that promote focus, inclusion, and emotional regulation. Finally, we will consider the needs of teachers themselves, exploring supportive techniques for educators who are navigating ADHD while leading a classroom. By the end, you will walk away with both perspective and practice: a deeper empathy for diverse learners and concrete strategies to build classrooms where all students can thrive.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-b-327-and-327-1",
+      "trackId": "korcos-2025-t-professional-learning",
+      "speakers": [
+        {
+          "name": "Lisa Lilyerd",
+          "title": "Classroom Teacher",
+          "org": "YoungHoon Elementary School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28tuA",
+      "eventId": "korcos-2025",
+      "title": "What if an instructional coaching team focused on \"sharing the good\"?",
+      "abstract": "Join the Chadwick International Village School coaching team to hear the story of their journey through \"what if's\" as they set out to \"share the good\" and invite professional learning that fits into what works for teachers. There will be time for all participants to share successful coaching moves, and to envision what may be the next step in your own school community.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-b-205",
+      "trackId": "korcos-2025-t-professional-learning",
+      "speakers": [
+        {
+          "name": "Julie Waugh",
+          "title": "Learning Coach",
+          "org": "Chadwick International School"
+        },
+        {
+          "name": "Nick Garvin",
+          "title": "Village School Educational Technology Coach",
+          "org": "Chadwick International"
+        },
+        {
+          "name": "Charisse Patacsil",
+          "title": "Learning Coach",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m7h",
+      "eventId": "korcos-2025",
+      "title": "What If Cross-School Collaboration Could Help Align Vision and Practice?",
+      "abstract": "Discover a new PD model built on collaboration and community—with the potential to shape practice, generate research, and inform policy. Ideate how it could work where you are—or join us in Incheon.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-b-210",
+      "trackId": "korcos-2025-t-professional-learning",
+      "speakers": [
+        {
+          "name": "Justin Brown",
+          "title": "5th Grade Homeroom Teacher",
+          "org": "Calvin Manitoba International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m6O",
+      "eventId": "korcos-2025",
+      "title": "Transforming Future Skills and Jobs: What if Robotics prepares us for the unknown?",
+      "abstract": "First of all, the audience will take a moment to think about \"what if the jobs we know will disappear in the future in 5, 10, or 15 years?\" and how we can support young learners to prepare for an uncertain future. Secondly, I will unpack the future jobs and core skills based on the World Economic Forum's Future Jobs Report in 2025, and audiences will discuss what core skills students need to develop and reflect on where their schools are to develop these skills. Third, I will share my teaching experience in Design, focusing on the impact of Robotics in the classroom. Fourth, the audience will try out Virtual Robot Coding using future core skills by collaborating with groups. Also, they will plan and share with collaboration groups where they can embed Robotics in their teaching. Lastly, I will share how they can develop Robotics teaching skills and get the teaching platform and resources.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-b-221",
+      "trackId": "korcos-2025-t-specials",
+      "speakers": [
+        {
+          "name": "Sally Soonja Kim",
+          "title": "MYP Design & Technology Teacher",
+          "org": "Gyeonggi Suwon International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m7A",
+      "eventId": "korcos-2025",
+      "title": "What if you had the power to turn ILPs into tools for student voice, advocacy, ownership, and confidence - From paperwork to empowerment—reimagine the ILP",
+      "abstract": "What if Individual Learning Plans were more than compliance documents? What if they became meaningful tools for student voice, self-advocacy, and growth? In this workshop, we will explore how to reimagine ILPs so they are relevant, dynamic, and empowering for all stakeholders.\n\nDrawing from my journey of transforming long, redundant, jargon-heavy documents into a 2-page, student-driven plan, participants will see how shifting the focus from legal language to learner voice changes everything. Our redesigned ILPs embed ATL skills, personal reflections, and student explanations of why accommodations matter—helping students not just access learning, but advocate for themselves.\n\nTogether, we will examine concrete examples, reflect on our own contexts, and discuss practical strategies to make ILPs clearer, simpler, and more impactful. Educators, counselors, and administrators will leave with both inspiration and actionable ideas to bring back to their schools.\n\nJoin us in asking: What if ILPs weren’t about compliance… but about confidence?",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-b-202",
+      "trackId": "korcos-2025-t-student-support",
+      "speakers": [
+        {
+          "name": "Rebecca Churchill",
+          "title": "Student Learning Support",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m6R",
+      "eventId": "korcos-2025",
+      "title": "CANCELLED What If Children Led the Way? Reimagining Student Agency in the Classroom",
+      "abstract": "What if our students were trusted to make the big decisions that shape their learning? In the early years, we see the power of following children’s interests and how it nurtures ownership, critical thinking, adaptability, and problem-solving skills. This workshop explores how these principles of agency and autonomy can extend beyond the early years into later schooling, where we can begin to rethink learning confined to siloed subjects. Together, we will unpack practical strategies for co-planning classrooms, adapting learning experiences, and creating environments where students take the lead to transform not only engagement but also their confidence, creativity, and capacity for lifelong learning.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-collaboration-and-innovation-hub",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Lara Small",
+          "title": "Head of Early Years",
+          "org": "Dulwich College Seoul"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28tuG",
+      "eventId": "korcos-2025",
+      "title": "What if classes were designed around care, not compliance?",
+      "abstract": "Through the workshop, the participants will brainstorm, devise and revisit effective strategies that lead to human connections within their classroom amd design strategies that can last a lifetime. The participants can co-create a set of effective and essential understanding where connection will drive learning.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-b-304",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Rahul Singh",
+          "title": "Secondary School Generalist",
+          "org": "International School of Busan"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "CARE vs COMPLIANCE",
+          "url": "https://hosted-files.sched.co/korcosiec2025/55/CARE%20vs%20COMPLIANCE.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28m74",
+      "eventId": "korcos-2025",
+      "title": "What if dialogue leveled the learning field? Reimagining Education Through Oracy",
+      "abstract": "What if every student's voice was not only heard but actively enriched the learning environment? This workshop aims to outline and explore how dialogic teaching and oracy can reshape education by placing purposeful talk, active questions, and collaborative dialogue at the heart of learning.\n\nThrough this interactive session, participants will experience a jigsaw-style professional development structure, engaging with Alexander's six principles of dialogic teaching. Two principles will be modeled, while the remaining four will be explored in jigsaw groups. This structure allows participants to experience the strategies firsthand, highlighting the transformative role of dialogue in a student-led learning environment.\n\nThe session will emphasize practical takeaways, such as scaffolding talk and creating adaptive resources to meet the needs of every learner. This workshop invites educators to consider: What if we evolved our classrooms into inquiry-rich communities where every learner feels their voice matters?",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-b-207",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Armagan Safran",
+          "title": "Classroom Teacher",
+          "org": "YoungHoon Elementary School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m6C",
+      "eventId": "korcos-2025",
+      "title": "What if emotional intelligence can be taught in school?",
+      "abstract": "Emotional intelligence has been found to be a key factor in determining success in life as well as in happiness and well being. In fact, the National Institute of Health studies argue that it may be more important than IQ in predicting job performance. Many schools have started to implement emotional literacy courses in their curriculum with marked results in improving students' academic performances and peer relationships. Emotional literacy, in other words, help prepare students for both the present and their future. Therefore, this workshop seeks to introduce and suggest implementation of such programs in schools, and ultimately equip teachers with a set of worksheet tools based on Daniel Goleman's bestseller book on emotional intelligence, that they can easily use for extracurricular programs for emotional literacy.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-b-211",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Shineui Song",
+          "title": "Classroom Teacher",
+          "org": "Mountain Cherry Academy"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "Teaching for Emotional Literacy",
+          "url": "https://hosted-files.sched.co/korcosiec2025/cd/Teaching%20for%20Emotional%20Literacy.pptx"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28m7e",
+      "eventId": "korcos-2025",
+      "title": "What If Empathy Was At the Heart of Learning and Teaching?",
+      "abstract": "Discover how empathy can elevate classrooms. Gain insights and strategies into reimagining education through care and connection. Present an interactive children's book as a creative means to 'teach' empathy.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-b-218",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Nico Visahan",
+          "title": "Head of Grade 10/KORCOS President",
+          "org": "Seoul Foreign School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m6g",
+      "eventId": "korcos-2025",
+      "title": "What if Every Child Could Read? Reimagining K-5 Literacy with Evidence-Based Instructional Routines.",
+      "abstract": "What if every elementary classroom had the tools and routines to ensure that all students became confident, capable readers? This workshop brings the Science of Reading to life through evidence-based instructional routines designed for K–5 English Language Arts. Participants will explore how research-driven strategies can be transformed into daily routines that are engaging, equitable, and effective for diverse learners. Through interactive demonstrations and hands-on practice, participants will leave with a toolkit of ready-to-implement routines that align with both the Science of Reading and the needs of their unique students.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-ms-us-library",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Brandon Harvey",
+          "title": "National Literacy Specialist",
+          "org": "McGraw Hill"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m6I",
+      "eventId": "korcos-2025",
+      "title": "What If Language Built Connection",
+      "abstract": "Language is more than words, it is the bridge that connects children to learning, to one another, and to their sense of belonging. In this interactive workshop, we will explore practical strategies for fostering rich language growth in the early years and elementary classroom through the power of relationships. Together, we’ll examine how intentional conversations, storytelling, play, and collaborative learning can nurture both academic success and social-emotional development. Participants will leave with research-based practices and engaging activities to help every child build confidence, deepen understanding, and grow essential language skills on their learning journey.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-b-208",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Jinie Kang",
+          "title": "Student Learning Support",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m7t",
+      "eventId": "korcos-2025",
+      "title": "What if Nonfiction Told the Bigger Story?",
+      "abstract": "What if nonfiction did more than present facts—what if it gave students a way to explore identity, culture, and the world around them? In this session, we’ll reimagine nonfiction as a tool for sparking inquiry, building voice, and making cross-curricular connections. Drawing on examples from middle school English Language Arts—such as memoirs, personal essays, journalism, and research projects—we’ll explore how nonfiction can become both a mirror for students’ own experiences and a window into broader global issues. Through interactive strategies, practical classroom examples, and collaborative planning, participants will leave with ideas for making nonfiction reading and writing more engaging, authentic, and connected across subjects.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-b-302",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Samantha Fromme",
+          "title": "Classroom Teacher",
+          "org": "St. Johnsbury Academy Jeju"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m69",
+      "eventId": "korcos-2025",
+      "title": "What If One Model Could Connect Classrooms Around the World?",
+      "abstract": "Discover how a cross-campus team designed a modular heart model adaptable for all grades, and explore strategies to create shareable teaching tools across schools.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-b-322",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Anna Aguilar Gardner",
+          "title": "Classroom Teacher",
+          "org": "Chadwick School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m5f",
+      "eventId": "korcos-2025",
+      "title": "What if students could prompt an AI to give them targeted support for mastering learning goals?",
+      "abstract": "In a classroom with heterogeneous background knowledge, there are bound to be students who need extra practice and more opportunities to master some part of the curriculum. Differentiating instruction has traditionally meant copious amounts of work for the teacher to develop and produce materials that were appropriate for the needs of the learner, but what if the teacher could help the learner to prompt an AI for such support? What if becoming a skilled learner in the world of AI is all about giving the learner the tools to ask for what they need? In this workshop we will explore ways to empower students to prompt ChatGPT (and other AIs like Study Fetch and Anara) to produce materials they can use strategically for further practice, review, and mastery of desired skills.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-b-216",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Angela Campbell",
+          "title": "Classroom Teacher",
+          "org": "Seoul International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "Angela Campbell KORCOS 2025 Session",
+          "url": "https://hosted-files.sched.co/korcosiec2025/ef/Angela%20Campbell%20KORCOS%202025%20Session.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28m6v",
+      "eventId": "korcos-2025",
+      "title": "What If...Classrooms Became Design Studios? Co-Creating a Culture of Innovation Where Students Empower Their Learning and Reimagine Their Futures",
+      "abstract": "Through human-centered design and storytelling, explore cultivating a culture of innovation with students as empowered creators, using inquiry and design thinking to reimagine learning experiences.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "13:45",
+      "end": "14:45",
+      "roomId": "korcos-2025-r-b-204",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Margaret Gleeson",
+          "title": "Classroom Teacher",
+          "org": "Korea International School, Seoul"
+        },
+        {
+          "name": "Sarah Jones",
+          "title": "Instructional Coach & Curriculum Coordinator",
+          "org": "Korea International School: Seoul Campus"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "KORCOS Presentation",
+          "url": "https://hosted-files.sched.co/korcosiec2025/78/KORCOS%20Presentation.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-293Pb",
+      "eventId": "korcos-2025",
+      "title": "Break",
+      "abstract": "",
+      "type": "break",
+      "date": "2025-10-18",
+      "start": "14:45",
+      "end": "15:00",
+      "roomId": "korcos-2025-r-location-to-be-announced",
+      "trackId": "korcos-2025-t-social",
+      "speakers": [],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m6F",
+      "eventId": "korcos-2025",
+      "title": "Math, Magic and Mayhem: Dungeons and Dragons as an Educational Tool!",
+      "abstract": "This session explores how Dungeons & Dragons - a classic tabletop role-playing game - can transform your classroom into a collaborative, creative learning environment. Whether you're teaching language, social studies, math, or social-emotional skills, D&D offers a flexible framework for student engagement, creativity, and problem-solving. No experience necessary - just a willingness to roll the dice and imagine new ways to teach!\n\nYou’ll learn the basics of gameplay, how to adapt mechanics for time-limited lessons, and ways to align campaigns with curriculum goals. We'll cover practical tips, common pitfalls, and real-world examples. We will also discuss how AI is not a replacement for creativity but rather a very helpful tool for fostering it in the classroom. Finally, all participants will be provided with a digital copy of my simplified Dungeon Master Playbook and several example campaigns educators can try in their own classrooms.\n\nThis presentation is informed by a broad base of educational research and best practices including research papers such as “Tabletop role-playing games and social and emotional learning in school settings” (Stubbs and Sorenson, 2025) - [https://www.sciencedirect.com/science/article/pii/S2773233925000142?via%3Dihub] and research articles such as “Leveraging the Lore of ‘Dungeons & Dragons’ to Motivate Students to Read and Write” (Darvasi, 2018) - [https://www.kqed.org/mindshift/51787/leveraging-the-lore-of-dungeons-and-dragons-to-motivate-students-to-read-and-write]",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-b-327-and-327-1",
+      "trackId": "korcos-2025-t-co-curricular",
+      "speakers": [
+        {
+          "name": "Sigrid McKenna",
+          "title": "Classroom Teacher",
+          "org": "Younghoon Elementary"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m77",
+      "eventId": "korcos-2025",
+      "title": "Design Job Alike: Elementary Design & Makerspace teachers- what does the future hold?",
+      "abstract": "Calling all Elementary Design teachers! Join us at our Job Alike to talk shop, share ideas and build community! We will reimagine what our Makerspaces could look like in the next 10-20 years!",
+      "type": "panel",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-vs-makerspace-a-140",
+      "trackId": "korcos-2025-t-job-alike",
+      "speakers": [
+        {
+          "name": "Meghan Gwalchmai",
+          "title": "ES Design Teacher",
+          "org": "Chadwick International School"
+        },
+        {
+          "name": "Gary Donahue",
+          "title": "Classroom Teacher",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m5N",
+      "eventId": "korcos-2025",
+      "title": "EAL Job-Alike: Tech, Talk & Teaching",
+      "abstract": "A dynamic job-alike for EAL educators to connect, collaborate, share ideas, and explore tech tools that enhance language learning and celebrate classroom success.",
+      "type": "panel",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-b-218",
+      "trackId": "korcos-2025-t-job-alike",
+      "speakers": [
+        {
+          "name": "Hyewon Alguire",
+          "title": "EAL Specialist, Chadwick International",
+          "org": "Chadwick International"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-295O5",
+      "eventId": "korcos-2025",
+      "title": "General KORCOS Board Meeting",
+      "abstract": "",
+      "type": "panel",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-shelly-luke-wille-professional-learning-center",
+      "trackId": "korcos-2025-t-job-alike",
+      "speakers": [],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m6j",
+      "eventId": "korcos-2025",
+      "title": "What if all of the Technology Directors got together to talk shop?",
+      "abstract": "Provide the Technology Directors from the schools in Korea an opportunity to network and discuss common issues we face. Please feel free to contact me before the event if you have topics you would like added to the list.\nCurrent Slides (updated 9/25/25)",
+      "type": "panel",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-b-204",
+      "trackId": "korcos-2025-t-job-alike",
+      "speakers": [
+        {
+          "name": "Tim Bray",
+          "title": "Director of Technology",
+          "org": "St. Johnsbury Academy Jeju"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "Job a Like Directors of Technology",
+          "url": "https://hosted-files.sched.co/korcosiec2025/28/Job-a-Like%20Directors%20of%20Technology.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28m5l",
+      "eventId": "korcos-2025",
+      "title": "What if every teacher had a coach and every coach had a team?",
+      "abstract": "Learning coaches unite! This job alike is for learning coaches who are looking to expand their network and share their experiences. We hope to establish a group just for coaches where we can pool resources, engage in professional development and network with each other and beyond!",
+      "type": "panel",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-b-208",
+      "trackId": "korcos-2025-t-job-alike",
+      "speakers": [
+        {
+          "name": "Natalia Fursova",
+          "title": "Literacy Specialist/Coach",
+          "org": "St. Johnsbury Academy Jeju"
+        },
+        {
+          "name": "Jillian Iwanuk",
+          "title": "Instructional Coach",
+          "org": "St. Johnsbury Academy Jeju"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m5u",
+      "eventId": "korcos-2025",
+      "title": "What if teacher evaluation did not scare teachers?",
+      "abstract": "The title implies that some teachers are scared of evaluation, but perhaps this is not the case at your school. School administrators and learning coaches are invited to share current teacher evaluation models at their school sites. Discussion will focus on how teacher evaluation is received by school staff and which approaches are effective in shifting the experience away from a potential source of stress, fear, anxiety, etc. (if applicable).",
+      "type": "panel",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-b-216",
+      "trackId": "korcos-2025-t-job-alike",
+      "speakers": [
+        {
+          "name": "David Klein",
+          "title": "School Leader/Administrator",
+          "org": "Calvin Manitoba International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "What if... Teacher Evaluation",
+          "url": "https://hosted-files.sched.co/korcosiec2025/e3/What%20if...%20Teacher%20Evaluation.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28m5T",
+      "eventId": "korcos-2025",
+      "title": "What if We Could Spot the Threats Before They Hit? (Safeguarding in the Korean Context)",
+      "abstract": "This KORCOS Job-A-Like is for Designated Safeguarding Leads (DSLs), school leaders and staff responsible for student safety and wellbeing. The session will explore how international safeguarding practices can be proactively implemented in the Korean Context.\n\nWe’ll discuss emerging and relevant challenges in Korea, including digital safety (deepfake/AI), mental health stigma, and reporting abuse. Participants will brainstorm and share ideas, strategies, and resources that have worked in their own and other school settings.\n\nThis is a valuable opportunity to exchange best practices and strengthen your professional safeguarding network across Korea.",
+      "type": "panel",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-b-213",
+      "trackId": "korcos-2025-t-job-alike",
+      "speakers": [
+        {
+          "name": "Bobby Fagogenis (he/him)",
+          "title": "School Leader/Administrator",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28u0e",
+      "eventId": "korcos-2025",
+      "title": "What if... you could see traces of Minwha, Korea’s folk art, woven into KPop Demon Hunters and beyond?",
+      "abstract": "Discover the artistic semiotics behind the KPop Demon Hunters and enrich your cultural insight by delving into the world of Minwha art history.\n\nKorean Folk Painting or Minwha (민화 民畵, “people’s art”) is an art tradition that reached its renaissance during the last dynasty on the peninsula, the Joseon Dynasty (AD 1392~1897). Initially introduced as a luxury art form from China and reserved for the royal court and the upper classes to adorn important ceremonial spaces and create royal portraits, by the end of the dynasty, folk paintings became popular among the general population. The royal court's patronage of this art form as a distinctly Joseon-style medium led to the emergence of several celebrated artists in this genre, who are still cherished by Koreans today. As the majority of Joseon’s population were illiterate, Minwha iconography served as both decorative artwork and talismans for prosperity, long life, children, and fame, incorporating elements of Shamanism, Buddhism, Confucianism, and more. Folk Paintings were often distributed without the artist's identity as powerful charms that were replicated for mass circulation. Minwha patterns can be seen in everyday items like tools, wall papers, clothing, accessories as well as in architectural elements in homes, temples and palaces all over Korea. During the session on Minwha, participants will learn about the history and cultural significance of this art form and its influence on modern Korean art. Attendees will gain a clear understanding of Minwha's definition and historical background, and most importantly, enjoy Korea in a whole new light.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-b-202",
+      "trackId": "korcos-2025-t-professional-learning",
+      "speakers": [
+        {
+          "name": "Hye Yong Min",
+          "title": "Deputy Director, Office of Admissions & Advancement",
+          "org": "Seoul International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28nuP",
+      "eventId": "korcos-2025",
+      "title": "Beyond STEAM: Reimagining Arts Integration",
+      "abstract": "What if Arts and STEM truly worked together? Explore practical strategies, hands-on activities, and real examples to integrate disciplines, foster collaboration, and ignite student innovation.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-ms-us-library",
+      "trackId": "korcos-2025-t-specials",
+      "speakers": [
+        {
+          "name": "Desiree Stant",
+          "title": "Theatre Teacher, Fine Arts Department Chair",
+          "org": "Cheongna Dalton School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "Reimagining STEAM Arts Integration",
+          "url": "https://hosted-files.sched.co/korcosiec2025/3b/Reimagining%20STEAM%20-%20Arts%20Integration.pptx"
+        },
+        {
+          "label": "Reimagining STEAM Handouts Desiree Stant",
+          "url": "https://hosted-files.sched.co/korcosiec2025/ff/Reimagining%20STEAM%20Handouts%20-%20Desiree%20Stant.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28m5Q",
+      "eventId": "korcos-2025",
+      "title": "What If the Curtain Never Closed? – The Transformative Power of Musical Theater Beyond the Stage",
+      "abstract": "What if the Curtain Never Closed?\nMusical theater in schools is often seen as a final performance — a product to showcase. But what if its true power lies in the process? In this workshop, we’ll explore how long-term musical theater productions can shape not only stage characters, but real-life character in students. From rehearsals to community connections, participants will see how musical theater can become a meaningful tool for social-emotional learning, service, and student agency.\n\nThrough stories, practical examples, and discussion, we’ll examine how theater builds empathy, collaboration, and a deep sense of responsibility — helping students become the kind of people our world needs.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-mpr2-b004",
+      "trackId": "korcos-2025-t-specials",
+      "speakers": [
+        {
+          "name": "Seura Park",
+          "title": "Classroom Teacher",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28nuG",
+      "eventId": "korcos-2025",
+      "title": "What if there were no more books: a new role for librarians",
+      "abstract": "Beyond books: Explore the librarian's new role in managing resources and fostering school-wide initiatives in AI Literacy, Digital Citizenship, and Academic Integrity.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-b-207",
+      "trackId": "korcos-2025-t-specials",
+      "speakers": [
+        {
+          "name": "Friska Titi Nova",
+          "title": "Secondary Librarian",
+          "org": "Gyeonggi Suwon International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m66",
+      "eventId": "korcos-2025",
+      "title": "Sane and Sound: A College Counselor's Guide to Mental Health, Balance, and Perspective in the Admissions Process",
+      "abstract": "Reimagine college counseling with a focus on student well-being, fit over fame, and practical strategies to reduce anxiety. Leave with tools to support balance in the admissions process.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-b-210",
+      "trackId": "korcos-2025-t-student-support",
+      "speakers": [
+        {
+          "name": "Justin Kurrass",
+          "title": "Counselor",
+          "org": "Chadwick International School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "Justin Kurrass KORCOS 2025 (1)",
+          "url": "https://hosted-files.sched.co/korcosiec2025/ad/Justin%20Kurrass%20KORCOS%202025%20%20%281%29.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28m5W",
+      "eventId": "korcos-2025",
+      "title": "The power of intersectionality in the classroom and other interventions",
+      "abstract": "This interactive 60-minute workshop explores the critical role of intersectionality in teaching and student support. As educators, we often work with students who hold multiple, overlapping identities such as language background, neurodiversity, gender, socio-economic status, and cultural heritage. These shape their experiences in complex ways. When these identities are overlooked, even well-intentioned teaching strategies and interventions can fall short.\n\nParticipants will engage in guided reflection, case study analysis, and collaborative dialogue to better understand how intersectionality can be used as a lens to create more equitable, inclusive, and effective educational environments. The session will highlight how adopting intersectionality as a transversal approach enhances both classroom practice and school-wide support systems.\n\nBy the end of the workshop, attendees will be equipped with practical strategies and a deeper awareness of how to recognize and respond to the diverse needs of students through an intersectionality lens. This session is ideal for classroom teachers, learning support staff, and school leaders committed to advancing equity and belonging in their daily practice.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-b-211",
+      "trackId": "korcos-2025-t-student-support",
+      "speakers": [
+        {
+          "name": "Andrea Carrera",
+          "title": "Whole School Pastoral Counselor",
+          "org": "Dwight School Seoul"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m6s",
+      "eventId": "korcos-2025",
+      "title": "What if we could harness automation technology to lighten our administrative loads, streamline processes, and increase accountability to ultimately have a greater impact on students?",
+      "abstract": "This workshop will begin with SFS High School's updated Student Support Team structures and protocols, but the majority of the workshop will focus on how I used Google Sheets and Google Apps Scripts (with the help of Chat GPT) to automate emails, pre-fill meeting agendas, and create a case management tracker.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-b-205",
+      "trackId": "korcos-2025-t-student-support",
+      "speakers": [
+        {
+          "name": "Sarah Ko",
+          "title": "Student Learning Support",
+          "org": "Seoul Foreign School"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "materials": [
+        {
+          "label": "Handout KORCOS",
+          "url": "https://hosted-files.sched.co/korcosiec2025/de/Handout_KORCOS.pdf"
+        }
+      ]
+    },
+    {
+      "id": "korcos-2025-28m6a",
+      "eventId": "korcos-2025",
+      "title": "What if Building Think Classrooms Could Increase Student Engagement",
+      "abstract": "This session introduces educators to the transformative strategies outlined in Peter Liljedahl's Building Thinking Classrooms. Designed for teachers across all disciplines, the session focuses on fostering critical thinking, collaboration, and student engagement. Participants will explore practical techniques such as designing rich, open-ended tasks, promoting student autonomy, utilizing vertical non-permanent surfaces (VNPS), and facilitating effective group work.\n\nThe session emphasizes how these strategies can be adapted to various subject areas, helping students actively construct knowledge and develop problem-solving skills. Educators will leave with actionable tools and insights to create dynamic learning environments that inspire deep thinking and meaningful participation.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-black-box-theatre",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "DJ West",
+          "title": "Vice President of Professional Learning",
+          "org": "McGrawHill Education"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m7V",
+      "eventId": "korcos-2025",
+      "title": "What if learning mindfully, and learning mindfulness, were part of reimagining education?",
+      "abstract": "Participants will reflect on and understand mindfulness and its benefits, experience mindfulness practices, and see how KKFS and Dwight embed them effectively. They will leave with practical tools, takeaway resources, and an invitation to join a growing mindfulness community.",
+      "type": "talk",
+      "date": "2025-10-18",
+      "start": "15:00",
+      "end": "16:00",
+      "roomId": "korcos-2025-r-collaboration-and-innovation-hub",
+      "trackId": "korcos-2025-t-teaching-and-learning",
+      "speakers": [
+        {
+          "name": "Alison Early",
+          "title": "Upper School Lead",
+          "org": "Korea Kent Foreign School"
+        },
+        {
+          "name": "Mark McShea",
+          "title": "Classroom Teacher/Mindfulness Lead",
+          "org": "Korea Kent Foreign School"
+        },
+        {
+          "name": "Bora Rancic",
+          "title": "Bora Rancic, Dwight Mindfulness Coach",
+          "org": "Dwight Seoul"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2025-28m9V",
+      "eventId": "korcos-2025",
+      "title": "Closing Session",
+      "abstract": "",
+      "type": "keynote",
+      "date": "2025-10-18",
+      "start": "16:15",
+      "end": "17:00",
+      "roomId": "korcos-2025-r-main-theater",
+      "trackId": "korcos-2025-t-keynote",
+      "speakers": [],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "featured": true
+    },
+    {
+      "id": "korcos-2025-293Pf",
+      "eventId": "korcos-2025",
+      "title": "Networking Reception",
+      "abstract": "",
+      "type": "social",
+      "date": "2025-10-18",
+      "start": "17:00",
+      "end": "20:00",
+      "roomId": "korcos-2025-r-location-to-be-announced",
+      "trackId": "korcos-2025-t-social",
+      "speakers": [],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    }
+  ]
+}

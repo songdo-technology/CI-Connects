@@ -432,6 +432,18 @@ data from outside the app: the REST helper from the 10 Sep session used
 `col="v2/data/<collection>"` with the firebase-tools refresh token — nothing
 in the repo does this; the interface is the normal path now.
 
+**Real programme data.** KORCOS 2025 — the actual conference of 18 Oct
+2025 — was imported from korcosiec2025.sched.com on 10 Sep 2026 with
+`v2/scripts/sched-import.mjs` (82 sessions, 32 rooms, 11 strands,
+presenters with titles) and written with `v2/seed/seed.mjs`
+(`npm run seed -- seed/korcos-2025.json`, firebase-tools login, protects
+held seats and roles on re-import). It is published as a past event beside
+the KORCOS 2026 placeholder; both scripts are in the repo for the 2026
+programme when it appears on Sched. The event threshold (`EventWelcome`)
+now renders through a portal — full screen, orbit centred and turning,
+2.2 s hold that doubles as the loading screen — after the first version
+showed up as a column with the ring cut off in the corner.
+
 **No demo build.** Removed at deploy time: `MemoryStore`, the seed import,
 the persona picker, `npm run demo`, `VITE_DEMO`. Anything that needs a
 signed-in person is verified on `localhost:3100` or live, by a person.

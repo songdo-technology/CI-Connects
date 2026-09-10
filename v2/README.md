@@ -72,6 +72,27 @@ Auth's providers on project `ci-connects`.
   only while `c` matches the session's `checkinCode`; *New code* retires
   every earlier copy. The badge page lists the sessions a person was at.
 
+## A programme from Sched
+
+`scripts/sched-import.mjs` reads a conference published on sched.com — the
+pages a visitor sees, no API key — and writes it as seed JSON: the event,
+its rooms, Sched's strands as tracks, and every session with its time,
+room, presenters (with position and school from the speaker directory),
+files and description. `seed/seed.mjs` (`npm run seed -- <file>`) writes a
+seed file into Firestore as the firebase-tools login; documents that exist
+are updated, but seats already held, check-in codes, roles and lists are
+never overwritten, so a programme can be re-imported after corrections.
+
+```sh
+node scripts/sched-import.mjs https://korcosiec2025.sched.com korcos-2025 \
+  --name "KORCOS 2025" --created-by <adminUid> > seed/korcos-2025.json
+npm run seed -- seed/korcos-2025.json
+```
+
+`seed/korcos-2025.json` is the real KORCOS International Educator
+Conference 2025 (18 Oct 2025, 82 sessions, 32 rooms, 11 strands), imported
+on 10 Sep 2026 and live as a past event.
+
 ## Sponsors
 
 Per event, with tiers, logos and websites (Administration → Events →
