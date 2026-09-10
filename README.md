@@ -26,6 +26,7 @@ npm run dev                # http://localhost:3000
 | `npm run lint` | Typecheck (`tsc --noEmit`) |
 | `npm run bootstrap` | Fresh clone → working checkout (writes `.env.local`) |
 | `npm run ship` | Typecheck, build, push `main`, deploy to production |
+| `npm run dev:demo` | Design preview on port 3002: in-memory data and sample personas, no Firebase |
 
 ## Current status: prototype
 

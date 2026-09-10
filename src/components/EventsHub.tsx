@@ -358,7 +358,7 @@ export const EventsHub: React.FC<EventsHubProps> = ({
               >
                 <LogIn className="w-4 h-4" />
                 {signedInAs
-                  ? (isOrganiser ? 'Create a real event' : 'My learning')
+                  ? (isOrganiser ? 'Create a real event' : 'My dashboard')
                   : 'Sign in or create an account'}
               </button>
             </div>

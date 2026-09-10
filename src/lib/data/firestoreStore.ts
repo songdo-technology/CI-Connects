@@ -34,9 +34,66 @@ function clean<T>(value: T): T {
 }
 
 export class FirestoreStore implements DataStore {
-  constructor(private readonly db: Firestore) {}
+  /**
+   * @param currentUid Who is asking, at the moment a subscription opens.
+   *
+   * The directory is readable by the community — Chadwick accounts,
+   * organisers, guests with a place — while one's own profile is readable by
+   * its owner (`allow get` versus `allow list` in firestore.rules). A person
+   * whose account is not yet part of the community therefore gets an empty
+   * directory, and would never see themselves in it; every signed-in surface
+   * renders against that one profile. So `users` is two subscriptions merged.
+   */
+  constructor(
+    private readonly db: Firestore,
+    private readonly currentUid: () => string | undefined = () => undefined,
+  ) {}
 
   subscribe<K extends CollectionKey>(
+    key: K,
+    onChange: (items: CollectionTypes[K][]) => void,
+  ): Unsubscribe {
+    if (key !== 'users') return this.watchCollection(key, onChange);
+    const uid = this.currentUid();
+    if (!uid) return this.watchCollection(key, onChange);
+
+    // Both answers are needed before the first report: readiness means "the
+    // directory has answered and so has my own profile", not whichever
+    // happened to land first.
+    let directory: CollectionTypes['users'][] | undefined;
+    let own: CollectionTypes['users'] | null | undefined;
+    const report = () => {
+      if (directory === undefined || own === undefined) return;
+      const mine = own;
+      const items = mine && !directory.some((u) => u.id === mine.id)
+        ? [mine, ...directory]
+        : directory;
+      onChange(items as CollectionTypes[K][]);
+    };
+    const offDirectory = this.watchCollection('users', (items) => {
+      directory = items;
+      report();
+    });
+    const offOwn = onSnapshot(
+      doc(this.db, 'users', uid),
+      (snap) => {
+        // Not existing yet is normal for a beat after first sign-in: the
+        // profile is written just after, and this listener sees it land.
+        own = snap.exists()
+          ? ({ ...snap.data(), id: snap.id } as CollectionTypes['users'])
+          : null;
+        report();
+      },
+      (error) => {
+        console.error('[firestore] own profile not readable:', error);
+        own = null;
+        report();
+      },
+    );
+    return () => { offDirectory(); offOwn(); };
+  }
+
+  private watchCollection<K extends CollectionKey>(
     key: K,
     onChange: (items: CollectionTypes[K][]) => void,
   ): Unsubscribe {

@@ -10,7 +10,8 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "ship": "sh scripts/ship.sh",
-    "bootstrap": "sh scripts/bootstrap.sh"
+    "bootstrap": "sh scripts/bootstrap.sh",
+    "dev:demo": "VITE_USE_FIRESTORE=false vite --port 3002 --host 0.0.0.0"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 // Only the event catalogue is still read directly; every other collection
 // now arrives through the store.
 import { EVENT_CONFIG, EVENTS } from './data/initialData';
@@ -27,8 +27,6 @@ import { DirectoryView } from './components/DirectoryView';
 import { CommunityBoard } from './components/CommunityBoard';
 import { LuckyDraw } from './components/LuckyDraw';
 import { AdminConsole } from './components/AdminConsole';
-import { ArchitectureGuideModal } from './components/ArchitectureGuideModal';
-import { MobileAppFrame } from './components/MobileAppFrame';
 import { PublicEventPage } from './components/PublicEventPage';
 import { LandingPage } from './components/LandingPage';
 import { DiningView } from './components/DiningView';
@@ -63,6 +61,74 @@ import { MyLearning } from './components/MyLearning';
  *  runs, one page per event, a sign-in gate, and the attendee portal behind
  *  it. Signage resolves ahead of all of them, straight from the URL. */
 type Surface = 'hub' | 'event' | 'signin' | 'portal' | 'dashboard' | 'gate' | 'learning';
+
+/**
+ * Where each surface lives in the address bar.
+ *
+ * Signed-in surfaces are paths, so the browser's Back button moves inside the
+ * platform instead of out of it, and a bookmark to the dashboard opens the
+ * dashboard. The public catalogue keeps its `/?event=<slug>` address because
+ * invitations and printed links already carry it.
+ */
+type Route =
+  | { kind: 'hub' }
+  | { kind: 'event'; slug: string }
+  | { kind: 'signin' }
+  | { kind: 'dashboard' }
+  | { kind: 'admin' }
+  | { kind: 'learning' }
+  | { kind: 'gate' }
+  | { kind: 'portal'; slug: string; tab: ActiveTab };
+
+const PORTAL_TABS: ActiveTab[] = [
+  'agenda', 'badge', 'dining', 'community', 'directory', 'messages',
+  'profile', 'propose', 'feedback', 'admin', 'luckydraw',
+];
+
+function parseRoute(loc: Location): Route {
+  const parts = loc.pathname.split('/').filter(Boolean);
+  switch (parts[0]) {
+    case 'signin': return { kind: 'signin' };
+    case 'dashboard': return { kind: 'dashboard' };
+    case 'admin': return { kind: 'admin' };
+    case 'me': return { kind: 'learning' };
+    case 'gate': return { kind: 'gate' };
+    case 'event':
+      if (parts[1]) {
+        const tab = PORTAL_TABS.includes(parts[2] as ActiveTab) ? (parts[2] as ActiveTab) : 'agenda';
+        return { kind: 'portal', slug: decodeURIComponent(parts[1]), tab };
+      }
+  }
+  const slug = new URLSearchParams(loc.search).get('event');
+  return slug ? { kind: 'event', slug } : { kind: 'hub' };
+}
+
+/** The address for a route, keeping every query parameter that is not ours
+ *  (a check-in token, a certificate code, a guest sign-in link). */
+function routeUrl(route: Route, current: URL): URL {
+  const url = new URL(current.href);
+  url.searchParams.delete('event');
+  switch (route.kind) {
+    case 'hub': url.pathname = '/'; break;
+    case 'event': url.pathname = '/'; url.searchParams.set('event', route.slug); break;
+    case 'signin': url.pathname = '/signin'; break;
+    case 'dashboard': url.pathname = '/dashboard'; break;
+    case 'admin': url.pathname = '/admin'; break;
+    case 'learning': url.pathname = '/me'; break;
+    case 'gate': url.pathname = '/gate'; break;
+    case 'portal':
+      url.pathname = `/event/${encodeURIComponent(route.slug)}`
+        + (route.tab === 'agenda' ? '' : `/${route.tab}`);
+      break;
+  }
+  return url;
+}
+
+/** The surface underneath a route. The admin panel is an overlay, so it sits
+ *  on the dashboard when nothing else was there. */
+function surfaceOfRoute(route: Route): Surface {
+  return route.kind === 'admin' ? 'dashboard' : route.kind;
+}
 
 const now = () =>
   new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -110,13 +176,13 @@ export default function App() {
   const allEvents = events.length > 0 ? events : EVENTS;
 
   // Auth & surface routing
-  /** Read once from the URL so /?event=<slug> is a real, shareable address
-   *  rather than only an in-app transition. The slug is not checked against a
-   *  list here: at first paint the store has answered nothing, so every slug
-   *  would look unknown. It is resolved below, once the data is in. */
-  const initialEventSlug = new URLSearchParams(window.location.search).get('event');
+  /** Read once from the URL, so every address here is real and shareable. An
+   *  event slug is not checked against a list yet: at first paint the store
+   *  has answered nothing, so every slug would look unknown. It is resolved
+   *  below, once the data is in. */
+  const [initialRoute] = useState<Route>(() => parseRoute(window.location));
 
-  const [surface, setSurface] = useState<Surface>(initialEventSlug ? 'event' : 'hub');
+  const [surface, setSurface] = useState<Surface>(surfaceOfRoute(initialRoute));
   /** Where the visitor was when they chose to sign in.
    *
    *  Leaving the sign-in screen used to go to the flagship event's page
@@ -125,7 +191,7 @@ export default function App() {
   const [returnSurface, setReturnSurface] = useState<'hub' | 'event'>('hub');
   /** Which event the public pages and the portal are scoped to. */
   const [activeEventSlug, setActiveEventSlug] = useState<string>(
-    initialEventSlug ?? EVENT_CONFIG.slug,
+    'slug' in initialRoute ? initialRoute.slug : EVENT_CONFIG.slug,
   );
   const [authSession, setAuthSession] = useState<AuthSession | null>(null);
   /** Set when someone scanned a station's code with their own phone. */
@@ -150,14 +216,21 @@ export default function App() {
   const auth = useAuth();
 
   // UI Navigation State
-  const [activeTab, setActiveTab] = useState<ActiveTab>('agenda');
-  const [deviceMode, setDeviceMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [activeTab, setActiveTab] = useState<ActiveTab>(
+    initialRoute.kind === 'portal' ? initialRoute.tab : 'agenda',
+  );
   const [selectedSessionForModal, setSelectedSessionForModal] = useState<Session | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isDoorScannerOpen, setIsDoorScannerOpen] = useState(false);
-  const [isArchitectureOpen, setIsArchitectureOpen] = useState(false);
   const [isPrintBadgeOpen, setIsPrintBadgeOpen] = useState(false);
-  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(initialRoute.kind === 'admin');
+  /** Signed in, profile on its way: the move to the person's home is pending. */
+  const [awaitingHome, setAwaitingHome] = useState(false);
+  /** The next address change replaces the current history entry instead of
+   *  adding one — for corrections, and for leaving the sign-in page behind. */
+  const replaceNextRef = useRef(false);
+  const surfaceRef = useRef<Surface>(surface);
+  surfaceRef.current = surface;
   /** Set when the panel is opened for a specific job rather than to browse. */
   const [adminIntent, setAdminIntent] = useState<'events-new' | undefined>(undefined);
   /** Lets a technical admin view the app as another role. Affects only what
@@ -182,20 +255,9 @@ export default function App() {
     [sessions, activeEvent.id],
   );
 
-  /** Keeps the address bar in step with the surface, so a visitor can copy the
-   *  URL of the event they are looking at and it opens there. */
-  const syncUrl = (slug: string | null) => {
-    const url = new URL(window.location.href);
-    if (slug) url.searchParams.set('event', slug);
-    else url.searchParams.delete('event');
-    window.history.replaceState({}, '', url.toString());
-  };
-
   const openEvent = (slug: string) => {
     setActiveEventSlug(slug);
     setSurface('event');
-    syncUrl(slug);
-    window.scrollTo(0, 0);
   };
 
   /**
@@ -209,8 +271,8 @@ export default function App() {
   useEffect(() => {
     if (!ready || surface !== 'event' || allEvents.length === 0) return;
     if (allEvents.some(e => e.slug === activeEventSlug)) return;
+    replaceNextRef.current = true;
     setSurface('hub');
-    syncUrl(null);
   }, [ready, surface, allEvents, activeEventSlug]);
 
   const openSignIn = () => {
@@ -219,18 +281,18 @@ export default function App() {
     setSurface('signin');
   };
 
-  const openHub = () => {
-    setSurface('hub');
-    syncUrl(null);
-    window.scrollTo(0, 0);
-  };
+  const openHub = () => setSurface('hub');
 
   /** The signed-in user, resolved from the auth session rather than held
    *  separately, so there is exactly one source of truth for identity. */
   /** Undefined until the store delivers. The render gate below gives every
    *  consumer a non-null value; only the memos above it must guard. */
   const currentUser: UserProfile | undefined = useMemo(
-    () => allUsers.find((u) => u.id === authSession?.userId) ?? allUsers[0],
+    // No fallback to the first profile in the directory: that was a demo
+    // convenience, and it rendered somebody else's name — and aimed writes at
+    // somebody else's record — for the moment before one's own profile
+    // arrived. Undefined is handled below by holding the screen.
+    () => allUsers.find((u) => u.id === authSession?.userId),
     [allUsers, authSession],
   );
   const currentUserId = currentUser?.id;
@@ -246,41 +308,48 @@ export default function App() {
    * Mirrors the Firebase session into the app's own session.
    *
    * Without this, signing in with Google succeeds at the identity provider and
-   * then appears to do nothing: the persona-based `authSession` stays null, so
-   * the surface never leaves the public hub. Waits for `profileReady` because
-   * the portal reads a role, and the role lives in the Firestore profile that
-   * is written just after sign-in.
+   * then appears to do nothing. Waits for `profileReady` because the home
+   * surface reads a role, and the role lives in the Firestore profile written
+   * just after sign-in. The move home itself happens in the effect below, once
+   * that profile has actually arrived through the subscription: deciding it
+   * here, against a directory that may not contain the person yet, is how a
+   * sign-in was once routed as whoever happened to be first in the list.
    *
-   * Entering the portal cannot be decided by looking at the current surface
-   * alone. That works for a popup, which returns to the same React tree, but
-   * `signInWithRedirect` comes back to a cold load where the surface has
-   * re-initialised to the hub — so the visitor arrives signed in and stares at
-   * the public front page. The stored intent survives that trip; an emailed
-   * guest link is the same trip and counts as the same intent.
+   * `signInWithRedirect` comes back to a cold load, so whether this sign-in
+   * should move the person home cannot be read from the surface alone; the
+   * stored intent says so, and an emailed guest link is the same trip.
    */
   useEffect(() => {
     if (!auth.live) return;
     if (auth.status === 'signed_in' && auth.profileReady && auth.firebaseUser) {
+      const uid = auth.firebaseUser.uid;
       setAuthSession((current) =>
-        current?.userId === auth.firebaseUser!.uid
-          ? current
-          : { userId: auth.firebaseUser!.uid, method: 'google_sso', signedInAt: now() },
+        current?.userId === uid ? current : { userId: uid, method: 'google_sso', signedInAt: now() },
       );
-
       const intent = takeSignInIntent();
       if (intent?.eventSlug) setActiveEventSlug(intent.eventSlug);
-      // Running the platform is a different job from attending an event on it.
-      // Sending an organiser into a conference portal — necessarily one
-      // specific conference — was why signing in always landed on the sample
-      // flagship, and why there appeared to be no administration at all.
-      const home = homeSurfaceFor(currentUser, Boolean(intent?.eventSlug));
-      setSurface((s) => (s === 'signin' || enteringPortal ? home : s));
+      if (surfaceRef.current === 'signin' || enteringPortal) setAwaitingHome(true);
       setEnteringPortal(false);
     }
     if (auth.status === 'signed_out') {
       setAuthSession(null);
     }
   }, [auth.live, auth.status, auth.profileReady, auth.firebaseUser, enteringPortal]);
+
+  /**
+   * The move home, made only once the signed-in person's own profile is here.
+   *
+   * Replaces the sign-in entry in history rather than stacking on it, so Back
+   * from the dashboard does not reopen a sign-in form for somebody already in.
+   */
+  useEffect(() => {
+    if (!awaitingHome || !authSession || currentUser?.id !== authSession.userId) return;
+    replaceNextRef.current = true;
+    setIsAdminPanelOpen(false);
+    setSurface(homeSurfaceFor(currentUser));
+    setAwaitingHome(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [awaitingHome, authSession, currentUser]);
 
   /**
    * A sign-in that Firebase has finished deciding on, and decided against.
@@ -299,37 +368,131 @@ export default function App() {
   // ---------------------------------------------------------------- Auth
 
   /**
-   * Where a person belongs once they are in.
+   * Where a person lands once they are in: their own dashboard, always.
    *
-   * One rule, used by both sign-in paths. When the Firebase route and the
-   * demo route each decided this for themselves they drifted apart, and the
-   * demo build kept sending organisers into a conference portal after the
-   * live one had stopped.
+   * By role, and never inside a conference. An organiser opens the platform
+   * onto the events they run, an attendee onto their own record, and the
+   * front desk onto the gate, because a queue waits while somebody finds the
+   * scanner. An event is a click from each of these; it is not where signing
+   * in puts you, which is how an administrator once opened the platform onto
+   * a sample programme with nothing to say it was one.
    */
-  /**
-   * Where a person belongs once they are in.
-   *
-   * By role, and never inside a conference nobody chose. Landing everyone in
-   * one event's portal meant an administrator opened the platform onto a
-   * sample programme, and an attendee with no event this month opened it onto
-   * somebody else's. Each of these is somebody's own home, and gains features
-   * as their permissions do rather than being a different product.
-   */
-  const homeSurfaceFor = (user: UserProfile, eventInMind: boolean): Surface => {
-    // Someone who followed a link to a specific event goes to that event.
-    if (eventInMind) return 'portal';
-    // Front desk staff have exactly one job and it is not browsing a
-    // programme. A queue waits while somebody finds the scanner.
+  const homeSurfaceFor = (user: UserProfile): Surface => {
     if (user.role === 'front_desk') return 'gate';
     if (can(user, 'events:create')) return 'dashboard';
     return 'learning';
   };
 
+  /** The design-preview sign-in: no identity provider, a seeded profile. */
   const handleSignIn = (user: UserProfile, method: AuthMethod) => {
+    takeSignInIntent();
     setAuthSession({ userId: user.id, method, signedInAt: now() });
     setActiveTab('agenda');
-    setSurface(homeSurfaceFor(user, Boolean(takeSignInIntent()?.eventSlug)));
+    replaceNextRef.current = true;
+    setSurface(homeSurfaceFor(user));
   };
+
+  /** The person's own dashboard — the brand mark and the Dashboard button. */
+  const openHome = () => {
+    if (!currentUser) { openHub(); return; }
+    setIsAdminPanelOpen(false);
+    setSurface(homeSurfaceFor(currentUser));
+  };
+
+  // ------------------------------------------------------------- Routing
+
+  /** Surfaces that need a signed-in person. */
+  const authRequired = isAdminPanelOpen
+    || surface === 'portal' || surface === 'dashboard'
+    || surface === 'gate' || surface === 'learning';
+
+  const route: Route = isAdminPanelOpen ? { kind: 'admin' }
+    : surface === 'portal' ? { kind: 'portal', slug: activeEventSlug, tab: activeTab }
+    : surface === 'event' ? { kind: 'event', slug: activeEventSlug }
+    : { kind: surface };
+
+  /**
+   * The address bar follows the surface, as history entries.
+   *
+   * Every move used to rewrite the URL in place, so the browser's Back button
+   * — the one control every visitor already knows — left the site entirely,
+   * usually onto the sign-in provider's pages. Now each move is an entry, and
+   * Back means back.
+   */
+  useEffect(() => {
+    const current = new URL(window.location.href);
+    const next = routeUrl(route, current);
+    if (next.pathname === current.pathname && next.search === current.search) {
+      replaceNextRef.current = false;
+      return;
+    }
+    if (replaceNextRef.current) {
+      window.history.replaceState({}, '', next.toString());
+      replaceNextRef.current = false;
+    } else {
+      window.history.pushState({}, '', next.toString());
+      window.scrollTo(0, 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [surface, activeEventSlug, activeTab, isAdminPanelOpen]);
+
+  /** What Back and Forward should see, without re-subscribing per render. */
+  const latestRef = useRef({ authSession, currentUser });
+  latestRef.current = { authSession, currentUser };
+
+  useEffect(() => {
+    const onPop = () => {
+      const r = parseRoute(window.location);
+      const { authSession: session, currentUser: user } = latestRef.current;
+      if (r.kind === 'signin' && session && user) {
+        // Back onto the sign-in page while signed in: step over it.
+        replaceNextRef.current = true;
+        setIsAdminPanelOpen(false);
+        setSurface(homeSurfaceFor(user));
+        return;
+      }
+      setIsAdminPanelOpen(r.kind === 'admin');
+      if ('slug' in r) setActiveEventSlug(r.slug);
+      if (r.kind === 'portal') setActiveTab(r.tab);
+      setSurface((s) => r.kind === 'admin'
+        ? (s === 'hub' || s === 'event' || s === 'signin' ? 'dashboard' : s)
+        : surfaceOfRoute(r));
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /** A signed-out visitor on a signed-in address is sent to sign in — once
+   *  Firebase has actually decided they are signed out, not on its first,
+   *  provisional answer. */
+  useEffect(() => {
+    if (!authRequired || authSession) return;
+    if (auth.live && (!auth.settled || auth.status === 'signed_in')) return;
+    replaceNextRef.current = true;
+    setIsAdminPanelOpen(false);
+    setReturnSurface('hub');
+    setEnteringPortal(false);
+    setSurface('signin');
+  }, [authRequired, authSession, auth.live, auth.settled, auth.status]);
+
+  /** A signed-in person on a surface their role does not have goes home,
+   *  rather than falling through to whatever rendered last. */
+  useEffect(() => {
+    if (!authSession || !currentUser) return;
+    const organiser = can(currentUser, 'events:create');
+    if (isAdminPanelOpen && !organiser) {
+      replaceNextRef.current = true;
+      setIsAdminPanelOpen(false);
+      return;
+    }
+    if ((surface === 'dashboard' && !organiser)
+        || (surface === 'gate' && !can(currentUser, 'attendance:scan'))) {
+      replaceNextRef.current = true;
+      setSurface(homeSurfaceFor(currentUser));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authSession, currentUser, surface, isAdminPanelOpen]);
 
   /**
    * Saving an invitation also publishes its access-code lookup.
@@ -683,34 +846,6 @@ export default function App() {
     create('announcements', newAnn);
   };
 
-  // CSV Batch Ingestion Handler
-  const handleImportCsvSessions = (
-    newSessions: Session[],
-    newTracks: Track[],
-    newRooms: Room[],
-    newProfiles: UserProfile[]
-  ) => {
-    // A spreadsheet import is one action from the organiser's point of view,
-    // so it lands as one batch rather than four partial writes.
-    batch([
-      ...newTracks.map(x => ({ op: 'create' as const, key: 'tracks' as const, item: x })),
-      ...newRooms.map(x => ({ op: 'create' as const, key: 'rooms' as const, item: x })),
-      ...newProfiles.map(x => ({ op: 'create' as const, key: 'users' as const, item: x })),
-      ...newSessions.map(x => ({ op: 'create' as const, key: 'sessions' as const, item: x })),
-    ]);
-
-    return {
-      insertedSessionsCount: newSessions.length,
-      updatedSessionsCount: 0,
-      roomsCount: newRooms.length,
-      tracksCount: newTracks.length,
-    };
-  };
-
-  // Switch Active Persona (prototype affordance, not a real auth action)
-  const handleSwitchUser = (user: UserProfile) => {
-    setAuthSession({ userId: user.id, method: 'google_sso', signedInAt: now() });
-  };
 
   // Active bookmarked sessions count for user
   const bookmarkedSessionsCount = useMemo(() => {
@@ -810,8 +945,8 @@ export default function App() {
   }
 
   // Subscriptions attach in an effect, so the first render has empty
-  // collections. Everything below assumes data is present — currentUser falls
-  // back to allUsers[0] — so hold rendering until the store has delivered.
+  // collections. Everything below assumes data is present, so hold rendering
+  // until the store has delivered.
   // This is not a workaround for the in-memory store: Firestore has the same
   // shape, only slower, so the gate has to exist either way.
   if (!ready) {
@@ -832,9 +967,11 @@ export default function App() {
   // Hold the screen while a sign-in is still in flight. Releasing on the first
   // signed-out answer painted the sign-in form over a session that was about
   // to arrive — the bug a reload appeared to fix.
-  if (enteringPortal && auth.live && !auth.error
-      && (!auth.settled || auth.status === 'signed_in')
-      && !(auth.status === 'signed_in' && auth.profileReady)) {
+  const signInInFlight = auth.live && !auth.error
+    && (!auth.settled || auth.status === 'signed_in')
+    && !(auth.status === 'signed_in' && auth.profileReady);
+  if ((enteringPortal && signInInFlight) || awaitingHome
+      || (authRequired && !authSession && signInInFlight)) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
@@ -881,6 +1018,19 @@ export default function App() {
         />
       );
     }
+  }
+
+  // Signed in, but the person's own profile has not come through the
+  // subscription yet. Every signed-in surface renders against it.
+  if (authRequired && authSession && !viewUser) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 rounded-xl bg-blue-600 mx-auto mb-4 animate-pulse" />
+          <p className="text-sm text-slate-500">Preparing your profile…</p>
+        </div>
+      </div>
+    );
   }
 
   // ------------------------------------------------- Surface: admin panel
@@ -939,7 +1089,7 @@ export default function App() {
   }
 
   // -------------------------------------------------- Surface: learning
-  if (surface === 'learning' && authSession) {
+  if (surface === 'learning' && authSession && viewUser) {
     return (
       <MyLearning
         currentUser={viewUser}
@@ -953,7 +1103,6 @@ export default function App() {
           setActiveEventSlug(slug);
           setActiveTab('agenda');
           setSurface('portal');
-          syncUrl(slug);
         }}
         onOpenPublicPage={openEvent}
         onOpenHub={openHub}
@@ -977,7 +1126,7 @@ export default function App() {
   }
 
   // ------------------------------------------------------ Surface: gate
-  if (surface === 'gate' && authSession && can(viewUser, 'attendance:scan')) {
+  if (surface === 'gate' && authSession && viewUser && can(viewUser, 'attendance:scan')) {
     return (
       <GateStation
         currentUser={viewUser}
@@ -998,57 +1147,30 @@ export default function App() {
   }
 
   // ------------------------------------------------- Surface: dashboard
-  if (surface === 'dashboard' && authSession && can(viewUser, 'events:create')) {
+  if (surface === 'dashboard' && authSession && viewUser && can(viewUser, 'events:create')) {
     return (
-      <>
-        <AdminDashboard
-          currentUser={viewUser}
-          events={allEvents}
-          sessions={sessions}
-          rooms={rooms}
-          users={allUsers}
-          invites={invites}
-          attendance={attendance}
-          isTechnical={can(viewUser, 'integrations:manage')}
-          isRemote={isRemote}
-          onOpenAdmin={(section) => { setAdminIntent(section); setIsAdminPanelOpen(true); }}
-          onOpenEventPortal={(slug) => {
-            setActiveEventSlug(slug);
-            setActiveTab('agenda');
-            setSurface('portal');
-            syncUrl(slug);
-          }}
-          onOpenPublicPage={openEvent}
-          onOpenHub={openHub}
-          onOpenGate={() => setSurface('gate')}
-          onOpenMyLearning={() => setSurface('learning')}
-          onSignOut={handleSignOut}
-        />
-        {isAdminPanelOpen && (
-          <AdminPanel
-            currentUser={viewUser} users={allUsers} events={events} sessions={sessions}
-            tracks={tracks} rooms={rooms} mealServices={mealServices} sponsors={sponsors}
-            prizes={prizes} costs={costs} invites={invites} attendance={attendance}
-            counts={{ users: allUsers.length, events: events.length, sessions: sessions.length,
-                      rooms: rooms.length, sponsors: sponsors.length }}
-            isRemote={isRemote}
-            onClose={() => { setIsAdminPanelOpen(false); setAdminIntent(undefined); }}
-            onChangeRole={handleChangeRole}
-            onSaveEvent={handleSaveEvent} onDeleteEvent={handleDeleteEvent}
-            onSaveSession={saver('sessions')} onDeleteSession={remover('sessions')}
-            onSaveRoom={saver('rooms')} onDeleteRoom={remover('rooms')}
-            onSaveMeal={saver('mealServices')} onDeleteMeal={remover('mealServices')}
-            onSaveSponsor={saver('sponsors')} onDeleteSponsor={remover('sponsors')}
-            onSavePrize={saver('prizes')} onDeletePrize={remover('prizes')}
-            onSaveCost={saver('costs')} onDeleteCost={remover('costs')}
-            onBulkImport={(ops) => batch(ops)} openTo={adminIntent}
-            communityTopics={communityTopics} messages={messages}
-            feedback={feedback} announcements={announcements} certificates={certificates}
-            onSaveInvite={handleSaveInvite} onDeleteInvite={remover('invites')}
-            onRepublishInviteCodes={republishInviteCodes}
-          />
-        )}
-      </>
+      <AdminDashboard
+        currentUser={viewUser}
+        events={allEvents}
+        sessions={sessions}
+        rooms={rooms}
+        users={allUsers}
+        invites={invites}
+        attendance={attendance}
+        isTechnical={can(viewUser, 'integrations:manage')}
+        isRemote={isRemote}
+        onOpenAdmin={(section) => { setAdminIntent(section); setIsAdminPanelOpen(true); }}
+        onOpenEventPortal={(slug) => {
+          setActiveEventSlug(slug);
+          setActiveTab('agenda');
+          setSurface('portal');
+        }}
+        onOpenPublicPage={openEvent}
+        onOpenHub={openHub}
+        onOpenGate={() => setSurface('gate')}
+        onOpenMyLearning={() => setSurface('learning')}
+        onSignOut={handleSignOut}
+      />
     );
   }
 
@@ -1058,28 +1180,20 @@ export default function App() {
       <EventsHub
         events={allEvents}
         sessions={sessions}
-        signedInAs={authSession ? currentUser : null}
+        signedInAs={authSession ? currentUser ?? null : null}
         isOrganiser={Boolean(authSession) && can(currentUser, 'events:create')}
-        onOpenPortal={() => {
-          // Straight to what they manage. An organiser arriving from the front
-          // page is going to work, not browsing the catalogue they just left.
-          setAdminIntent(undefined);
-          if (can(currentUser, 'events:create')) setIsAdminPanelOpen(true);
-          setSurface('portal');
-        }}
+        onOpenPortal={openHome}
         onCreateEvent={() => {
           setAdminIntent('events-new');
+          setSurface('dashboard');
           setIsAdminPanelOpen(true);
-          setSurface('portal');
         }}
         onSignOut={handleSignOut}
         onOpenEvent={openEvent}
         onRegister={(slug) => {
-          // Remember which event before leaving for Google: the redirect comes
-          // back to a cold load with none of this state, and landing on the
-          // featured event instead of the one they chose is the whole problem.
+          // Remember which event: the redirect comes back to a cold load with
+          // none of this state, and the dashboard can then point at it.
           setActiveEventSlug(slug);
-          syncUrl(slug);
           setReturnSurface('hub');
           setEnteringPortal(true);
           setSurface('signin');
@@ -1272,7 +1386,6 @@ export default function App() {
           profiles={allUsers}
           announcements={announcements}
           onBroadcastAnnouncement={handleBroadcastAnnouncement}
-          onImportCsvSessions={handleImportCsvSessions}
           mealServices={mealServices}
           attendance={attendance}
           feedback={feedback}
@@ -1290,39 +1403,25 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         currentUser={viewUser}
-        allUsers={allUsers}
-        onSwitchUser={handleSwitchUser}
-        deviceMode={deviceMode}
-        setDeviceMode={setDeviceMode}
+        eventName={activeEvent.name}
         announcements={announcements}
-        onOpenArchitecture={() => setIsArchitectureOpen(true)}
         bookmarkedCount={bookmarkedSessionsCount}
         unreadMessageCount={unreadMessageCount}
-        profileGapCount={profileGaps(currentUser).length}
+        profileGapCount={profileGaps(viewUser).length}
         onSignOut={handleSignOut}
         onGoHome={openHub}
+        onOpenHome={openHome}
         onOpenAdmin={() => setIsAdminPanelOpen(true)}
-        realRole={currentUser.role}
+        realRole={currentUser?.role ?? viewUser.role}
         previewRole={previewRole}
         onPreviewRole={setPreviewRole}
       />
 
       {/* Main View Area */}
       <main className="flex-1">
-        {deviceMode === 'desktop' ? (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            {mainContent}
-          </div>
-        ) : (
-          <MobileAppFrame
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            currentUser={viewUser}
-            onExitMobile={() => setDeviceMode('desktop')}
-          >
-            {mainContent}
-          </MobileAppFrame>
-        )}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {mainContent}
+        </div>
       </main>
 
       {/* Footer */}
@@ -1335,17 +1434,17 @@ export default function App() {
           </div>
           <div className="flex items-center gap-4">
             <button
+              onClick={openHome}
+              className="text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
+            >
+              My dashboard
+            </button>
+            <span>•</span>
+            <button
               onClick={openHub}
               className="text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
             >
               All Chadwick events
-            </button>
-            <span>•</span>
-            <button
-              onClick={() => setIsArchitectureOpen(true)}
-              className="text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
-            >
-              Architectural Blueprint & Schema
             </button>
           </div>
         </div>
@@ -1393,7 +1492,7 @@ export default function App() {
         profile={contactCardProfile}
         onClose={() => setContactCardProfile(null)}
         onMessage={handleOpenThread}
-        viewerIsSecurity={currentUser.role === 'front_desk'}
+        viewerIsSecurity={viewUser.role === 'front_desk'}
       />
 
       {/* Print-ready lanyard badges, single or bulk */}
@@ -1408,12 +1507,6 @@ export default function App() {
         tracks={tracks}
         sponsors={sponsors}
         mealServices={mealServices}
-      />
-
-      {/* Architectural Blueprint Modal */}
-      <ArchitectureGuideModal
-        isOpen={isArchitectureOpen}
-        onClose={() => setIsArchitectureOpen(false)}
       />
 
     </div>

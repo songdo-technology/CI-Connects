@@ -181,12 +181,14 @@ Workers & Pages → `ci-events` → Settings → Variables and secrets.
 
 | Name | Purpose | Status |
 |------|---------|--------|
-| `FIREBASE_API_KEY` | Lets `/api/*` verify the caller is a signed-in Chadwick account | **Not yet set** |
-| `GEMINI_API_KEY` | Agenda structuring and cover-image generation | **Not yet set** |
+| `FIREBASE_API_KEY` | Lets `/api/*` verify the caller is a signed-in Chadwick account | **Set** 10 Sep 2026 |
+| `GEMINI_API_KEY` | Agenda structuring and cover-image generation | **Set** 10 Sep 2026 |
 | `ANTHROPIC_API_KEY` | Alternative to Gemini for text only | Optional |
 
-Until `FIREBASE_API_KEY` is set both AI endpoints refuse everyone, which is the
-correct failure but looks like a bug. Full steps in `docs/ai-assist-setup.md`.
+Both were set on 10 September and the site redeployed. An anonymous call to
+`/api/structure` now gets a 401 (the signed-in check) rather than the 501
+setup error, so the wiring is right; the end-to-end test needs a signed-in
+Chadwick account — see the next steps. Full steps in `docs/ai-assist-setup.md`.
 
 ---
 
@@ -202,6 +204,12 @@ Verified on production, signed out and signed in, at the time of writing.
 - **Sign-in.** Chadwick Google, personal Google, email + password, or an
   emailed link. Role decides where you land: front desk to the gate scanner,
   organisers to the admin dashboard, everyone else to their own record.
+- **Navigation.** Every surface has an address (`/dashboard`, `/admin`, `/me`,
+  `/gate`, `/event/<slug>/<tab>`, and `/?event=<slug>` for a public page), each
+  move is a history entry, and the browser's Back button moves inside the
+  platform. A signed-out visitor on a signed-in address is sent to sign in
+  once Firebase has settled; a signed-in person on a surface their role lacks
+  is sent home instead of falling through to the portal.
 - **Admin.** Events, programme, proposals, import, rooms, dining, sponsors,
   guests, attendance, analytics, certificates, lucky draw, spend, people and
   roles, system.
@@ -223,7 +231,6 @@ Verified on production, signed out and signed in, at the time of writing.
   Preview button in Admin → Guests shows what to send. The full brief for
   registration and post-event emails is in the conversation history and was the
   agreed next task. It needs an email provider key (Resend or SendGrid).
-- **AI features are off** until the two Cloudflare secrets above are set.
 - **Analytics show "Nothing to report yet"** — correct, because the only
   attendance records in the database are on a future event and sample events
   are excluded by design.
@@ -282,21 +289,64 @@ restored from HEAD. Commit often; run `npx tsc --noEmit` after scripted edits.
 
 ## The next three things
 
-1. **Test signing in on production.** The auth domain moved onto our own origin
-   and has not been exercised by a human since. It should complete first time
-   with no bounce back to the sign-in page. If it does not, capture the exact
-   on-screen message — the error text now names the setting to change.
-2. **Set `FIREBASE_API_KEY` and `GEMINI_API_KEY`** in Cloudflare. Two fields,
-   and it switches on agenda structuring and cover-image generation. Steps in
-   `docs/ai-assist-setup.md`.
-3. **Build email.** The agreed next feature and the one that makes everything
+1. **Test signing in on production, as a person.** The auth domain moved onto
+   our own origin and the landing rule changed today; neither has been
+   exercised by a human since. Sign in at <https://ci-events.pages.dev>: it
+   should land on the dashboard first time. While signed in, try Admin →
+   Import → *Turn this into rows* and an event cover's *Generate one* — that
+   is the only way to prove the Gemini key end to end. If anything fails,
+   capture the exact on-screen message; the errors name the setting to change.
+2. **Build email.** The agreed next feature and the one that makes everything
    already built actually reach people: a registration email with the QR badge,
    calendar link and links to the event and the main site; external guests also
    getting their access code, directions, Main Gate 2 registration and parking;
    then a post-event email leading to glows and grows and the certificate.
    Needs a provider key held in Cloudflare, same pattern as the AI endpoints.
+3. **Replace the samples with the first real event.** Admin → System → Clear
+   sample content (keep rooms and sponsors), then Admin → Events → New event.
+   Until then every dashboard number is counting a template, and the public
+   hub is a brochure for events that never happened.
 
 ---
+
+## How the app is put together
+
+One page, no router library. `src/App.tsx` holds a `surface` — `hub`,
+`event`, `signin`, `portal`, `dashboard`, `gate`, `learning` — plus an
+`isAdminPanelOpen` overlay and, inside the portal, an `activeTab`. Since
+10 September those are mirrored to the address bar as history entries:
+
+| Address | Surface | Who |
+|---------|---------|-----|
+| `/` | Events hub — the public catalogue | anyone |
+| `/?event=<slug>` | One event's public page | anyone |
+| `/signin` | Sign-in | anyone |
+| `/dashboard` | Organiser's home (`AdminDashboard`) | `events:create` |
+| `/admin` | Administration panel, an overlay on the dashboard | `events:create` |
+| `/me` | A person's own record (`MyLearning` + `MyProfile`) | any account |
+| `/gate` | Gate station | `attendance:scan` |
+| `/event/<slug>` | The attendee portal for that event, `/<tab>` for its tabs | any account |
+
+Signing in lands on **the person's own dashboard, always** — `/dashboard` for
+organisers and administrators, `/me` for everyone else, `/gate` for the front
+desk. An event is a click from there; it is never where sign-in puts you.
+
+Data arrives through `DataProvider` from one of two stores chosen in
+`main.tsx`: `FirestoreStore` (production, `VITE_USE_FIRESTORE=true`) or the
+seeded `memoryStore` (`npm run dev:demo`, port 3002), which also swaps the
+identity provider for a list of sample personas. The demo build is for
+looking at screens; it models no security rules, so it proves nothing about
+permissions.
+
+The project began as a Google AI Studio prototype (`metadata.json`,
+`public/assets/aistudio/`), and the second-Mac pass on 10 September removed
+what was left of that: the phone-frame "Mobile App" toggle, the "System
+Specs" architecture modal, the "switch identity (demo simulation)" menu, the
+legacy CSV importer inside the portal's organiser tab (Admin → Import
+supersedes it), the fallback that rendered the *first profile in the
+directory* as the signed-in person while their own was still loading, and
+the hub door that opened the admin panel on top of the sample conference —
+which is why closing Admin used to drop you into Chadwick Connects.
 
 ## Documents in this repo
 

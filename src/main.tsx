@@ -6,7 +6,7 @@ import {DataProvider} from './lib/data/DataProvider';
 import {AuthProvider} from './lib/AuthProvider';
 import {createSeededMemoryStore} from './lib/data/seed';
 import {FirestoreStore} from './lib/data/firestoreStore';
-import {db, isFirebaseConfigured} from './lib/firebase';
+import {db, firebaseAuth, isFirebaseConfigured} from './lib/firebase';
 import type {DataStore} from './lib/data/store';
 
 /**
@@ -21,7 +21,7 @@ const useFirestore =
   import.meta.env.VITE_USE_FIRESTORE === 'true' && isFirebaseConfigured && db !== null;
 
 const store: DataStore = useFirestore
-  ? new FirestoreStore(db!)
+  ? new FirestoreStore(db!, () => firebaseAuth?.currentUser?.uid)
   : createSeededMemoryStore();
 
 if (import.meta.env.DEV) {
