@@ -24,7 +24,8 @@ which of these is true, so the next session inherits the truth rather than a
 guess:
 
 - pushed, Actions green — live matches `main`
-- pushed, Actions warned "not deployed" or failed — `main` is ahead of live
+- pushed with `npm run ship` (Actions warns "not deployed") — live matches `main`
+- pushed with plain `git push` and Actions warned or failed — `main` is ahead of live
 - deployed by hand from an uncommitted tree — fix this immediately by committing
 
 From a machine with a wrangler login, `npm run ship` does typecheck → build →

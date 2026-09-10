@@ -49,14 +49,19 @@ be switched). Instead `.github/workflows/deploy.yml` runs on every push to
 `wrangler pages deploy … --branch=main`.
 
 It deploys only when the repository secret `CLOUDFLARE_API_TOKEN` exists.
-Until then every run builds, then ends with a **"not deployed"** warning —
-that warning is the signal that `main` is ahead of the live site. To enable
-deploys once, from a terminal on any machine:
+Until then every run builds, then ends with a **"not deployed"** warning,
+meaning GitHub did not deploy that push. `npm run ship` from a machine with a
+wrangler login pushes and deploys in one step with no token, so the token is
+**optional** — it matters only for deploying from a machine without wrangler,
+or from GitHub itself. To enable it once, from a terminal on any machine:
 
-1. Cloudflare dashboard → My Profile → API Tokens → Create Token → template
-   **Edit Cloudflare Workers** (it includes Pages:Edit), scoped to the
-   `Songdo-technology@chadwickschool.org` account.
-2. `gh secret set CLOUDFLARE_API_TOKEN` in this repo, paste the token.
+1. Cloudflare dashboard → My Profile → API Tokens → Create Token → Custom →
+   one permission, **Account · Cloudflare Pages · Edit**, scoped to the
+   `Songdo-technology@chadwickschool.org` account. A token's value is shown
+   once at creation; the existing `ci-connects build token` cannot be read
+   back — roll it or make a new, narrower one.
+2. `gh secret set CLOUDFLARE_API_TOKEN -R songdo-technology/CI-Connects`,
+   paste the token.
 3. Push, or `gh workflow run deploy.yml`, and watch it go green.
 
 Manual deploy remains the fallback and is what to reach for if Actions is down:

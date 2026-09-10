@@ -64,5 +64,5 @@ jobs:
       - name: Not deployed
         if: env.HAS_CF_TOKEN != 'true'
         run: |
-          echo "::warning::CLOUDFLARE_API_TOKEN is not set. Built OK but NOT deployed — main is ahead of https://ci-events.pages.dev"
-          echo "Set it once with:  gh secret set CLOUDFLARE_API_TOKEN   (see HANDOFF.md -> Automatic deploys)"
+          echo "::warning::CLOUDFLARE_API_TOKEN is not set, so GitHub did not deploy this push. If it went out with 'npm run ship', live already matches main; otherwise main is ahead of https://ci-events.pages.dev"
+          echo "Optional — to deploy from GitHub too:  gh secret set CLOUDFLARE_API_TOKEN -R songdo-technology/CI-Connects   (HANDOFF.md -> Automatic deploys)"
