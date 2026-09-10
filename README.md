@@ -13,8 +13,9 @@ multi-track scheduling, community networking, QR badge check-in, and an organize
 ## Getting started
 
 ```bash
-npm install
-npm run dev      # http://localhost:3000
+gh auth login              # once, as songdo-technology@chadwickschool.org
+sh scripts/bootstrap.sh    # npm install, .env.local from the repo variables, typecheck, build
+npm run dev                # http://localhost:3000
 ```
 
 | Script | Does |
@@ -23,6 +24,8 @@ npm run dev      # http://localhost:3000
 | `npm run build` | Production build to `dist/` |
 | `npm run preview` | Serve the production build locally |
 | `npm run lint` | Typecheck (`tsc --noEmit`) |
+| `npm run bootstrap` | Fresh clone → working checkout (writes `.env.local`) |
+| `npm run ship` | Typecheck, build, push `main`, deploy to production |
 
 ## Current status: prototype
 
@@ -47,9 +50,14 @@ behind a transaction when a real datastore is added, since "atomic" currently me
 
 ## Deployment
 
-Pushes to `main` deploy automatically to Cloudflare Pages. Build settings live in
-[`wrangler.toml`](wrangler.toml); Node version is pinned by [`.node-version`](.node-version).
+Production is the Cloudflare Pages project `ci-events` (<https://ci-events.pages.dev>).
+`npm run ship` typechecks, builds, pushes `main` and deploys it, from any machine
+with a `wrangler login`. `.github/workflows/deploy.yml` does the same on every push
+once the `CLOUDFLARE_API_TOKEN` repository secret exists; until then it only builds
+and says so. Build settings live in [`wrangler.toml`](wrangler.toml); the Node
+version is pinned by [`.node-version`](.node-version). Firestore and Storage rules
+deploy separately — see [HANDOFF.md](HANDOFF.md).
 
 ```bash
-npx wrangler pages deploy dist    # manual / preview deploy
+npx wrangler pages deploy dist --project-name=ci-events --branch=main   # manual production deploy
 ```

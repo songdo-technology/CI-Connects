@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "ship": "sh scripts/ship.sh"
+    "ship": "sh scripts/ship.sh",
+    "bootstrap": "sh scripts/bootstrap.sh"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

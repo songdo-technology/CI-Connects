@@ -72,6 +72,12 @@ prefer verifying on a deploy over reasoning about what should happen.
 Run `npx tsc --noEmit` after scripted or bulk edits. A scripted edit has
 already written one file's contents into another here; the typecheck caught it.
 
+## New machine
+
+`gh auth login` as the school account, clone, `sh scripts/bootstrap.sh`. That
+yields a working checkout with `.env.local` generated from the repository
+variables. Deploying from it needs `npx wrangler login` once (`npm run ship`).
+
 ## Read HANDOFF.md first
 
 It carries the current state, the cloud wiring, the gotchas already paid for,

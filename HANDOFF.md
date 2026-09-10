@@ -89,30 +89,37 @@ the working tree is clean with nothing unpushed.
 
 ---
 
-## From a fresh clone
+## From a fresh clone — any machine, nothing pre-installed
 
 ```sh
-git clone git@github.com:songdo-technology/CI-Connects.git
+gh auth login                  # once; songdo-technology@chadwickschool.org
+gh repo clone songdo-technology/CI-Connects
 cd CI-Connects
-npm install
-
-cp .env.example .env.local     # then fill it in — see Secrets below
-
-npm run lint                   # tsc --noEmit, expect 0 errors
-npm run build                  # expect "✓ built"
+sh scripts/bootstrap.sh        # npm install, writes .env.local, typecheck, build
 npm run dev                    # http://localhost:3000
 ```
 
-Node 24.11.1 and npm 11.6.2 were used here. Node 20+ should be fine.
+`scripts/bootstrap.sh` (also `npm run bootstrap`) needs only Node 20+ and a
+logged-in `gh`. It writes `.env.local` from the GitHub repository variables —
+the same public Firebase config the Actions build uses — so nothing is copied
+by hand out of a console. Delete `.env.local` and re-run to regenerate it.
+Verified on 10 Sep 2026 from an empty directory: the build it produces is
+byte-identical to the live bundle.
+
+Node 24 and 25 with npm 11 have both been used; `.node-version` says 22.
 
 ### CLI logins needed
 
 ```sh
-npx wrangler login             # as songdo-technology@chadwickschool.org
-npx firebase login             # as songdo-technology@chadwickschool.org
+gh auth login                  # push and pull; bootstrap reads the variables
+npx wrangler login             # to deploy from this machine (npm run ship);
+                               # unnecessary once the Actions token is set
+npx firebase login             # only for rules deploys, or to pull the config
+                               # straight from Firebase instead of GitHub:
+                               # firebase apps:sdkconfig WEB 1:898826571976:web:2c297c696a62519ce695fd --project ci-connects
 ```
 
-Both must be the school account. A personal Google account will authenticate
+All three are the school account. A personal Google account will authenticate
 but will not see the `ci-events` or `ci-connects` projects.
 
 ### Tests
@@ -150,10 +157,11 @@ it.** Two things must be recreated on the new machine.
 
 ### 1. `.env.local` — needed to build
 
-Copy `.env.example` and fill from Firebase console → Project settings → Your
-apps → Web app → SDK config. These values are safe in client code; Firebase
-identifies the project with them and does not authenticate with them. Access is
-controlled by `firestore.rules`.
+`sh scripts/bootstrap.sh` writes it from the GitHub repository variables. By
+hand: copy `.env.example` and fill from Firebase console → Project settings →
+Your apps → Web app → SDK config, or `firebase apps:sdkconfig` as above. These
+values are safe in client code; Firebase identifies the project with them and
+does not authenticate with them. Access is controlled by `firestore.rules`.
 
 One value is **not** the Firebase default and matters:
 
