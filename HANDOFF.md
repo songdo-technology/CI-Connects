@@ -198,9 +198,20 @@ Verified on production, signed out and signed in, at the time of writing.
 
 - **Public site.** Hub, event pages, agendas, speakers, sponsors, past-event
   recaps with slides and recordings — all reachable with no account.
-- **Three access tiers.** Anonymous browses; an account gets a profile,
-  learning history, certificates and materials; a redeemed invitation code
-  gets a place at a specific event.
+- **Three access tiers.** Anonymous browses the catalogue and an event's
+  public page; an account gets a profile, learning history, certificates and
+  materials; **a place at an event — and with it the programme, the badge,
+  the people — is given by an organiser.** `users.eventAccess` lists the
+  events a person may see inside of. It is filled by Admin → Access (a tick
+  per person per event), by an invitation made under Guests when that address
+  signs in, or by a redeemed access code. Organisers and administrators see
+  every event. Signed-out visitors and unlisted accounts see the public page
+  with the programme replaced by a notice saying who can see it.
+- **The threshold.** Entering an event opens a full-screen welcome — which
+  event, when, where, how many sessions and rooms, and whether you are on the
+  list. Once per person per event per browser session; always, when they are
+  not on the list, with the code box and "ask for a place" in the agenda's
+  stead.
 - **Sign-in.** Chadwick Google, personal Google, email + password, or an
   emailed link. Role decides where you land: front desk to the gate scanner,
   organisers to the admin dashboard, everyone else to their own record.
@@ -209,7 +220,10 @@ Verified on production, signed out and signed in, at the time of writing.
   move is a history entry, and the browser's Back button moves inside the
   platform. A signed-out visitor on a signed-in address is sent to sign in
   once Firebase has settled; a signed-in person on a surface their role lacks
-  is sent home instead of falling through to the portal.
+  is sent home instead of falling through to the portal. Inside an event the
+  panes sit in a rail beside the content, grouped — This event · People · You ·
+  Organiser — with the organiser's controls (Event operations, Lucky draw)
+  visible only to organisers.
 - **Admin.** Events, programme, proposals, import, rooms, dining, sponsors,
   guests, attendance, analytics, certificates, lucky draw, spend, people and
   roles, system.
@@ -330,6 +344,13 @@ One page, no router library. `src/App.tsx` holds a `surface` — `hub`,
 Signing in lands on **the person's own dashboard, always** — `/dashboard` for
 organisers and administrators, `/me` for everyone else, `/gate` for the front
 desk. An event is a click from there; it is never where sign-in puts you.
+
+Inside an event, `canSeeEvent(user, eventId)` (`lib/permissions.ts`) decides
+whether the portal and the public programme open: organisers always, others
+only when `users.eventAccess` names the event. The check is the product's,
+not the rules': `sessions` stay world-readable because the unattended room
+signage reads them with no account. `firestore.rules` lets organisers write
+`eventAccess`/`hasEventAccess` on any profile and nothing else.
 
 Data arrives through `DataProvider` from one of two stores chosen in
 `main.tsx`: `FirestoreStore` (production, `VITE_USE_FIRESTORE=true`) or the

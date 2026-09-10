@@ -144,6 +144,13 @@ export interface UserProfile {
    * is set when an invitation is claimed rather than when an account is made.
    */
   hasEventAccess?: boolean;
+  /**
+   * Events this person may see inside of — the programme, the badge, the
+   * people. Put there by an organiser (Admin → Access), by an invitation for
+   * their address, or by a redeemed access code. Organisers and
+   * administrators see every event without being listed.
+   */
+  eventAccess?: string[];
   checkedIn: boolean;
   checkedInAt?: string;
   linkedInUrl?: string;

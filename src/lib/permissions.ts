@@ -186,3 +186,14 @@ export function assignableRoles(user: UserProfile | null | undefined): UserRole[
   if (!can(user, 'users:manage_roles')) return [];
   return ['technical_admin', 'event_organizer', 'speaker', 'sponsor', 'front_desk', 'attendee'];
 }
+
+/**
+ * Whether a person may see inside an event: its programme, its badge, its
+ * people. Organisers and administrators always; everyone else only once an
+ * organiser has put them on that event's list.
+ */
+export function canSeeEvent(user: UserProfile | null | undefined, eventId: string): boolean {
+  if (!user) return false;
+  if (can(user, 'events:create')) return true;
+  return (user.eventAccess ?? []).includes(eventId);
+}

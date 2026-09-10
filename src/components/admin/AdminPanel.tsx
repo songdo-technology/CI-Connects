@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   ShieldCheck, CalendarPlus, Database, X, Cloud, CloudOff, ExternalLink,
   CalendarDays, DoorOpen, UtensilsCrossed, Handshake, Gift, Wallet, UserPlus, ClipboardCheck,
-  FileSpreadsheet, Inbox, Award, BarChart3,
+  FileSpreadsheet, Inbox, Award, BarChart3, KeyRound,
 } from 'lucide-react';
 import {
   EventConfig, UserProfile, UserRole, Session, Track, Room, MealService, Sponsor,
@@ -23,6 +23,7 @@ import { AdminGettingStarted } from './AdminGettingStarted';
 import { AdminCertificates } from './AdminCertificates';
 import { AdminAnalytics } from './AdminAnalytics';
 import { AdminAttendance } from './AdminAttendance';
+import { AdminAccess } from './AdminAccess';
 
 interface AdminPanelProps {
   currentUser: UserProfile;
@@ -58,6 +59,8 @@ interface AdminPanelProps {
   onSaveInvite: (invite: Invite, isNew: boolean) => Promise<void> | void;
   onDeleteInvite: (id: string) => Promise<void> | void;
   onRepublishInviteCodes: () => Promise<number>;
+  /** Putting somebody on an event's list, or taking them off it. */
+  onGrantAccess: (userId: string, eventId: string, granted: boolean) => Promise<void> | void;
   /** Applies a whole spreadsheet as one write. */
   onBulkImport: (ops: BatchOperation[]) => Promise<void>;
   /** Where to land, when opened for a specific job rather than browsing. */
@@ -72,7 +75,7 @@ interface AdminPanelProps {
 type Section =
   | 'people' | 'events' | 'programme' | 'rooms' | 'dining' | 'sponsors'
   | 'prizes' | 'costs' | 'guests' | 'attendance' | 'import' | 'proposals'
-  | 'certificates' | 'analytics' | 'system';
+  | 'certificates' | 'analytics' | 'access' | 'system';
 
 /**
  * Administration console.
@@ -90,7 +93,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   prizes, costs, invites, attendance, counts, isRemote, onClose, onChangeRole, onSaveEvent, onDeleteEvent,
   onSaveSession, onDeleteSession, onSaveRoom, onDeleteRoom,
   onSaveMeal, onDeleteMeal, onSaveSponsor, onDeleteSponsor,
-  onSavePrize, onDeletePrize, onSaveCost, onDeleteCost, onSaveInvite, onDeleteInvite, onRepublishInviteCodes,
+  onSavePrize, onDeletePrize, onSaveCost, onDeleteCost, onSaveInvite, onDeleteInvite, onRepublishInviteCodes, onGrantAccess,
   onBulkImport, communityTopics, messages, feedback, announcements, certificates, openTo,
 }) => {
   const mayManageRoles = can(currentUser, 'users:manage_roles');
@@ -106,6 +109,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     can(currentUser, 'dining:manage') && ['dining', 'Dining', UtensilsCrossed],
     can(currentUser, 'sponsors:manage') && ['sponsors', 'Sponsors', Handshake],
     can(currentUser, 'users:view_all') && ['guests', 'Guests', UserPlus],
+    mayManageEvents && ['access', 'Access', KeyRound],
     can(currentUser, 'attendance:view_all') && ['analytics', 'Analytics', BarChart3],
     can(currentUser, 'attendance:view_all') && ['attendance', 'Attendance', ClipboardCheck],
     mayManageEvents && ['certificates', 'Certificates', Award],
@@ -234,6 +238,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         {section === 'guests' && (
           <AdminGuests onRepublishCodes={onRepublishInviteCodes} invites={invites} profiles={users} events={events}
                        currentUser={currentUser} onSave={onSaveInvite} onDelete={onDeleteInvite} />
+        )}
+
+        {section === 'access' && (
+          <AdminAccess users={users} events={events} currentUser={currentUser}
+                       onGrantAccess={onGrantAccess} />
         )}
 
         {section === 'attendance' && (

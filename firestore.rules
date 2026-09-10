@@ -103,8 +103,10 @@ service cloud.firestore {
        */
       allow list: if isInternal() || isOrganiser() || hasEventAccess();
 
-      // Own profile, but never own role. Admins may change anything.
+      // Own profile, but never own role. Admins may change anything, and
+      // organisers may put people on and off an event's list — nothing else.
       allow update: if isAdmin()
+                    || (isOrganiser() && onlyTouches(['eventAccess', 'hasEventAccess']))
                     || (signedIn() && uid() == userId && unchanged(['role', 'id', 'email']));
 
       // Two ways a user document comes into being.

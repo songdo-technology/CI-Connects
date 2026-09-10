@@ -441,27 +441,42 @@ async function withRetry<T>(operation: () => Promise<T>, attempts = 5): Promise<
   throw lastError;
 }
 
+/** The invitee marking their own invitation used, so an organiser can see
+ *  who has actually arrived rather than only who was invited. */
+async function markClaimed(invite: Invite, uidValue: string): Promise<void> {
+  if (!db || invite.claimedAt) return;
+  await updateDoc(doc(db, 'invites', invite.id), {
+    claimedAt: new Date().toISOString(),
+    claimedByUid: uidValue,
+  }).catch(() => undefined);
+}
+
 export async function ensureUserDocument(user: User): Promise<UserRole> {
   if (!db) throw new Error('Firestore is not configured.');
 
   const ref = doc(db, 'users', user.uid);
   const existing = await withRetry(() => getDoc(ref));
-  if (existing.exists()) {
-    return (existing.data().role as UserRole) ?? 'attendee';
-  }
-
   const email = (user.email ?? '').toLowerCase();
 
-  // An invited guest arrives with a name, organisation and role an organiser
-  // already recorded. Adopting it here is the difference between a guest
-  // landing as a usable profile and landing as an anonymous attendee somebody
-  // then has to go and fix.
-  // A failed invite lookup must not fail the sign-in. Landing as a plain
-  // attendee whose details an organiser tidies up later is a small problem;
-  // being unable to get in at all is not.
-  const invite = isAllowedDomain(email)
-    ? null
-    : await withRetry(() => findInvite(email)).catch(() => null);
+  // An invitation is also an assignment: an organiser put this address on an
+  // event's list. Looked up for every address, Chadwick ones included, since
+  // seeing a programme now means being on its list. A failed lookup must not
+  // fail the sign-in — landing without the event is a small problem an
+  // organiser fixes under Access; being unable to get in at all is not.
+  const invite = await withRetry(() => findInvite(email)).catch(() => null);
+
+  if (existing.exists()) {
+    const data = existing.data() as UserProfile;
+    // A returning person picks up an invitation made since they last came.
+    if (invite?.eventId && !(data.eventAccess ?? []).includes(invite.eventId)) {
+      await withRetry(() => updateDoc(ref, {
+        eventAccess: [...(data.eventAccess ?? []), invite.eventId],
+        hasEventAccess: true,
+      })).catch(() => undefined);
+      await markClaimed(invite, user.uid);
+    }
+    return (data.role as UserRole) ?? 'attendee';
+  }
 
   const role: UserRole = BOOTSTRAP_ROLES[email] ?? invite?.role ?? 'attendee';
   const fullName = invite?.fullName ?? user.displayName ?? email.split('@')[0] ?? 'New member';
@@ -486,19 +501,12 @@ export async function ensureUserDocument(user: User): Promise<UserRole> {
     // community from the start. A self-registered account is not yet, and
     // becomes so when it redeems a code.
     hasEventAccess: isAllowedDomain(email) || Boolean(invite),
+    eventAccess: invite?.eventId ? [invite.eventId] : [],
     ...(invite ? { accessCode: invite.accessCode } : {}),
   };
 
   await withRetry(() => setDoc(ref, profile));
-
-  // Mark the invitation used, so an organiser can see who has actually
-  // arrived rather than only who was invited.
-  if (invite && db) {
-    await updateDoc(doc(db, 'invites', invite.id), {
-      claimedAt: new Date().toISOString(),
-      claimedByUid: user.uid,
-    });
-  }
+  if (invite) await markClaimed(invite, user.uid);
 
   return role;
 }

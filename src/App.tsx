@@ -42,7 +42,7 @@ import { useAuth } from './lib/AuthProvider';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { MyProfile } from './components/MyProfile';
 import { GuestLinkReturn } from './components/GuestLinkReturn';
-import { can } from './lib/permissions';
+import { can, canSeeEvent } from './lib/permissions';
 import { profileGaps } from './lib/profileCompleteness';
 import { takeSignInIntent, hasSignInIntent, clearSignInIntent, markSignInIntent } from './lib/signInIntent';
 import { isGuestLinkInUrl } from './lib/auth';
@@ -56,6 +56,8 @@ import { MyCertificates } from './components/MyCertificates';
 import { GateStation } from './components/GateStation';
 import { SelfCheckIn } from './components/SelfCheckIn';
 import { MyLearning } from './components/MyLearning';
+import { EventWelcome, hasBeenWelcomed, markWelcomed } from './components/EventWelcome';
+import { PortalNav } from './components/PortalNav';
 
 /** The public surfaces of the product: a hub listing every event Chadwick
  *  runs, one page per event, a sign-in gate, and the attendee portal behind
@@ -237,6 +239,8 @@ export default function App() {
    *  this browser renders — the security rules still see the real account, so
    *  previewing a lower role cannot be used to escape one. */
   const [previewRole, setPreviewRole] = useState<UserRole | null>(null);
+  /** The event whose welcome screen was stepped through in this render tree. */
+  const [enteredSlug, setEnteredSlug] = useState<string | null>(null);
   const [contactCardProfile, setContactCardProfile] = useState<UserProfile | null>(null);
   const [pendingThreadUserId, setPendingThreadUserId] = useState<string | null>(null);
 
@@ -538,11 +542,13 @@ export default function App() {
         claimedAt: now(), claimedByUid: currentUser.id,
       });
     }
-    // A confirmed place is what opens the directory. Holding an account is
-    // not, or self-registration would publish every colleague to the internet.
-    if (!currentUser.hasEventAccess) {
-      await update('users', currentUser.id, { hasEventAccess: true });
-    }
+    // A confirmed place is what opens the directory, and the event the code
+    // was issued for. Holding an account is neither, or self-registration
+    // would publish every colleague to the internet.
+    const eventId = invite?.eventId ?? (match as { eventId?: string }).eventId;
+    const access = new Set(currentUser.eventAccess ?? []);
+    if (eventId) access.add(eventId);
+    await update('users', currentUser.id, { hasEventAccess: true, eventAccess: [...access] });
     return null;
   };
 
@@ -575,6 +581,8 @@ export default function App() {
   const handleSignOut = () => {
     if (auth.live) void auth.signOut();
     setAuthSession(null);
+    setEnteredSlug(null);
+    setPreviewRole(null);
     // Back to the hub rather than the event page: signing out is a step away
     // from this event, not deeper into it.
     openHub();
@@ -739,6 +747,20 @@ export default function App() {
   // -------------------------------------------------- Administration
   const handleChangeRole = async (userId: string, role: UserRole) => {
     await update('users', userId, { role });
+  };
+
+  /** An organiser putting somebody on an event's list, or taking them off. */
+  const handleGrantAccess = async (userId: string, eventId: string, granted: boolean) => {
+    const person = allUsers.find((u) => u.id === userId);
+    if (!person) return;
+    const access = new Set(person.eventAccess ?? []);
+    if (granted) access.add(eventId); else access.delete(eventId);
+    await update('users', userId, {
+      eventAccess: [...access],
+      // A place at any event makes somebody part of the community, which is
+      // what opens the directory to them.
+      ...(granted ? { hasEventAccess: true } : {}),
+    });
   };
 
   const handleSaveEvent = async (event: EventConfig, isNew: boolean) => {
@@ -1084,6 +1106,7 @@ export default function App() {
         onSaveInvite={handleSaveInvite}
         onDeleteInvite={remover('invites')}
         onRepublishInviteCodes={republishInviteCodes}
+        onGrantAccess={handleGrantAccess}
       />
     );
   }
@@ -1205,16 +1228,23 @@ export default function App() {
 
   // ------------------------------------------------ Surface: one event
   if (surface === 'event') {
+    const viewer = authSession ? currentUser : undefined;
+    const programmeVisible = Boolean(viewer && canSeeEvent(viewer, activeEvent.id));
+    // No gate for an event that has no programme to gate.
+    const gate = programmeVisible || eventSessions.length === 0 ? null : viewer ? 'assign' : 'signin';
     return (
       <PublicEventPage
         event={activeEvent}
-        sessions={eventSessions}
+        sessions={programmeVisible ? eventSessions : []}
         tracks={tracks}
         rooms={rooms}
         profiles={allUsers}
         sponsors={sponsors}
         onSignIn={openSignIn}
         onBackToEvents={openHub}
+        signedIn={Boolean(viewer)}
+        programmeGate={gate}
+        onOpenDashboard={openHome}
       />
     );
   }
@@ -1246,10 +1276,43 @@ export default function App() {
     );
   }
 
+  // ---------------------------------------------- Surface: event portal
+  const hasAccess = canSeeEvent(viewUser, activeEvent.id);
+  const isEventOrganiser = can(viewUser, 'events:create');
+  const mayOperate = can(viewUser, 'announcements:send');
+  const mayPropose = viewUser.role === 'speaker' || can(viewUser, 'sessions:edit_any');
+
+  // The threshold. Shown once per event per browser session, and always when
+  // the person is not on this event's list — the door, not a dead agenda.
+  if (!hasAccess || (enteredSlug !== activeEvent.slug && !hasBeenWelcomed(activeEvent.slug, viewUser.id))) {
+    return (
+      <EventWelcome
+        event={activeEvent}
+        currentUser={viewUser}
+        hasAccess={hasAccess}
+        isOrganiser={isEventOrganiser}
+        sessionCount={eventSessions.length}
+        roomCount={new Set(eventSessions.map((s) => s.roomId)).size}
+        reservedCount={eventSessions.filter((s) => s.reservedUserIds.includes(viewUser.id)).length}
+        onEnter={() => { markWelcomed(activeEvent.slug, viewUser.id); setEnteredSlug(activeEvent.slug); }}
+        onBack={openHome}
+        onRedeemCode={handleRedeemCode}
+        onRequestPlace={handleRequestPlace}
+      />
+    );
+  }
+
+  // A tab this person cannot use — the organiser's, or a presenter's — shows
+  // the agenda instead of an empty pane.
+  const tab: ActiveTab =
+    ((activeTab === 'admin' || activeTab === 'luckydraw') && !mayOperate)
+    || (activeTab === 'propose' && !mayPropose)
+      ? 'agenda' : activeTab;
+
   // Main Active Content
   const mainContent = (
     <>
-      {activeTab === 'agenda' && (
+      {tab === 'agenda' && (
         <AgendaView
           sessions={sessions}
           tracks={tracks}
@@ -1262,7 +1325,7 @@ export default function App() {
         />
       )}
 
-      {activeTab === 'badge' && (
+      {tab === 'badge' && (
         <div className="mb-5">
           <MyCertificates
             currentUser={viewUser}
@@ -1278,7 +1341,7 @@ export default function App() {
         </div>
       )}
 
-      {activeTab === 'badge' && (
+      {tab === 'badge' && (
         <DigitalBadge
           currentUser={viewUser}
           onToggleCheckIn={handleToggleCheckIn}
@@ -1293,7 +1356,7 @@ export default function App() {
         />
       )}
 
-      {activeTab === 'dining' && (
+      {tab === 'dining' && (
         <DiningView
           mealServices={mealServices}
           currentUser={viewUser}
@@ -1301,7 +1364,7 @@ export default function App() {
         />
       )}
 
-      {activeTab === 'community' && (
+      {tab === 'community' && (
         <CommunityBoard
           topics={communityTopics}
           currentUser={viewUser}
@@ -1312,7 +1375,7 @@ export default function App() {
         />
       )}
 
-      {activeTab === 'directory' && (
+      {tab === 'directory' && (
         <DirectoryView
           profiles={allUsers}
           currentUser={viewUser}
@@ -1322,7 +1385,7 @@ export default function App() {
         />
       )}
 
-      {activeTab === 'messages' && (
+      {tab === 'messages' && (
         <MessagesView
           messages={messages}
           profiles={allUsers}
@@ -1333,7 +1396,7 @@ export default function App() {
         />
       )}
 
-      {activeTab === 'propose' && (
+      {tab === 'propose' && (
         <ProposeSession
           currentUser={viewUser}
           sessions={sessions}
@@ -1344,7 +1407,7 @@ export default function App() {
         />
       )}
 
-      {activeTab === 'profile' && (
+      {tab === 'profile' && (
         <MyProfile
           currentUser={viewUser}
           sessions={sessions}
@@ -1356,7 +1419,7 @@ export default function App() {
         />
       )}
 
-      {activeTab === 'feedback' && (
+      {tab === 'feedback' && (
         <FeedbackView
           currentUser={viewUser}
           sessions={sessions}
@@ -1367,7 +1430,7 @@ export default function App() {
         />
       )}
 
-      {activeTab === 'luckydraw' && (
+      {tab === 'luckydraw' && (
         <LuckyDraw
           profiles={allUsers}
           prizes={prizes}
@@ -1378,7 +1441,7 @@ export default function App() {
         />
       )}
 
-      {activeTab === 'admin' && (
+      {tab === 'admin' && (
         <AdminConsole
           sessions={sessions}
           tracks={tracks}
@@ -1400,16 +1463,11 @@ export default function App() {
 
       {/* Platform Header */}
       <Header
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
         currentUser={viewUser}
         eventName={activeEvent.name}
+        eventDateLabel={activeEvent.dateLabel}
         announcements={announcements}
-        bookmarkedCount={bookmarkedSessionsCount}
-        unreadMessageCount={unreadMessageCount}
-        profileGapCount={profileGaps(viewUser).length}
         onSignOut={handleSignOut}
-        onGoHome={openHub}
         onOpenHome={openHome}
         onOpenAdmin={() => setIsAdminPanelOpen(true)}
         realRole={currentUser?.role ?? viewUser.role}
@@ -1417,12 +1475,22 @@ export default function App() {
         onPreviewRole={setPreviewRole}
       />
 
-      {/* Main View Area */}
-      <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Navigation rail and the active pane */}
+      <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:flex lg:gap-8 lg:items-start">
+        <PortalNav
+          activeTab={tab}
+          setActiveTab={setActiveTab}
+          currentUser={viewUser}
+          bookmarkedCount={bookmarkedSessionsCount}
+          unreadMessageCount={unreadMessageCount}
+          profileGapCount={profileGaps(viewUser).length}
+          onOpenHome={openHome}
+          onGoHub={openHub}
+        />
+        <main className="flex-1 min-w-0">
           {mainContent}
-        </div>
-      </main>
+        </main>
+      </div>
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-6 text-xs text-slate-500 mt-auto">

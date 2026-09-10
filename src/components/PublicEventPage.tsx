@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   Building2, CalendarDays, MapPin, ArrowRight, Clock, ChevronDown,
-  Users, Sparkles, LogIn, PlayCircle, Clock as ClockIcon, FileText, CalendarPlus,
+  Users, Sparkles, LogIn, PlayCircle, Clock as ClockIcon, FileText, CalendarPlus, Lock,
 } from 'lucide-react';
 import { EventConfig, Session, Track, Room, UserProfile, Sponsor, registrationState, eventStatus } from '../types';
 import { resolveVideoEmbed } from '../lib/videoEmbed';
@@ -19,6 +19,11 @@ interface PublicEventPageProps {
   profiles: UserProfile[];
   sponsors: Sponsor[];
   onSignIn: () => void;
+  /** Set when the viewer is signed in: the header button goes home instead. */
+  signedIn?: boolean;
+  /** Why the programme is not shown, when it is not. */
+  programmeGate?: 'signin' | 'assign' | null;
+  onOpenDashboard?: () => void;
 }
 
 /**
@@ -32,6 +37,7 @@ interface PublicEventPageProps {
  */
 export const PublicEventPage: React.FC<PublicEventPageProps> = ({
   event, sessions, tracks, rooms, profiles, sponsors, onSignIn, onBackToEvents,
+  signedIn = false, programmeGate = null, onOpenDashboard,
 }) => {
   // Only the flagship has a programme wired up. For a landing-page-only event
   // the agenda, speaker and venue-room sections are hidden rather than shown
@@ -126,12 +132,12 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
           </nav>
 
           <button
-            onClick={onSignIn}
+            onClick={signedIn && onOpenDashboard ? onOpenDashboard : onSignIn}
             className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
           >
             <LogIn className="w-4 h-4" />
-            <span className="hidden sm:inline">Attendee sign in</span>
-            <span className="sm:hidden">Sign in</span>
+            <span className="hidden sm:inline">{signedIn ? 'My dashboard' : 'Attendee sign in'}</span>
+            <span className="sm:hidden">{signedIn ? 'Dashboard' : 'Sign in'}</span>
           </button>
         </div>
       </header>
@@ -281,6 +287,39 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
                 <p className="text-sm text-slate-600 leading-relaxed">{block.body}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+      )}
+
+      {/* ---------------- Programme gate ----------------
+          The programme belongs to the people an organiser has put on this
+          event's list. Said here, in the place the agenda would be, rather
+          than by an agenda that quietly has nothing in it. */}
+      {programmeGate && (
+      <section id="agenda" className="py-14 bg-slate-50 border-y border-slate-200 scroll-mt-16">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-white border border-slate-200 mb-4">
+            <Lock className="w-5 h-5 text-slate-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900">The programme is for participants</h2>
+          <p className="mt-2 text-slate-600 leading-relaxed">
+            {programmeGate === 'signin'
+              ? 'Sessions, speakers and seat reservations open once you sign in and an organiser has added you to this event.'
+              : 'Your account is not on this event\'s list yet. If you were sent an access code, use it from your dashboard; otherwise ask the organisers for a place.'}
+          </p>
+          <div className="mt-6">
+            {programmeGate === 'signin' ? (
+              <button onClick={onSignIn}
+                      className="px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors cursor-pointer">
+                Sign in to continue
+              </button>
+            ) : (
+              <button onClick={onOpenDashboard}
+                      className="px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors cursor-pointer">
+                Go to my dashboard
+              </button>
+            )}
           </div>
         </div>
       </section>
