@@ -376,6 +376,19 @@ directory* as the signed-in person while their own was still loading, and
 the hub door that opened the admin panel on top of the sample conference —
 which is why closing Admin used to drop you into Chadwick Connects.
 
+## Version 2 — the rebuild (local only)
+
+Tagged `v1.0.0` (`e1a7fe6`) is the platform above. `v2/` is a fresh app —
+same job, three roles (`admin`, `schedule_admin`, `user`), one model file,
+react-router, a new interface — built 10 Sep 2026 and **not deployed**: it
+runs at `localhost:3100` (Google sign-in, Firestore `/v2/data/*`) and
+`localhost:3101` (`npm run demo`, in-memory seed with personas). Its data is
+seeded beside v1's in the same project; the v2 rules block is at the end of
+`firestore.rules` (deployed). KORCOS 2026 is 17 October 2026 there, with a
+placeholder programme. See `v2/README.md`. When it is approved: build it,
+give it its own Cloudflare Pages project (or replace v1's), and register that
+origin with Firebase Auth.
+
 ## Documents in this repo
 
 | File | What it covers |

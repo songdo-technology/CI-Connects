@@ -324,5 +324,94 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if false;
     }
+
+    // ================================================================== v2
+    // The rebuild lives under /v2/data/<collection>/<id>, beside v1's data,
+    // with its own three roles: admin, schedule_admin, user. Nothing below
+    // reads a v1 document.
+    function v2Exists() { return exists(/databases/$(database)/documents/v2/data/users/$(request.auth.uid)); }
+    function v2Me()     { return get(/databases/$(database)/documents/v2/data/users/$(request.auth.uid)).data; }
+    function v2Role()   { return signedIn() && v2Exists() ? v2Me().role : 'anonymous'; }
+    function v2Admin()  { return v2Role() == 'admin'; }
+    function v2Staff()  { return v2Role() in ['admin', 'schedule_admin']; }
+    function v2Email()  { return signedIn() && request.auth.token.email is string ? request.auth.token.email.lower() : ''; }
+    // An invitation is named after the event and the address, so a token can
+    // prove one exists without a query.
+    function v2Invited(eventId) {
+      return signedIn() && v2Email() != ''
+        && exists(/databases/$(database)/documents/v2/data/invites/$(eventId + '__' + hashing.sha256(v2Email()).toHexString().lower()));
+    }
+    function v2Listed(eventId) { return signedIn() && v2Exists() && eventId in v2Me().get('eventAccess', []); }
+    function v2CanSee(eventId) { return v2Staff() || v2Listed(eventId) || v2Invited(eventId); }
+    function v2Bootstrap(email) { return email in ['songdo-technology@chadwickschool.org', 'jyyang@chadwickschool.org']; }
+    function v2OnlyTouches(fields) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields); }
+
+    match /v2/data/users/{userId} {
+      allow get: if signedIn() && (userId == uid() || v2Staff());
+      allow list: if v2Staff() || (signedIn() && resource.data.id == uid());
+      // Self-provisioning on first sign-in: as a member, or as an
+      // administrator for the bootstrap addresses. Never with a list.
+      allow create: if signedIn() && userId == uid()
+                    && request.resource.data.email == v2Email()
+                    && request.resource.data.eventAccess.size() == 0
+                    && (request.resource.data.role == 'user'
+                        || (request.resource.data.role == 'admin' && v2Bootstrap(v2Email())));
+      // One's own profile, but never one's role, address or lists.
+      allow update: if v2Admin()
+                    || (signedIn() && userId == uid()
+                        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'email', 'id', 'eventAccess']));
+      allow delete: if v2Admin();
+    }
+
+    match /v2/data/invites/{inviteId} {
+      allow read: if v2Admin() || (signedIn() && resource.data.email == v2Email());
+      allow create, update, delete: if v2Admin();
+    }
+
+    match /v2/data/events/{eventId} {
+      allow read: if v2Staff() || resource.data.status == 'published';
+      allow create, update, delete: if v2Admin();
+    }
+
+    match /v2/data/sessions/{sessionId} {
+      allow read: if v2CanSee(resource.data.eventId);
+      allow create, delete: if v2Staff();
+      // A listed person manages their own seat. Constrained to the two
+      // arrays, so a booking cannot smuggle in a title or a capacity.
+      allow update: if v2Staff()
+                    || (v2CanSee(resource.data.eventId) && v2OnlyTouches(['reservedUserIds', 'waitlistUserIds']));
+    }
+
+    match /v2/data/rooms/{roomId} {
+      allow read: if v2CanSee(resource.data.eventId);
+      allow write: if v2Staff();
+    }
+
+    match /v2/data/tracks/{trackId} {
+      allow read: if v2CanSee(resource.data.eventId);
+      allow write: if v2Staff();
+    }
+
+    match /v2/data/attendance/{recordId} {
+      allow read: if v2Staff() || (signedIn() && resource.data.userId == uid());
+      allow write: if v2Staff();
+    }
+
+    match /v2/data/announcements/{announcementId} {
+      allow read: if signedIn();
+      allow write: if v2Admin();
+    }
+
+    match /v2/data/feedback/{feedbackId} {
+      allow read: if v2Staff() || (signedIn() && resource.data.userId == uid());
+      allow create, update: if signedIn() && request.resource.data.userId == uid() && v2CanSee(request.resource.data.eventId);
+      allow delete: if v2Admin();
+    }
+
+    match /v2/data/settings/{docId} {
+      allow read: if true;
+      allow write: if v2Admin();
+    }
+
   }
 }
