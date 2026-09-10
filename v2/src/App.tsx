@@ -1,20 +1,20 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { AuthProvider } from './lib/auth';
-import { MotionRoot, Cursor, Grain } from './lib/motion';
+import { MotionRoot, Grain } from './lib/motion';
 import { Intro } from './components/Intro';
 import { PublicLayout, AppShell, RequireAuth, RequireStaff, RequireAdmin } from './components/layouts';
 import { Landing, EventsIndex, EventPublic, SignIn } from './pages/public';
 import { Dashboard, ProfilePage, NotFound } from './pages/app';
-import { EventLayout, SchedulePage, MySchedulePage, SpeakersPage, VenuePage, BadgePage } from './pages/event';
+import { EventLayout, SchedulePage, MySchedulePage, SpeakersPage, VenuePage, BadgePage, SponsorsPage } from './pages/event';
+import { DoorQr, HerePage } from './pages/checkin';
 import { AdminLayout, AdminHome, AdminEvents, AdminEventEdit, AdminPeople, AdminAnnouncements, AdminSettings } from './pages/admin';
-import { AdminSchedule, AdminAccess, AdminCheckIn } from './pages/admin-event';
+import { AdminSchedule, AdminAccess, AdminCheckIn, AdminSponsors } from './pages/admin-event';
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <MotionRoot />
-        <Cursor />
         <Grain />
         <Intro />
         <Routes>
@@ -36,6 +36,8 @@ export default function App() {
               <Route path="speakers" element={<SpeakersPage />} />
               <Route path="venue" element={<VenuePage />} />
               <Route path="badge" element={<BadgePage />} />
+              <Route path="sponsors" element={<SponsorsPage />} />
+              <Route path="here" element={<HerePage />} />
             </Route>
             <Route path="admin" element={<RequireStaff />}>
               <Route element={<AdminLayout />}>
@@ -43,6 +45,7 @@ export default function App() {
                 <Route path="events" element={<AdminEvents />} />
                 <Route path="events/:id/schedule" element={<AdminSchedule />} />
                 <Route path="events/:id/checkin" element={<AdminCheckIn />} />
+                <Route path="events/:id/sponsors" element={<AdminSponsors />} />
                 <Route element={<RequireAdmin />}>
                   <Route path="events/new" element={<AdminEventEdit />} />
                   <Route path="events/:id" element={<AdminEventEdit />} />
@@ -53,6 +56,10 @@ export default function App() {
                 </Route>
               </Route>
             </Route>
+          </Route>
+
+          <Route element={<RequireAuth />}>
+            <Route path="door/:eventId/:sessionId" element={<DoorQr />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

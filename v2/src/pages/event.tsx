@@ -4,7 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import {
   CalendarDays, MapPin, Search, LayoutList, LayoutGrid, Download, Users, Lock, ArrowLeft, CircleCheck, Clock, ShieldCheck, ExternalLink,
 } from 'lucide-react';
-import { Event, Room, Session, Track } from '../lib/types';
+import { Event, Room, Session, Track, Sponsor, SPONSOR_TIERS, SPONSOR_TIER_LABEL } from '../lib/types';
 import { useAuth } from '../lib/auth';
 import { useWatch } from '../lib/hooks';
 import { isStaff, canSeeEvent } from '../lib/roles';
@@ -17,7 +17,7 @@ import { EventWelcome } from '../components/EventWelcome';
 import { PageTransition } from '../lib/motion';
 import { Avatar, Button, Card, Chip, Empty, Spinner, SubNav } from '../components/ui';
 
-interface EventCtx { event: Event; sessions: Session[]; rooms: Room[]; tracks: Track[]; mine: Session[]; base: string }
+interface EventCtx { event: Event; sessions: Session[]; rooms: Room[]; tracks: Track[]; sponsors: Sponsor[]; mine: Session[]; base: string }
 const useEvent = () => useOutletContext<EventCtx>();
 
 /** Resolves a slug to an event the viewer may read. Members query only
@@ -58,7 +58,7 @@ export const EventLayout: React.FC = () => {
   }
 
   const mine = data.sessions.filter((s) => user && s.reservedUserIds.includes(user.uid)).sort(byStart);
-  const ctx: EventCtx = { event, sessions: data.sessions, rooms: data.rooms, tracks: data.tracks, mine, base };
+  const ctx: EventCtx = { event, sessions: data.sessions, rooms: data.rooms, tracks: data.tracks, sponsors: data.sponsors, mine, base };
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-6 lg:py-8">
@@ -90,6 +90,7 @@ export const EventLayout: React.FC = () => {
           { to: `${base}/mine`, label: `My day${mine.length ? ` · ${mine.length}` : ''}` },
           { to: `${base}/speakers`, label: 'Speakers' },
           { to: `${base}/venue`, label: 'Venue' },
+          ...(data.sponsors.length > 0 ? [{ to: `${base}/sponsors`, label: 'Sponsors' }] : []),
           { to: `${base}/badge`, label: 'Badge' },
         ]} />
       </div>
@@ -101,7 +102,7 @@ export const EventLayout: React.FC = () => {
 
 // ------------------------------------------------------------------ programme
 export const SchedulePage: React.FC = () => {
-  const { event, sessions, rooms, tracks, mine, base } = useEvent();
+  const { event, sessions, rooms, tracks, sponsors, mine, base } = useEvent();
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -176,7 +177,7 @@ export const SchedulePage: React.FC = () => {
               </div>
               <div className="space-y-3">
                 {slot.sessions.map((s) => (
-                  <SessionCard key={s.id} session={s} room={rooms.find((r) => r.id === s.roomId)} track={tracks.find((t) => t.id === s.trackId)} to={`${schedulePath}/${s.id}`} />
+                  <SessionCard key={s.id} session={s} room={rooms.find((r) => r.id === s.roomId)} track={tracks.find((t) => t.id === s.trackId)} sponsor={sponsors.find((x) => x.id === s.sponsorId)} to={`${schedulePath}/${s.id}`} />
                 ))}
               </div>
             </div>
@@ -184,7 +185,7 @@ export const SchedulePage: React.FC = () => {
         </div>
       )}
 
-      <SessionDrawer event={event} session={open} rooms={rooms} tracks={tracks} mine={mine} onClose={() => navigate(schedulePath)} />
+      <SessionDrawer event={event} session={open} rooms={rooms} tracks={tracks} sponsors={sponsors} mine={mine} onClose={() => navigate(schedulePath)} />
     </div>
   );
 };
@@ -291,9 +292,47 @@ export const VenuePage: React.FC = () => {
   );
 };
 
+// ------------------------------------------------------------------ sponsors
+export const SponsorsPage: React.FC = () => {
+  const { sponsors } = useEvent();
+  if (sponsors.length === 0) return <Empty icon={Users} title="No sponsors listed yet" />;
+  return (
+    <div className="space-y-8">
+      {SPONSOR_TIERS.map((tier) => {
+        const list = sponsors.filter((s) => s.tier === tier);
+        if (list.length === 0) return null;
+        return (
+          <section key={tier}>
+            <div className="eyebrow mb-3">{SPONSOR_TIER_LABEL[tier]}</div>
+            <div className={`grid gap-4 ${tier === 'platinum' ? 'sm:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-3'}`}>
+              {list.map((s) => {
+                const body = (
+                  <>
+                    <div className={`flex items-center justify-center bg-sand-50 border-b border-sand-200 ${tier === 'platinum' ? 'h-32' : 'h-24'}`}>
+                      {s.logoUrl ? <img src={s.logoUrl} alt={s.name} className="max-h-[60%] max-w-[70%] object-contain" /> : <span className="font-display font-bold text-2xl text-ink-900">{s.name}</span>}
+                    </div>
+                    <div className="p-4">
+                      <div className="font-semibold text-ink-900">{s.name}</div>
+                      {s.blurb && <p className="text-sm text-ink-500 mt-1">{s.blurb}</p>}
+                      {s.url && <div className="text-xs text-blue-700 mt-2 inline-flex items-center gap-1">Visit<ExternalLink className="w-3 h-3" /></div>}
+                    </div>
+                  </>
+                );
+                return s.url
+                  ? <a key={s.id} href={s.url} target="_blank" rel="noreferrer" className="card overflow-hidden block">{body}</a>
+                  : <Card key={s.id} className="overflow-hidden">{body}</Card>;
+              })}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+};
+
 // ------------------------------------------------------------------ badge
 export const BadgePage: React.FC = () => {
-  const { event } = useEvent();
+  const { event, sessions } = useEvent();
   const { user, profile } = useAuth();
   const attendance = useWatch('attendance', [{ field: 'eventId', op: '==', value: event.id }, { field: 'userId', op: '==', value: user?.uid ?? '' }], Boolean(user));
   const arrived = attendance.items.find((a) => a.sessionId === null);
@@ -314,6 +353,17 @@ export const BadgePage: React.FC = () => {
             : <Chip><Clock className="w-3.5 h-3.5" />Show this at the desk</Chip>}
         </div>
       </Card>
+      {attendance.items.some((a) => a.sessionId) && (
+        <Card className="p-4 mt-4">
+          <div className="eyebrow mb-2">Sessions you were at</div>
+          <ul className="space-y-1.5">
+            {attendance.items.filter((a) => a.sessionId).map((a) => {
+              const s = sessions.find((x) => x.id === a.sessionId);
+              return <li key={a.id} className="text-sm flex items-center gap-2"><CircleCheck className="w-4 h-4 text-emerald-600 shrink-0" /><span className="text-ink-900">{s?.title ?? a.sessionId}</span><span className="text-xs text-ink-500 ml-auto">{new Date(a.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></li>;
+            })}
+          </ul>
+        </Card>
+      )}
       <p className="text-xs text-ink-500 text-center mt-3">Your badge works from any phone signed in as you.</p>
     </div>
   );

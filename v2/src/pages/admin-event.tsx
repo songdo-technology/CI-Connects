@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 import {
-  ArrowLeft, Plus, Trash2, Upload, AlertTriangle, Check, DoorOpen, Tag, Search, UserPlus, Mail, ScanLine, CircleCheck, Undo2, KeyRound, ClipboardCheck, ListTree,
+  ArrowLeft, Plus, Trash2, Upload, AlertTriangle, Check, DoorOpen, Tag, Search, UserPlus, Mail, ScanLine, CircleCheck, Undo2, KeyRound, ClipboardCheck, ListTree, Camera, QrCode, Handshake, Pencil,
 } from 'lucide-react';
-import { Event, Session, Room, Track, SessionType, SESSION_TYPE_LABEL, Invite, Profile, Attendance } from '../lib/types';
+import { Event, Session, Room, Track, SessionType, SESSION_TYPE_LABEL, Invite, Profile, Attendance, Sponsor, SponsorTier, SPONSOR_TIERS, SPONSOR_TIER_LABEL } from '../lib/types';
 import { useAuth } from '../lib/auth';
 import { useWatch, useDoc } from '../lib/hooks';
 import { store } from '../lib/store';
@@ -13,6 +13,7 @@ import { byStart, overlaps } from '../lib/schedule';
 import { parseCsv, rowsToSessions, parseSpeakers, CSV_TEMPLATE, ImportRow } from '../lib/csv';
 import { inviteId } from '../lib/hash';
 import { useEventData, TrackDot } from '../components/schedule';
+import { Scanner } from '../components/Scanner';
 import { Button, Card, Chip, Drawer, Empty, Field, Input, Notice, Select, Spinner, Textarea, PageHeader, Avatar, SubNav } from '../components/ui';
 
 const TYPES: SessionType[] = ['keynote', 'talk', 'workshop', 'panel', 'break', 'social'];
@@ -28,6 +29,7 @@ const EventHeader: React.FC<{ event: Event; title: string; description?: string;
         { to: `/admin/events/${event.id}/schedule`, label: 'Schedule' },
         ...(isAdmin(profile) ? [{ to: `/admin/events/${event.id}/access`, label: 'Access' }] : []),
         { to: `/admin/events/${event.id}/checkin`, label: 'Check-in' },
+        { to: `/admin/events/${event.id}/sponsors`, label: 'Sponsors' },
         ...(isAdmin(profile) ? [{ to: `/admin/events/${event.id}`, label: 'Details', end: true }] : []),
       ]} />
     </div>
@@ -103,7 +105,7 @@ export const AdminSchedule: React.FC = () => {
         </aside>
       </div>
 
-      <SessionEditor event={event} session={editing} rooms={data.rooms} tracks={data.tracks} others={data.sessions} onClose={closeEditor} />
+      <SessionEditor event={event} session={editing} rooms={data.rooms} tracks={data.tracks} sponsors={data.sponsors} others={data.sessions} onClose={closeEditor} />
       <ImportDrawer event={event} open={importing} rooms={data.rooms} tracks={data.tracks} onClose={() => setImporting(false)} />
     </div>
   );
@@ -177,8 +179,8 @@ const speakersToText = (sp: Session['speakers']) => sp.map((s) => s.title || s.o
 const materialsToText = (m: Session['materials']) => (m ?? []).map((x) => `${x.label} | ${x.url}`).join('\n');
 const textToMaterials = (t: string) => t.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => { const [label, url] = l.split('|').map((x) => x.trim()); return url ? { label: label || url, url } : { label, url: label }; });
 
-const SessionEditor: React.FC<{ event: Event; session: Session | null; rooms: Room[]; tracks: Track[]; others: Session[]; onClose: () => void }> =
-  ({ event, session, rooms, tracks, others, onClose }) => {
+const SessionEditor: React.FC<{ event: Event; session: Session | null; rooms: Room[]; tracks: Track[]; sponsors: Sponsor[]; others: Session[]; onClose: () => void }> =
+  ({ event, session, rooms, tracks, sponsors, others, onClose }) => {
     const [form, setForm] = useState<Session | null>(null);
     const [speakers, setSpeakers] = useState('');
     const [materials, setMaterials] = useState('');
@@ -204,7 +206,7 @@ const SessionEditor: React.FC<{ event: Event; session: Session | null; rooms: Ro
       setBusy(true);
       try {
         const mats = textToMaterials(materials);
-        await store.set('sessions', form.id, { ...form, title: form.title.trim(), speakers: parseSpeakers(speakers), materials: mats.length ? mats : undefined, trackId: form.trackId || undefined });
+        await store.set('sessions', form.id, { ...form, title: form.title.trim(), speakers: parseSpeakers(speakers), materials: mats.length ? mats : undefined, trackId: form.trackId || undefined, sponsorId: form.sponsorId || undefined });
         onClose();
       } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
     };
@@ -228,6 +230,9 @@ const SessionEditor: React.FC<{ event: Event; session: Session | null; rooms: Ro
           </div>
           <Field label="Abstract"><Textarea value={form.abstract} onChange={(e) => set({ abstract: e.target.value })} className="min-h-28" /></Field>
           <Field label="Materials" hint="One per line: Label | https://…"><Textarea value={materials} onChange={(e) => setMaterials(e.target.value)} className="min-h-16" placeholder="Slides | https://docs.google.com/…" /></Field>
+          {sponsors.length > 0 && (
+            <Field label="Session partner" hint="A sponsor credited on this session."><Select value={form.sponsorId ?? ''} onChange={(e) => set({ sponsorId: e.target.value || undefined })}><option value="">None</option>{sponsors.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</Select></Field>
+          )}
           <label className="flex items-center gap-2 text-sm text-ink-700"><input type="checkbox" checked={Boolean(form.featured)} onChange={(e) => set({ featured: e.target.checked || undefined })} />Featured — shown with a star</label>
           {clash.length > 0 && (
             <Notice tone="warn">
@@ -427,47 +432,79 @@ export const AdminCheckIn: React.FC = () => {
   const [q, setQ] = useState('');
   const [scan, setScan] = useState('');
   const [sessionId, setSessionId] = useState<string>('');
-  const [flash, setFlash] = useState<string | null>(null);
-  if (!ready || !users.ready || !data.ready) return <Spinner />;
-  if (!event || !id) return <Empty icon={ClipboardCheck} title="No such event" action={<Button to="/admin/events">Events</Button>} />;
-  const invitedEmails = new Set(invites.items.map((i) => i.email));
-  const people = users.items.filter((u) => u.role !== 'user' || u.eventAccess.includes(id) || invitedEmails.has(u.email.toLowerCase())).sort((a, b) => a.name.localeCompare(b.name));
+  const [camera, setCamera] = useState(false);
+  const [result, setResult] = useState<{ tone: 'ok' | 'again' | 'unknown'; name: string; at?: string } | null>(null);
+  const invitedEmails = useMemo(() => new Set(invites.items.map((i) => i.email)), [invites.items]);
+  const people = useMemo(() => (id ? users.items.filter((u) => u.role !== 'user' || u.eventAccess.includes(id) || invitedEmails.has(u.email.toLowerCase())) : []).sort((a, b) => a.name.localeCompare(b.name)), [users.items, invitedEmails, id]);
   const target = sessionId || null;
-  const recordFor = (uid: string) => attendance.items.find((a) => a.userId === uid && a.sessionId === target);
-  const rows = people.filter((u) => !q || `${u.name} ${u.email} ${u.org ?? ''}`.toLowerCase().includes(q.toLowerCase()));
-  const checkedCount = people.filter((u) => recordFor(u.id)).length;
+  const recordFor = useCallback((uid: string) => attendance.items.find((a) => a.userId === uid && a.sessionId === target), [attendance.items, target]);
 
-  const checkIn = async (u: Profile) => {
-    if (!profile) return;
+  const checkIn = useCallback(async (u: Profile) => {
+    if (!profile || !id) return;
+    const existing = recordFor(u.id);
+    if (existing) { setResult({ tone: 'again', name: u.name, at: existing.at }); return; }
     const rec: Attendance = { id: `${id}__${target ?? 'venue'}__${u.id}`, eventId: id, sessionId: target, userId: u.id, at: nowIso(), by: profile.id };
     await store.set('attendance', rec.id, rec);
-    setFlash(`${u.name} checked in`); setTimeout(() => setFlash(null), 2000);
-  };
-  const undo = async (u: Profile) => { const r = recordFor(u.id); if (r) await store.remove('attendance', r.id); };
-  const onScan = async () => {
-    const m = scan.trim().match(/^ci2:(.+)$/);
-    const uid = m ? m[1] : scan.trim();
+    setResult({ tone: 'ok', name: u.name, at: rec.at });
+  }, [profile, id, target, recordFor]);
+
+  /** A badge code, from the camera or a keyboard scanner. */
+  const handleCode = useCallback(async (text: string) => {
+    const m = text.trim().match(/^ci2:(.+)$/);
+    const uid = m ? m[1] : text.trim();
     const u = people.find((p) => p.id === uid);
-    setScan('');
-    if (!u) { setFlash('Not on this event'); setTimeout(() => setFlash(null), 2000); return; }
+    if (!u) { setResult({ tone: 'unknown', name: text.trim().slice(0, 40) }); return; }
     await checkIn(u);
-  };
+  }, [people, checkIn]);
+
+  useEffect(() => { if (!result) return; const t = window.setTimeout(() => setResult(null), 3500); return () => window.clearTimeout(t); }, [result]);
+
+  if (!ready || !users.ready || !data.ready) return <Spinner />;
+  if (!event || !id) return <Empty icon={ClipboardCheck} title="No such event" action={<Button to="/admin/events">Events</Button>} />;
+  const rows = people.filter((u) => !q || `${u.name} ${u.email} ${u.org ?? ''}`.toLowerCase().includes(q.toLowerCase()));
+  const checkedCount = people.filter((u) => recordFor(u.id)).length;
+  const undo = async (u: Profile) => { const r = recordFor(u.id); if (r) await store.remove('attendance', r.id); };
+  const onScan = async () => { const t = scan; setScan(''); if (t.trim()) await handleCode(t); };
 
   return (
     <div>
-      <EventHeader event={event} title="Check-in" description={`${checkedCount} of ${people.length} ${target ? 'in this session' : 'arrived'}`} />
-      <div className="grid sm:grid-cols-[minmax(0,1fr)_16rem] gap-3 mb-4">
+      <EventHeader event={event} title="Check-in" description={`${checkedCount} of ${people.length} ${target ? 'in this session' : 'arrived'}`}
+        actions={<>
+          <Button variant={camera ? 'primary' : 'secondary'} onClick={() => setCamera((v) => !v)}><Camera className="w-4 h-4" />{camera ? 'Stop camera' : 'Scan badges'}</Button>
+          {target && <Button variant="secondary" to={`/door/${id}/${target}`}><QrCode className="w-4 h-4" />Door QR</Button>}
+        </>} />
+      <div className="grid sm:grid-cols-[minmax(0,1fr)_18rem] gap-3 mb-4">
         <div className="relative"><Search className="w-4 h-4 text-ink-300 absolute left-3 top-1/2 -translate-y-1/2" /><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a person" className="pl-9" /></div>
         <Select value={sessionId} onChange={(e) => setSessionId(e.target.value)}>
           <option value="">Arrival at the venue</option>
           {[...data.sessions].sort(byStart).filter((s) => s.type !== 'break' && s.type !== 'social').map((s) => <option key={s.id} value={s.id}>{formatTime(s.start)} · {s.title}</option>)}
         </Select>
       </div>
+
+      {camera && (
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_22rem] gap-4 mb-4 items-start">
+          <Scanner onCode={handleCode} />
+          <Card className="p-5 min-h-40 flex flex-col justify-center text-center">
+            {result ? (
+              <>
+                {result.tone === 'ok' && <CircleCheck className="w-10 h-10 text-emerald-600 mx-auto" />}
+                {result.tone === 'again' && <Check className="w-10 h-10 text-blue-400 mx-auto" />}
+                {result.tone === 'unknown' && <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto" />}
+                <div className="text-lg font-bold text-ink-900 mt-2">{result.tone === 'unknown' ? 'Not on this event' : result.name}</div>
+                <div className="text-sm text-ink-500">{result.tone === 'ok' ? `Checked in ${target ? 'to this session' : 'at the venue'}` : result.tone === 'again' ? `Already in, ${result.at ? new Date(result.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}` : result.name}</div>
+              </>
+            ) : (
+              <><QrCode className="w-8 h-8 text-ink-300 mx-auto" /><div className="text-sm text-ink-500 mt-2">Hold a badge up to the camera. {target ? 'Recording for the selected session.' : 'Recording arrival at the venue.'}</div></>
+            )}
+          </Card>
+        </div>
+      )}
+
       <Card className="p-3 mb-4 flex items-center gap-2">
         <ScanLine className="w-4 h-4 text-blue-400 shrink-0" />
-        <Input value={scan} onChange={(e) => setScan(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') void onScan(); }} placeholder="Scan a badge here (a scanner types the code and presses Enter)" className="py-1.5 text-xs font-mono" />
+        <Input value={scan} onChange={(e) => setScan(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') void onScan(); }} placeholder="Or scan with a handheld scanner here (it types the code and presses Enter)" className="py-1.5 text-xs font-mono" />
         <Button size="sm" variant="secondary" onClick={() => void onScan()} disabled={!scan.trim()}>Check in</Button>
-        {flash && <Chip tone="green" className="shrink-0"><CircleCheck className="w-3 h-3" />{flash}</Chip>}
+        {result && !camera && <Chip tone={result.tone === 'unknown' ? 'amber' : 'green'} className="shrink-0"><CircleCheck className="w-3 h-3" />{result.tone === 'unknown' ? 'Not on this event' : result.name}</Chip>}
       </Card>
       <Card className="divide-y divide-sand-200">
         {rows.length === 0 && <div className="p-6 text-sm text-ink-500 text-center">Nobody matches.</div>}
@@ -484,6 +521,68 @@ export const AdminCheckIn: React.FC = () => {
           );
         })}
       </Card>
+    </div>
+  );
+};
+
+// ================================================================== sponsors
+const blankSponsor = (eventId: string, n: number): Sponsor => ({ id: newId('spn'), eventId, name: '', tier: 'partner', order: n + 1 });
+
+export const AdminSponsors: React.FC = () => {
+  const { id } = useParams();
+  const { doc: event, ready } = useDoc('events', id ?? null);
+  const sponsors = useWatch('sponsors', id ? [{ field: 'eventId', op: '==', value: id }] : [], Boolean(id));
+  const [editing, setEditing] = useState<Sponsor | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  if (!ready || !sponsors.ready) return <Spinner />;
+  if (!event || !id) return <Empty icon={Handshake} title="No such event" action={<Button to="/admin/events">Events</Button>} />;
+  const rows = [...sponsors.items].sort((a, b) => SPONSOR_TIERS.indexOf(a.tier) - SPONSOR_TIERS.indexOf(b.tier) || a.order - b.order);
+  const isNew = editing ? !sponsors.items.some((x) => x.id === editing.id) : false;
+  const save = async () => {
+    if (!editing || !editing.name.trim()) return;
+    setBusy(true);
+    await store.set('sponsors', editing.id, { ...editing, name: editing.name.trim(), logoUrl: editing.logoUrl?.trim() || undefined, url: editing.url?.trim() || undefined, blurb: editing.blurb?.trim() || undefined });
+    setBusy(false); setEditing(null);
+  };
+  const remove = async () => { if (!editing) return; setBusy(true); await store.remove('sponsors', editing.id); setBusy(false); setEditing(null); setConfirmDelete(false); };
+  return (
+    <div>
+      <EventHeader event={event} title="Sponsors" description="Shown on the public page, in the portal's Sponsors tab, and on any session they partner."
+        actions={<Button onClick={() => setEditing(blankSponsor(id, sponsors.items.length))}><Plus className="w-4 h-4" />Add sponsor</Button>} />
+      {rows.length === 0 ? <Empty icon={Handshake} title="No sponsors yet" body="Add one with its logo, tier and website." action={<Button onClick={() => setEditing(blankSponsor(id, 0))}><Plus className="w-4 h-4" />Add sponsor</Button>} /> : (
+        <Card className="divide-y divide-sand-200">
+          {rows.map((sp) => (
+            <button key={sp.id} onClick={() => { setEditing(sp); setConfirmDelete(false); }} className="w-full text-left p-3.5 flex items-center gap-4 hover:bg-sand-50 transition-colors">
+              <div className="w-20 h-12 rounded-lg bg-sand-50 border border-sand-200 flex items-center justify-center overflow-hidden shrink-0">
+                {sp.logoUrl ? <img src={sp.logoUrl} alt="" className="max-h-[70%] max-w-[80%] object-contain" /> : <Handshake className="w-4 h-4 text-ink-300" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2"><span className="font-semibold text-ink-900">{sp.name}</span><Chip tone={sp.tier === 'platinum' ? 'navy' : sp.tier === 'gold' ? 'amber' : 'neutral'}>{SPONSOR_TIER_LABEL[sp.tier]}</Chip></div>
+                <div className="text-xs text-ink-500 truncate">{[sp.url, sp.blurb].filter(Boolean).join(' · ') || 'No website or blurb yet'}</div>
+              </div>
+              <Pencil className="w-4 h-4 text-ink-300 shrink-0" />
+            </button>
+          ))}
+        </Card>
+      )}
+      <Drawer open={Boolean(editing)} onClose={() => setEditing(null)} title={isNew ? 'Add sponsor' : 'Edit sponsor'}>
+        {editing && (
+          <div className="space-y-4">
+            <Field label="Name"><Input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} autoFocus /></Field>
+            <Field label="Tier"><Select value={editing.tier} onChange={(e) => setEditing({ ...editing, tier: e.target.value as SponsorTier })}>{SPONSOR_TIERS.map((t) => <option key={t} value={t}>{SPONSOR_TIER_LABEL[t]}</option>)}</Select></Field>
+            <Field label="Logo URL" hint="A PNG or SVG on a light background works best."><Input value={editing.logoUrl ?? ''} onChange={(e) => setEditing({ ...editing, logoUrl: e.target.value })} placeholder="https://…/logo.png" /></Field>
+            {editing.logoUrl && <div className="h-24 rounded-xl bg-sand-50 border border-sand-200 flex items-center justify-center"><img src={editing.logoUrl} alt="" className="max-h-[60%] max-w-[70%] object-contain" /></div>}
+            <Field label="Website"><Input value={editing.url ?? ''} onChange={(e) => setEditing({ ...editing, url: e.target.value })} placeholder="https://" /></Field>
+            <Field label="One line about them"><Textarea value={editing.blurb ?? ''} onChange={(e) => setEditing({ ...editing, blurb: e.target.value })} className="min-h-20" /></Field>
+            <div className="flex items-center justify-between gap-3 pt-3 border-t border-sand-200">
+              {!isNew ? (confirmDelete ? <div className="flex items-center gap-2 text-sm"><span>Remove this sponsor?</span><Button size="sm" variant="danger" onClick={() => void remove()} busy={busy}>Remove</Button><Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>Keep</Button></div>
+                : <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(true)}><Trash2 className="w-3.5 h-3.5" />Remove</Button>) : <span />}
+              <div className="flex gap-2"><Button variant="secondary" onClick={() => setEditing(null)}>Cancel</Button><Button onClick={() => void save()} busy={busy} disabled={!editing.name.trim()}>{isNew ? 'Add' : 'Save'}</Button></div>
+            </div>
+          </div>
+        )}
+      </Drawer>
     </div>
   );
 };

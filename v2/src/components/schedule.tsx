@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { Clock, MapPin, Users, Check, AlertTriangle, Star, ExternalLink, Pencil } from 'lucide-react';
-import { Event, Session, Room, Track, Feedback, SESSION_TYPE_LABEL } from '../lib/types';
+import { Event, Session, Room, Track, Feedback, Sponsor, SESSION_TYPE_LABEL } from '../lib/types';
 import { useWatch } from '../lib/hooks';
 import { store } from '../lib/store';
 import { useAuth } from '../lib/auth';
@@ -17,11 +17,13 @@ export function useEventData(eventId: string | null) {
   const sessions = useWatch('sessions', f, on);
   const rooms = useWatch('rooms', f, on);
   const tracks = useWatch('tracks', f, on);
+  const sponsors = useWatch('sponsors', f, on);
   return useMemo(() => ({
     sessions: sessions.items, rooms: [...rooms.items].sort((a, b) => a.order - b.order),
     tracks: [...tracks.items].sort((a, b) => a.order - b.order),
-    ready: sessions.ready && rooms.ready && tracks.ready,
-  }), [sessions, rooms, tracks]);
+    sponsors: [...sponsors.items].sort((a, b) => a.order - b.order),
+    ready: sessions.ready && rooms.ready && tracks.ready && sponsors.ready,
+  }), [sessions, rooms, tracks, sponsors]);
 }
 
 export const TrackDot: React.FC<{ track?: Track; className?: string }> = ({ track, className = '' }) =>
@@ -64,8 +66,8 @@ export const SeatButton: React.FC<{ session: Session; size?: 'sm' | 'md'; classN
 
 /** One session in a list: time, what, where, who, and the seat. */
 export const SessionCard: React.FC<{
-  session: Session; room?: Room; track?: Track; to: string; compact?: boolean; mineIds?: Set<string>;
-}> = ({ session: s, room, track, to, compact, mineIds }) => {
+  session: Session; room?: Room; track?: Track; sponsor?: Sponsor; to: string; compact?: boolean; mineIds?: Set<string>;
+}> = ({ session: s, room, track, sponsor, to, compact, mineIds }) => {
   const { user } = useAuth();
   const mine = user ? seatState(s, user.uid) === 'reserved' : false;
   const quiet = s.type === 'break' || s.type === 'social';
@@ -87,6 +89,7 @@ export const SessionCard: React.FC<{
             {room && <span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{room.name}</span>}
             {s.speakers.length > 0 && <span className="inline-flex items-center gap-1"><Users className="w-3.5 h-3.5" />{s.speakers.map((sp) => sp.name).join(', ')}</span>}
             {s.capacity > 0 && <span className="tabular-nums">{s.reservedUserIds.length}/{s.capacity} seats{s.waitlistUserIds.length > 0 ? ` · ${s.waitlistUserIds.length} waiting` : ''}</span>}
+            {sponsor && <span className="text-blue-700">with {sponsor.name}</span>}
           </div>
         </div>
         {!quiet && <div className="shrink-0"><SeatButton session={s} /></div>}
@@ -127,11 +130,12 @@ export const RoomGrid: React.FC<{ sessions: Session[]; rooms: Room[]; tracks: Tr
 /** The full detail of one session, with the seat, the clash warning, and
  *  feedback once it has happened. */
 export const SessionDrawer: React.FC<{
-  event: Event; session: Session | null; rooms: Room[]; tracks: Track[]; mine: Session[]; onClose: () => void;
-}> = ({ event, session: s, rooms, tracks, mine, onClose }) => {
+  event: Event; session: Session | null; rooms: Room[]; tracks: Track[]; sponsors?: Sponsor[]; mine: Session[]; onClose: () => void;
+}> = ({ event, session: s, rooms, tracks, sponsors = [], mine, onClose }) => {
   const { user, profile } = useAuth();
   const room = rooms.find((r) => r.id === s?.roomId);
   const track = tracks.find((t) => t.id === s?.trackId);
+  const sponsor = sponsors.find((x) => x.id === s?.sponsorId);
   const clashes = s ? clashesFor(s, mine) : [];
   const over = s ? (s.date < todayYmd() || (s.date === todayYmd() && toMinutes(s.end) < new Date().getHours() * 60 + new Date().getMinutes())) : false;
   return (
@@ -169,6 +173,13 @@ export const SessionDrawer: React.FC<{
           </div>
 
           {s.abstract && <p className="text-sm text-ink-700 leading-relaxed whitespace-pre-line">{s.abstract}</p>}
+
+          {sponsor && (
+            <div className="flex items-center gap-3 rounded-xl border border-sand-200 bg-sand-50 px-4 py-3">
+              {sponsor.logoUrl ? <img src={sponsor.logoUrl} alt="" className="h-8 max-w-[7rem] object-contain" /> : null}
+              <div className="min-w-0"><div className="eyebrow">Session partner</div><div className="text-sm font-semibold text-ink-900 truncate">{sponsor.name}</div></div>
+            </div>
+          )}
 
           {s.speakers.length > 0 && (
             <div>

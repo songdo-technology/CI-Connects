@@ -110,6 +110,7 @@ export const AdminEvents: React.FC = () => {
                   <Button size="sm" to={`/admin/events/${e.id}/schedule`}><ListTree className="w-3.5 h-3.5" />Schedule</Button>
                   {admin && <Button size="sm" variant="secondary" to={`/admin/events/${e.id}/access`}><KeyRound className="w-3.5 h-3.5" />Access</Button>}
                   <Button size="sm" variant="secondary" to={`/admin/events/${e.id}/checkin`}><ClipboardCheck className="w-3.5 h-3.5" />Check-in</Button>
+                  <Button size="sm" variant="secondary" to={`/admin/events/${e.id}/sponsors`}>Sponsors</Button>
                   {admin && <Button size="sm" variant="secondary" to={`/admin/events/${e.id}`}><Pencil className="w-3.5 h-3.5" />Edit</Button>}
                   <Link to={`/events/${e.slug}`} className="btn-ghost btn-sm" title="Public page"><ExternalLink className="w-3.5 h-3.5" /></Link>
                 </div>

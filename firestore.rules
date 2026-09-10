@@ -394,6 +394,21 @@ service cloud.firestore {
 
     match /v2/data/attendance/{recordId} {
       allow read: if v2Staff() || (signedIn() && resource.data.userId == uid());
+      // Staff record anyone. A person records themselves at a session's door
+      // by scanning its QR: the code they carry must be the one on the
+      // session right now, so a photograph of last week's poster is no use.
+      allow create: if v2Staff()
+                    || (signedIn()
+                        && request.resource.data.userId == uid()
+                        && request.resource.data.sessionId is string
+                        && v2CanSee(request.resource.data.eventId)
+                        && request.resource.data.code is string
+                        && request.resource.data.code == get(/databases/$(database)/documents/v2/data/sessions/$(request.resource.data.sessionId)).data.get('checkinCode', '-'));
+      allow update, delete: if v2Staff();
+    }
+
+    match /v2/data/sponsors/{sponsorId} {
+      allow read: if true;
       allow write: if v2Staff();
     }
 

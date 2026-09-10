@@ -88,6 +88,27 @@ export interface Session {
   waitlistUserIds: string[];
   materials?: { label: string; url: string }[];
   featured?: boolean;
+  /** A partner credited on this session. */
+  sponsorId?: string;
+  /** The code inside the QR on this session's door. Somebody who scans it
+   *  with their own phone records their own attendance; the rules check the
+   *  code against this field. Rotate it and the old QR stops working. */
+  checkinCode?: string;
+}
+
+export type SponsorTier = 'platinum' | 'gold' | 'silver' | 'partner';
+export const SPONSOR_TIER_LABEL: Record<SponsorTier, string> = { platinum: 'Platinum', gold: 'Gold', silver: 'Silver', partner: 'Partner' };
+export const SPONSOR_TIERS: SponsorTier[] = ['platinum', 'gold', 'silver', 'partner'];
+
+export interface Sponsor {
+  id: string;
+  eventId: string;
+  name: string;
+  tier: SponsorTier;
+  logoUrl?: string;
+  url?: string;
+  blurb?: string;
+  order: number;
 }
 
 export interface Room {
@@ -115,6 +136,8 @@ export interface Attendance {
   userId: string;
   at: string;
   by: string;
+  /** Present when the person recorded it themselves by scanning a door. */
+  code?: string;
 }
 
 export interface Announcement {
@@ -153,6 +176,7 @@ export interface Collections {
   sessions: Session;
   rooms: Room;
   tracks: Track;
+  sponsors: Sponsor;
   attendance: Attendance;
   announcements: Announcement;
   feedback: Feedback;

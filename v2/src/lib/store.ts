@@ -88,7 +88,7 @@ export class MemoryStore implements Store {
   private listeners = new Set<Listener>();
 
   constructor(initial: Partial<Record<CollectionName, { id: string }[]>>) {
-    const names: CollectionName[] = ['users', 'invites', 'events', 'sessions', 'rooms', 'tracks', 'attendance', 'announcements', 'feedback', 'settings'];
+    const names: CollectionName[] = ['users', 'invites', 'events', 'sessions', 'rooms', 'tracks', 'sponsors', 'attendance', 'announcements', 'feedback', 'settings'];
     this.data = Object.fromEntries(names.map((n) => [n, new Map((initial[n] ?? []).map((x) => [x.id, x]))])) as Record<CollectionName, Map<string, unknown>>;
   }
   private itemsFor(name: CollectionName, filters: Filter[]) {

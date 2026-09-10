@@ -1,12 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router';
 import { CalendarDays, MapPin, ArrowRight, Lock, LogIn, ExternalLink, Sparkles } from 'lucide-react';
-import { Event } from '../lib/types';
+import { Event, SPONSOR_TIERS } from '../lib/types';
 import { useAuth } from '../lib/auth';
 import { useWatch, useDoc } from '../lib/hooks';
 import { isStaff, canSeeEvent } from '../lib/roles';
 import { formatRange, eventPhase, daysUntil } from '../lib/time';
-import { Button, Card, Chip, Empty, Notice, Spinner } from '../components/ui';
+import { Button, Card, Chip, Empty, Notice, Spinner, Field, Input } from '../components/ui';
 import { isDemo } from '../lib/firebase';
 import { ConnectsOrbit, MODES } from '../components/Orbit';
 import { Reveal, Marquee, useParallax, useMouseParallax, CountUp } from '../lib/motion';
@@ -201,6 +201,7 @@ export const EventPublic: React.FC = () => {
   const filters = [{ field: 'slug', op: '==' as const, value: slug }, ...(staff ? [] : [{ field: 'status', op: '==' as const, value: 'published' }])];
   const { items, ready } = useWatch('events', filters, Boolean(slug));
   const event = items[0];
+  const sponsors = useWatch('sponsors', [{ field: 'eventId', op: '==', value: event?.id ?? '' }], Boolean(event));
   if (!ready) return <Spinner />;
   if (!event) return <div className="max-w-3xl mx-auto px-5 py-16"><Empty icon={CalendarDays} title="No such event" body="It may not be published yet." action={<Button variant="secondary" to="/events">All events</Button>} /></div>;
   const phase = eventPhase(event.startDate, event.endDate);
@@ -252,6 +253,20 @@ export const EventPublic: React.FC = () => {
               </div>
             )}
           </Card></Reveal>
+          {sponsors.items.length > 0 && (
+            <Reveal delay={0.15}>
+              <div className="eyebrow mb-3">Supported by</div>
+              <div className="flex flex-wrap gap-3">
+                {[...sponsors.items].sort((a, b) => SPONSOR_TIERS.indexOf(a.tier) - SPONSOR_TIERS.indexOf(b.tier) || a.order - b.order).map((sp) => {
+                  const inner = sp.logoUrl
+                    ? <img src={sp.logoUrl} alt={sp.name} className="h-9 max-w-[9rem] object-contain" />
+                    : <span className="font-display font-bold text-ink-900">{sp.name}</span>;
+                  const cls = `card px-5 py-4 flex items-center gap-3 ${sp.tier === 'platinum' ? 'ring-1 ring-blue-200' : ''}`;
+                  return sp.url ? <a key={sp.id} href={sp.url} target="_blank" rel="noreferrer" className={cls} title={sp.name}>{inner}</a> : <div key={sp.id} className={cls} title={sp.name}>{inner}</div>;
+                })}
+              </div>
+            </Reveal>
+          )}
         </div>
         <Reveal stagger={0.12} className="space-y-4">
           <Card className="p-5">
@@ -272,21 +287,73 @@ export const EventPublic: React.FC = () => {
 
 // ------------------------------------------------------------------ sign in
 export const SignIn: React.FC = () => {
-  const { status, signIn, error, personas, signInAs } = useAuth();
+  const { status, signIn, signInWithPassword, createAccount, resetPassword, error, personas, signInAs } = useAuth();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const next = params.get('next') || '/dashboard';
+  const [mode, setMode] = useState<'in' | 'up'>('in');
+  const [form, setForm] = useState({ email: '', password: '', name: '', org: '', title: '' });
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  const [problem, setProblem] = useState<string | null>(null);
   useEffect(() => { if (status === 'signed_in') navigate(next, { replace: true }); }, [status, next, navigate]);
   if (status === 'signed_in') return <Navigate to={next} replace />;
+
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [k]: e.target.value });
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault(); setProblem(null); setNote(null);
+    const email = form.email.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setProblem('Enter your email address.');
+    if (mode === 'up') {
+      if (!form.name.trim()) return setProblem('Tell us your name.');
+      if (form.password.length < 8) return setProblem('Use a password of at least eight characters.');
+    } else if (!form.password) return setProblem('Enter your password.');
+    setBusy(true);
+    try {
+      if (mode === 'in') await signInWithPassword(email, form.password);
+      else await createAccount({ email, password: form.password, name: form.name, org: form.org, title: form.title });
+    } catch { /* shown through auth.error */ } finally { setBusy(false); }
+  };
+  const forgot = async () => {
+    setProblem(null); setNote(null);
+    const email = form.email.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setProblem('Enter your email above first, then tap Forgot password.');
+    try { await resetPassword(email); setNote(`A reset link is on its way to ${email}.`); } catch { /* shown through auth.error */ }
+  };
+
   return (
-    <div className="max-w-md mx-auto px-5 py-16">
-      <Card className="p-8">
+    <div className="max-w-md mx-auto px-5 py-14">
+      <Card className="p-8 rise">
         <Mark size={44} className="mb-4" />
-        <h1 className="text-2xl font-display font-bold text-ink-900">Sign in to CI Connects</h1>
-        <p className="text-sm text-ink-500 mt-2">Use the Google account you were invited at — a Chadwick account or any other.</p>
-        {error && <Notice tone="error" className="mt-4">{error}</Notice>}
+        <h1 className="text-2xl font-display font-bold text-ink-900">{mode === 'in' ? 'Sign in' : 'Create an account'}</h1>
+        <p className="text-sm text-ink-500 mt-1.5">
+          {mode === 'in' ? 'With the address you were invited at.' : 'For guests without a Chadwick account. Chadwick staff sign in with Google below.'}
+        </p>
+        {(problem || error) && <Notice tone="error" className="mt-4">{problem ?? error}</Notice>}
+        {note && <Notice tone="success" className="mt-4">{note}</Notice>}
+
+        <form onSubmit={(e) => void submit(e)} className="mt-6 space-y-3">
+          {mode === 'up' && (
+            <Field label="Name"><Input value={form.name} onChange={set('name')} autoComplete="name" placeholder="Your full name" /></Field>
+          )}
+          <Field label="Email"><Input type="email" value={form.email} onChange={set('email')} autoComplete="email" placeholder="you@school.org" /></Field>
+          <Field label="Password"><Input type="password" value={form.password} onChange={set('password')} autoComplete={mode === 'in' ? 'current-password' : 'new-password'} placeholder={mode === 'up' ? 'At least eight characters' : ''} /></Field>
+          {mode === 'up' && (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="School or organisation"><Input value={form.org} onChange={set('org')} autoComplete="organization" placeholder="Dwight School Seoul" /></Field>
+              <Field label="Role or title"><Input value={form.title} onChange={set('title')} autoComplete="organization-title" placeholder="Teacher" /></Field>
+            </div>
+          )}
+          <Button type="submit" busy={busy} className="w-full mt-2 py-3">{mode === 'in' ? 'Sign in' : 'Create account'}</Button>
+          {mode === 'in' && (
+            <div className="text-right"><button type="button" onClick={() => void forgot()} className="text-xs text-ink-500 hover:text-ink-900 underline underline-offset-2">Forgot password?</button></div>
+          )}
+        </form>
+
+        <div className="flex items-center gap-3 my-5 text-[11px] uppercase tracking-[0.14em] text-ink-300"><span className="flex-1 h-px bg-sand-200" />or<span className="flex-1 h-px bg-sand-200" /></div>
+
         {isDemo ? (
-          <div className="mt-6 space-y-2">
+          <div className="space-y-2">
             <div className="eyebrow">Demo build — pick who you are</div>
             {personas.map((p) => (
               <button key={p.id} onClick={() => signInAs(p.id)} className="w-full text-left card p-3 hover:border-blue-300 transition-colors">
@@ -296,11 +363,17 @@ export const SignIn: React.FC = () => {
             ))}
           </div>
         ) : (
-          <button onClick={() => void signIn()} disabled={status === 'loading'} className="btn-primary w-full mt-6">
+          <button onClick={() => void signIn()} disabled={status === 'loading'} className="btn-secondary w-full py-3">
             <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.7 2.6 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.8 6C12.2 13.6 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z"/><path fill="#FBBC05" d="M10.4 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.6-2 15.4-5.6l-7.5-5.8c-2.1 1.4-4.8 2.3-7.9 2.3-6.4 0-11.8-4.1-13.6-9.8l-7.8 6C6.5 42.6 14.6 48 24 48z"/></svg>
-            Continue with Google
+            Sign in with Google
           </button>
         )}
+
+        <p className="text-sm text-ink-500 text-center mt-6">
+          {mode === 'in'
+            ? <>New here? <button type="button" onClick={() => { setMode('up'); setProblem(null); }} className="font-semibold text-blue-700 hover:underline">Create an account</button></>
+            : <>Already have one? <button type="button" onClick={() => { setMode('in'); setProblem(null); }} className="font-semibold text-blue-700 hover:underline">Sign in</button></>}
+        </p>
       </Card>
     </div>
   );

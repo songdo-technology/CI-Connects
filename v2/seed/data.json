@@ -1,55 +1,365 @@
 {
   "settings": [
-    { "id": "site", "name": "CI Connects", "tagline": "Chadwick International's events, in one place.", "contactEmail": "songdo-technology@chadwickschool.org" }
+    {
+      "id": "site",
+      "name": "CI Connects",
+      "tagline": "Chadwick International's events, in one place.",
+      "contactEmail": "songdo-technology@chadwickschool.org"
+    }
   ],
   "users": [
-    { "id": "dvJmHITUlbgjsgaDJ4c1h0vFy2v2", "email": "songdo-technology@chadwickschool.org", "name": "Technology Songdo", "org": "Chadwick International", "title": "Technology", "role": "admin", "eventAccess": ["korcos-2026"], "createdAt": "2026-09-10T00:00:00.000Z" },
-    { "id": "Ywd23C7INYff2ZKyhbEB5Z6eG042", "email": "jyyang@chadwickschool.org", "name": "Junyoung Yang", "org": "Chadwick International", "title": "Technology", "role": "admin", "eventAccess": ["korcos-2026"], "createdAt": "2026-09-10T00:00:00.000Z" }
+    {
+      "id": "dvJmHITUlbgjsgaDJ4c1h0vFy2v2",
+      "email": "songdo-technology@chadwickschool.org",
+      "name": "Technology Songdo",
+      "org": "Chadwick International",
+      "title": "Technology",
+      "role": "admin",
+      "eventAccess": [
+        "korcos-2026"
+      ],
+      "createdAt": "2026-09-10T00:00:00.000Z"
+    },
+    {
+      "id": "Ywd23C7INYff2ZKyhbEB5Z6eG042",
+      "email": "jyyang@chadwickschool.org",
+      "name": "Junyoung Yang",
+      "org": "Chadwick International",
+      "title": "Technology",
+      "role": "admin",
+      "eventAccess": [
+        "korcos-2026"
+      ],
+      "createdAt": "2026-09-10T00:00:00.000Z"
+    }
   ],
   "events": [
     {
-      "id": "korcos-2026", "slug": "korcos-2026",
+      "id": "korcos-2026",
+      "slug": "korcos-2026",
       "name": "KORCOS 2026",
       "tagline": "Korea's international school educators, together for a day.",
       "description": "The KORCOS annual conference brings educators from international schools across Korea to Chadwick International for a day of keynotes, workshops and conversation. The programme below is a starting point — the organisers will confirm speakers and sessions as they are finalised.",
-      "startDate": "2026-10-17", "endDate": "2026-10-17",
+      "startDate": "2026-10-17",
+      "endDate": "2026-10-17",
       "venueName": "Chadwick International, Songdo",
       "venueAddress": "45 Art center-daero 97beon-gil, Yeonsu-gu, Incheon",
       "coverUrl": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1800&auto=format&fit=crop&q=80",
-      "status": "published", "registrationOpen": true,
-      "createdBy": "dvJmHITUlbgjsgaDJ4c1h0vFy2v2", "createdAt": "2026-09-10T00:00:00.000Z"
+      "status": "published",
+      "registrationOpen": true,
+      "createdBy": "dvJmHITUlbgjsgaDJ4c1h0vFy2v2",
+      "createdAt": "2026-09-10T00:00:00.000Z"
     }
   ],
   "rooms": [
-    { "id": "korcos-2026-theater", "eventId": "korcos-2026", "name": "Main Theater", "capacity": 600, "location": "Performing Arts Center, Level 1", "order": 1 },
-    { "id": "korcos-2026-blackbox", "eventId": "korcos-2026", "name": "Black Box", "capacity": 200, "location": "Performing Arts Center, Level 1", "order": 2 },
-    { "id": "korcos-2026-cihub", "eventId": "korcos-2026", "name": "Collaboration & Innovation Hub", "capacity": 40, "location": "Library, Level 2", "order": 3 },
-    { "id": "korcos-2026-b201", "eventId": "korcos-2026", "name": "B-201", "capacity": 25, "location": "B Building, Level 2", "order": 4 },
-    { "id": "korcos-2026-b202", "eventId": "korcos-2026", "name": "B-202", "capacity": 25, "location": "B Building, Level 2", "order": 5 },
-    { "id": "korcos-2026-dining", "eventId": "korcos-2026", "name": "Dining Commons", "capacity": 0, "location": "Level 1", "order": 6 }
+    {
+      "id": "korcos-2026-theater",
+      "eventId": "korcos-2026",
+      "name": "Main Theater",
+      "capacity": 600,
+      "location": "Performing Arts Center, Level 1",
+      "order": 1
+    },
+    {
+      "id": "korcos-2026-blackbox",
+      "eventId": "korcos-2026",
+      "name": "Black Box",
+      "capacity": 200,
+      "location": "Performing Arts Center, Level 1",
+      "order": 2
+    },
+    {
+      "id": "korcos-2026-cihub",
+      "eventId": "korcos-2026",
+      "name": "Collaboration & Innovation Hub",
+      "capacity": 40,
+      "location": "Library, Level 2",
+      "order": 3
+    },
+    {
+      "id": "korcos-2026-b201",
+      "eventId": "korcos-2026",
+      "name": "B-201",
+      "capacity": 25,
+      "location": "B Building, Level 2",
+      "order": 4
+    },
+    {
+      "id": "korcos-2026-b202",
+      "eventId": "korcos-2026",
+      "name": "B-202",
+      "capacity": 25,
+      "location": "B Building, Level 2",
+      "order": 5
+    },
+    {
+      "id": "korcos-2026-dining",
+      "eventId": "korcos-2026",
+      "name": "Dining Commons",
+      "capacity": 0,
+      "location": "Level 1",
+      "order": 6
+    }
   ],
   "tracks": [
-    { "id": "korcos-2026-plenary", "eventId": "korcos-2026", "name": "Plenary", "color": "#002B54", "order": 1 },
-    { "id": "korcos-2026-teaching", "eventId": "korcos-2026", "name": "Teaching & learning", "color": "#2A6791", "order": 2 },
-    { "id": "korcos-2026-wellbeing", "eventId": "korcos-2026", "name": "Wellbeing & community", "color": "#5E6513", "order": 3 },
-    { "id": "korcos-2026-leadership", "eventId": "korcos-2026", "name": "Leadership", "color": "#B04318", "order": 4 }
+    {
+      "id": "korcos-2026-plenary",
+      "eventId": "korcos-2026",
+      "name": "Plenary",
+      "color": "#002B54",
+      "order": 1
+    },
+    {
+      "id": "korcos-2026-teaching",
+      "eventId": "korcos-2026",
+      "name": "Teaching & learning",
+      "color": "#2A6791",
+      "order": 2
+    },
+    {
+      "id": "korcos-2026-wellbeing",
+      "eventId": "korcos-2026",
+      "name": "Wellbeing & community",
+      "color": "#5E6513",
+      "order": 3
+    },
+    {
+      "id": "korcos-2026-leadership",
+      "eventId": "korcos-2026",
+      "name": "Leadership",
+      "color": "#B04318",
+      "order": 4
+    }
   ],
   "sessions": [
-    { "id": "korcos-2026-s01", "eventId": "korcos-2026", "title": "Registration & coffee", "abstract": "Collect your badge at the Main Gate 2 desk. Coffee and pastries in the foyer.", "type": "social", "date": "2026-10-17", "start": "08:15", "end": "09:00", "roomId": "korcos-2026-theater", "trackId": "korcos-2026-plenary", "speakers": [], "capacity": 0, "reservedUserIds": [], "waitlistUserIds": [] },
-    { "id": "korcos-2026-s02", "eventId": "korcos-2026", "title": "Welcome and opening keynote", "abstract": "A welcome from Chadwick International, and a keynote on what international schools in Korea can build together — and what each of us can take back to our own campus on Monday.", "type": "keynote", "date": "2026-10-17", "start": "09:00", "end": "10:00", "roomId": "korcos-2026-theater", "trackId": "korcos-2026-plenary", "speakers": [{ "name": "Keynote speaker to be confirmed" }], "capacity": 0, "reservedUserIds": [], "waitlistUserIds": [], "featured": true },
-    { "id": "korcos-2026-s03", "eventId": "korcos-2026", "title": "Break", "abstract": "", "type": "break", "date": "2026-10-17", "start": "10:00", "end": "10:30", "roomId": "korcos-2026-theater", "speakers": [], "capacity": 0, "reservedUserIds": [], "waitlistUserIds": [] },
-    { "id": "korcos-2026-s04", "eventId": "korcos-2026", "title": "AI in the classroom: practical moves", "abstract": "Bring one real lesson and leave with it rebuilt around a tool your students will actually use. Hands-on; laptops required.", "type": "workshop", "date": "2026-10-17", "start": "10:30", "end": "11:45", "roomId": "korcos-2026-b201", "trackId": "korcos-2026-teaching", "speakers": [{ "name": "Facilitator to be confirmed", "org": "Chadwick International" }], "capacity": 25, "reservedUserIds": [], "waitlistUserIds": [] },
-    { "id": "korcos-2026-s05", "eventId": "korcos-2026", "title": "Inquiry that holds up: assessment in an inquiry classroom", "abstract": "How to tell genuine inquiry from an activity wearing its clothes, and how to assess it without flattening it.", "type": "workshop", "date": "2026-10-17", "start": "10:30", "end": "11:45", "roomId": "korcos-2026-b202", "trackId": "korcos-2026-teaching", "speakers": [{ "name": "Facilitator to be confirmed" }], "capacity": 25, "reservedUserIds": [], "waitlistUserIds": [] },
-    { "id": "korcos-2026-s06", "eventId": "korcos-2026", "title": "Belonging for internationally mobile students", "abstract": "What the research says about transition and belonging, and the small structures that make a school feel like home within a term.", "type": "talk", "date": "2026-10-17", "start": "10:30", "end": "11:45", "roomId": "korcos-2026-cihub", "trackId": "korcos-2026-wellbeing", "speakers": [{ "name": "Speaker to be confirmed" }], "capacity": 40, "reservedUserIds": [], "waitlistUserIds": [] },
-    { "id": "korcos-2026-s07", "eventId": "korcos-2026", "title": "Lunch", "abstract": "Dietary requirements noted on your profile are passed to the kitchen.", "type": "social", "date": "2026-10-17", "start": "12:00", "end": "13:00", "roomId": "korcos-2026-dining", "speakers": [], "capacity": 0, "reservedUserIds": [], "waitlistUserIds": [] },
-    { "id": "korcos-2026-s08", "eventId": "korcos-2026", "title": "Panel: leading an international school in Korea in 2026", "abstract": "Heads and principals from across the network on recruitment, retention, boards and the year ahead. Questions from the floor.", "type": "panel", "date": "2026-10-17", "start": "13:00", "end": "14:00", "roomId": "korcos-2026-blackbox", "trackId": "korcos-2026-leadership", "speakers": [{ "name": "Panel to be confirmed" }], "capacity": 200, "reservedUserIds": [], "waitlistUserIds": [] },
-    { "id": "korcos-2026-s09", "eventId": "korcos-2026", "title": "Language, identity and the multilingual learner", "abstract": "Practical ways to make home languages an asset in an English-medium classroom.", "type": "talk", "date": "2026-10-17", "start": "13:00", "end": "14:00", "roomId": "korcos-2026-cihub", "trackId": "korcos-2026-teaching", "speakers": [{ "name": "Speaker to be confirmed" }], "capacity": 40, "reservedUserIds": [], "waitlistUserIds": [] },
-    { "id": "korcos-2026-s10", "eventId": "korcos-2026", "title": "Teacher wellbeing: what actually moves the needle", "abstract": "Beyond the yoga session — workload, autonomy and the policies that make a difference.", "type": "workshop", "date": "2026-10-17", "start": "14:15", "end": "15:15", "roomId": "korcos-2026-b201", "trackId": "korcos-2026-wellbeing", "speakers": [{ "name": "Facilitator to be confirmed" }], "capacity": 25, "reservedUserIds": [], "waitlistUserIds": [] },
-    { "id": "korcos-2026-s11", "eventId": "korcos-2026", "title": "Data that teachers will use", "abstract": "Turning school data into something a department can act on in a meeting, not a dashboard nobody opens.", "type": "talk", "date": "2026-10-17", "start": "14:15", "end": "15:15", "roomId": "korcos-2026-b202", "trackId": "korcos-2026-leadership", "speakers": [{ "name": "Speaker to be confirmed" }], "capacity": 25, "reservedUserIds": [], "waitlistUserIds": [] },
-    { "id": "korcos-2026-s12", "eventId": "korcos-2026", "title": "Closing: what we take home", "abstract": "Reflections from the day, thanks, and the announcement of KORCOS 2027's host.", "type": "keynote", "date": "2026-10-17", "start": "15:30", "end": "16:00", "roomId": "korcos-2026-theater", "trackId": "korcos-2026-plenary", "speakers": [], "capacity": 0, "reservedUserIds": [], "waitlistUserIds": [] }
+    {
+      "id": "korcos-2026-s01",
+      "eventId": "korcos-2026",
+      "title": "Registration & coffee",
+      "abstract": "Collect your badge at the Main Gate 2 desk. Coffee and pastries in the foyer.",
+      "type": "social",
+      "date": "2026-10-17",
+      "start": "08:15",
+      "end": "09:00",
+      "roomId": "korcos-2026-theater",
+      "trackId": "korcos-2026-plenary",
+      "speakers": [],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2026-s02",
+      "eventId": "korcos-2026",
+      "title": "Welcome and opening keynote",
+      "abstract": "A welcome from Chadwick International, and a keynote on what international schools in Korea can build together — and what each of us can take back to our own campus on Monday.",
+      "type": "keynote",
+      "date": "2026-10-17",
+      "start": "09:00",
+      "end": "10:00",
+      "roomId": "korcos-2026-theater",
+      "trackId": "korcos-2026-plenary",
+      "speakers": [
+        {
+          "name": "Keynote speaker to be confirmed"
+        }
+      ],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "featured": true
+    },
+    {
+      "id": "korcos-2026-s03",
+      "eventId": "korcos-2026",
+      "title": "Break",
+      "abstract": "",
+      "type": "break",
+      "date": "2026-10-17",
+      "start": "10:00",
+      "end": "10:30",
+      "roomId": "korcos-2026-theater",
+      "speakers": [],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2026-s04",
+      "eventId": "korcos-2026",
+      "title": "AI in the classroom: practical moves",
+      "abstract": "Bring one real lesson and leave with it rebuilt around a tool your students will actually use. Hands-on; laptops required.",
+      "type": "workshop",
+      "date": "2026-10-17",
+      "start": "10:30",
+      "end": "11:45",
+      "roomId": "korcos-2026-b201",
+      "trackId": "korcos-2026-teaching",
+      "speakers": [
+        {
+          "name": "Facilitator to be confirmed",
+          "org": "Chadwick International"
+        }
+      ],
+      "capacity": 25,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2026-s05",
+      "eventId": "korcos-2026",
+      "title": "Inquiry that holds up: assessment in an inquiry classroom",
+      "abstract": "How to tell genuine inquiry from an activity wearing its clothes, and how to assess it without flattening it.",
+      "type": "workshop",
+      "date": "2026-10-17",
+      "start": "10:30",
+      "end": "11:45",
+      "roomId": "korcos-2026-b202",
+      "trackId": "korcos-2026-teaching",
+      "speakers": [
+        {
+          "name": "Facilitator to be confirmed"
+        }
+      ],
+      "capacity": 25,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2026-s06",
+      "eventId": "korcos-2026",
+      "title": "Belonging for internationally mobile students",
+      "abstract": "What the research says about transition and belonging, and the small structures that make a school feel like home within a term.",
+      "type": "talk",
+      "date": "2026-10-17",
+      "start": "10:30",
+      "end": "11:45",
+      "roomId": "korcos-2026-cihub",
+      "trackId": "korcos-2026-wellbeing",
+      "speakers": [
+        {
+          "name": "Speaker to be confirmed"
+        }
+      ],
+      "capacity": 40,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2026-s07",
+      "eventId": "korcos-2026",
+      "title": "Lunch",
+      "abstract": "Dietary requirements noted on your profile are passed to the kitchen.",
+      "type": "social",
+      "date": "2026-10-17",
+      "start": "12:00",
+      "end": "13:00",
+      "roomId": "korcos-2026-dining",
+      "speakers": [],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2026-s08",
+      "eventId": "korcos-2026",
+      "title": "Panel: leading an international school in Korea in 2026",
+      "abstract": "Heads and principals from across the network on recruitment, retention, boards and the year ahead. Questions from the floor.",
+      "type": "panel",
+      "date": "2026-10-17",
+      "start": "13:00",
+      "end": "14:00",
+      "roomId": "korcos-2026-blackbox",
+      "trackId": "korcos-2026-leadership",
+      "speakers": [
+        {
+          "name": "Panel to be confirmed"
+        }
+      ],
+      "capacity": 200,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2026-s09",
+      "eventId": "korcos-2026",
+      "title": "Language, identity and the multilingual learner",
+      "abstract": "Practical ways to make home languages an asset in an English-medium classroom.",
+      "type": "talk",
+      "date": "2026-10-17",
+      "start": "13:00",
+      "end": "14:00",
+      "roomId": "korcos-2026-cihub",
+      "trackId": "korcos-2026-teaching",
+      "speakers": [
+        {
+          "name": "Speaker to be confirmed"
+        }
+      ],
+      "capacity": 40,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2026-s10",
+      "eventId": "korcos-2026",
+      "title": "Teacher wellbeing: what actually moves the needle",
+      "abstract": "Beyond the yoga session — workload, autonomy and the policies that make a difference.",
+      "type": "workshop",
+      "date": "2026-10-17",
+      "start": "14:15",
+      "end": "15:15",
+      "roomId": "korcos-2026-b201",
+      "trackId": "korcos-2026-wellbeing",
+      "speakers": [
+        {
+          "name": "Facilitator to be confirmed"
+        }
+      ],
+      "capacity": 25,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2026-s11",
+      "eventId": "korcos-2026",
+      "title": "Data that teachers will use",
+      "abstract": "Turning school data into something a department can act on in a meeting, not a dashboard nobody opens.",
+      "type": "talk",
+      "date": "2026-10-17",
+      "start": "14:15",
+      "end": "15:15",
+      "roomId": "korcos-2026-b202",
+      "trackId": "korcos-2026-leadership",
+      "speakers": [
+        {
+          "name": "Speaker to be confirmed"
+        }
+      ],
+      "capacity": 25,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    },
+    {
+      "id": "korcos-2026-s12",
+      "eventId": "korcos-2026",
+      "title": "Closing: what we take home",
+      "abstract": "Reflections from the day, thanks, and the announcement of KORCOS 2027's host.",
+      "type": "keynote",
+      "date": "2026-10-17",
+      "start": "15:30",
+      "end": "16:00",
+      "roomId": "korcos-2026-theater",
+      "trackId": "korcos-2026-plenary",
+      "speakers": [],
+      "capacity": 0,
+      "reservedUserIds": [],
+      "waitlistUserIds": []
+    }
   ],
   "announcements": [],
   "invites": [],
   "attendance": [],
-  "feedback": []
+  "feedback": [],
+  "sponsors": []
 }

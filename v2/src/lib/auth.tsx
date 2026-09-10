@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut as fbSignOut } from 'firebase/auth';
+import {
+  GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut as fbSignOut,
+  signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, updateProfile,
+} from 'firebase/auth';
 import { auth, isDemo, BOOTSTRAP_ADMINS } from './firebase';
 import { store, DEMO_MEMBERS } from './store';
 import { Profile, Role } from './types';
@@ -19,6 +22,9 @@ export interface AuthState {
   invitedEventIds: string[];
   error: string | null;
   signIn: () => Promise<void>;
+  signInWithPassword: (email: string, password: string) => Promise<void>;
+  createAccount: (input: { email: string; password: string; name: string; org?: string; title?: string }) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   viewAs: Role | null;
   setViewAs: (role: Role | null) => void;
@@ -36,6 +42,9 @@ export const useAuth = (): AuthState => {
 };
 
 const DEMO_KEY = 'ci-connects-v2:demo-persona';
+export const isChadwick = (email: string) => email.trim().toLowerCase().endsWith('@chadwickschool.org');
+/** What a new password account told us about itself, for the profile. */
+let pendingExtras: { name?: string; org?: string; title?: string } | null = null;
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [status, setStatus] = useState<AuthState['status']>('loading');
@@ -101,6 +110,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithPassword = async (email: string, password: string) => {
+    setError(null);
+    const em = email.trim().toLowerCase();
+    if (isDemo) {
+      const p = personas.find((x) => x.email === em);
+      if (!p) { setError('No demo persona has that address.'); throw new Error('demo'); }
+      signInAs(p.id); return;
+    }
+    if (!auth) return;
+    if (isChadwick(em)) { setError('Chadwick accounts sign in with Google — use the button below.'); throw new Error('chadwick'); }
+    try { await signInWithEmailAndPassword(auth, em, password); }
+    catch (e) { const code = (e as { code?: string }).code ?? ''; setError(describe(code, (e as Error).message)); throw e; }
+  };
+
+  const createAccount = async ({ email, password, name, org, title }: { email: string; password: string; name: string; org?: string; title?: string }) => {
+    setError(null);
+    const em = email.trim().toLowerCase();
+    if (isChadwick(em)) { setError('Chadwick accounts sign in with Google — no account to create.'); throw new Error('chadwick'); }
+    if (isDemo) {
+      const id = `demo-${Date.now().toString(36)}`;
+      await store.set('users', id, { id, email: em, name: name.trim(), org: org?.trim() || undefined, title: title?.trim() || undefined, role: 'user', eventAccess: [], createdAt: nowIso() });
+      try { localStorage.setItem(DEMO_KEY, id); } catch { /* ignore */ }
+      setUser({ uid: id, email: em, name: name.trim() }); setStatus('signed_in'); return;
+    }
+    if (!auth) return;
+    try {
+      pendingExtras = { name: name.trim(), org: org?.trim() || undefined, title: title?.trim() || undefined };
+      const cred = await createUserWithEmailAndPassword(auth, em, password);
+      await updateProfile(cred.user, { displayName: name.trim() }).catch(() => undefined);
+      // The profile may already have been provisioned by the auth listener
+      // before the display name landed; say who this is either way.
+      await store.update('users', cred.user.uid, { name: name.trim(), org: org?.trim() || undefined, title: title?.trim() || undefined }).catch(() => undefined);
+    } catch (e) { const code = (e as { code?: string }).code ?? ''; setError(describe(code, (e as Error).message)); throw e; }
+    finally { pendingExtras = null; }
+  };
+
+  const resetPassword = async (email: string) => {
+    setError(null);
+    if (isDemo || !auth) return;
+    try { await sendPasswordResetEmail(auth, email.trim().toLowerCase()); }
+    catch (e) { const code = (e as { code?: string }).code ?? ''; setError(describe(code, (e as Error).message)); throw e; }
+  };
+
   const signOut = async () => {
     setViewAs(null);
     if (isDemo) { try { localStorage.removeItem(DEMO_KEY); } catch { /* ignore */ } setUser(null); setRealProfile(null); setStatus('signed_out'); return; }
@@ -122,7 +174,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 
   const value: AuthState = {
-    status, user, profile, realProfile, invitedEventIds, error, signIn, signOut,
+    status, user, profile, realProfile, invitedEventIds, error, signIn, signInWithPassword, createAccount, resetPassword, signOut,
     viewAs, setViewAs, personas: isDemo ? personas : [], signInAs,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
@@ -134,7 +186,8 @@ async function ensureProfile(me: AuthUser): Promise<void> {
   if (existing) return;
   const role: Role = BOOTSTRAP_ADMINS.includes(me.email) ? 'admin' : 'user';
   const profile: Profile = {
-    id: me.uid, email: me.email, name: me.name, photoUrl: me.photoUrl,
+    id: me.uid, email: me.email, name: pendingExtras?.name || me.name, photoUrl: me.photoUrl,
+    org: pendingExtras?.org, title: pendingExtras?.title,
     role, eventAccess: [], createdAt: nowIso(),
   };
   await store.set('users', me.uid, profile);
@@ -147,7 +200,19 @@ function describe(code: string, message: string): string {
     case 'auth/popup-blocked':
       return 'The browser blocked the sign-in window. Allow pop-ups for this site and try again.';
     case 'auth/network-request-failed':
-      return 'No connection to Google. Check the network and try again.';
+      return 'No connection. Check the network and try again.';
+    case 'auth/invalid-credential': case 'auth/wrong-password': case 'auth/user-not-found': case 'auth/invalid-login-credentials':
+      return 'That email and password do not match.';
+    case 'auth/email-already-in-use':
+      return 'There is already an account with that address — sign in instead.';
+    case 'auth/weak-password':
+      return 'Use a password of at least eight characters.';
+    case 'auth/invalid-email':
+      return 'That does not look like an email address.';
+    case 'auth/too-many-requests':
+      return 'Too many attempts. Wait a moment and try again.';
+    case 'auth/operation-not-allowed':
+      return 'Password sign-in is not switched on for this project (Firebase → Authentication → Sign-in method).';
     default:
       return message || 'Sign-in did not complete.';
   }
