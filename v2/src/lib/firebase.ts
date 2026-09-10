@@ -2,9 +2,6 @@ import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 
-/** VITE_DEMO=1: no Firebase at all — in-memory data and a role picker. */
-export const isDemo = import.meta.env.VITE_DEMO === '1';
-
 const config = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -20,7 +17,7 @@ let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
 
-if (!isDemo && isConfigured) {
+if (isConfigured) {
   app = initializeApp(config);
   auth = getAuth(app);
   db = getFirestore(app);

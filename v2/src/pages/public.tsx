@@ -7,7 +7,6 @@ import { useWatch, useDoc } from '../lib/hooks';
 import { isStaff, canSeeEvent } from '../lib/roles';
 import { formatRange, eventPhase, daysUntil } from '../lib/time';
 import { Button, Card, Chip, Empty, Notice, Spinner, Field, Input } from '../components/ui';
-import { isDemo } from '../lib/firebase';
 import { ConnectsOrbit, MODES } from '../components/Orbit';
 import { Reveal, Marquee, useParallax, useMouseParallax, CountUp } from '../lib/motion';
 import { useIntroDone } from '../components/Intro';
@@ -287,7 +286,7 @@ export const EventPublic: React.FC = () => {
 
 // ------------------------------------------------------------------ sign in
 export const SignIn: React.FC = () => {
-  const { status, signIn, signInWithPassword, createAccount, resetPassword, error, personas, signInAs } = useAuth();
+  const { status, signIn, signInWithPassword, createAccount, resetPassword, error } = useAuth();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const next = params.get('next') || '/dashboard';
@@ -332,7 +331,7 @@ export const SignIn: React.FC = () => {
         {(problem || error) && <Notice tone="error" className="mt-4">{problem ?? error}</Notice>}
         {note && <Notice tone="success" className="mt-4">{note}</Notice>}
 
-        <form onSubmit={(e) => void submit(e)} className="mt-6 space-y-3">
+        <form noValidate onSubmit={(e) => void submit(e)} className="mt-6 space-y-3">
           {mode === 'up' && (
             <Field label="Name"><Input value={form.name} onChange={set('name')} autoComplete="name" placeholder="Your full name" /></Field>
           )}
@@ -352,22 +351,10 @@ export const SignIn: React.FC = () => {
 
         <div className="flex items-center gap-3 my-5 text-[11px] uppercase tracking-[0.14em] text-ink-300"><span className="flex-1 h-px bg-sand-200" />or<span className="flex-1 h-px bg-sand-200" /></div>
 
-        {isDemo ? (
-          <div className="space-y-2">
-            <div className="eyebrow">Demo build — pick who you are</div>
-            {personas.map((p) => (
-              <button key={p.id} onClick={() => signInAs(p.id)} className="w-full text-left card p-3 hover:border-blue-300 transition-colors">
-                <div className="font-semibold text-ink-900 text-sm">{p.name}</div>
-                <div className="text-xs text-ink-500">{p.email} · {p.role}{p.eventAccess.length ? ` · on ${p.eventAccess.length} list` : ''}</div>
-              </button>
-            ))}
-          </div>
-        ) : (
-          <button onClick={() => void signIn()} disabled={status === 'loading'} className="btn-secondary w-full py-3">
-            <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.7 2.6 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.8 6C12.2 13.6 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z"/><path fill="#FBBC05" d="M10.4 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.6-2 15.4-5.6l-7.5-5.8c-2.1 1.4-4.8 2.3-7.9 2.3-6.4 0-11.8-4.1-13.6-9.8l-7.8 6C6.5 42.6 14.6 48 24 48z"/></svg>
-            Sign in with Google
-          </button>
-        )}
+        <button onClick={() => void signIn()} disabled={status === 'loading'} className="btn-secondary w-full py-3">
+          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.7 2.6 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.8 6C12.2 13.6 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z"/><path fill="#FBBC05" d="M10.4 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.2 0 11.6-2 15.4-5.6l-7.5-5.8c-2.1 1.4-4.8 2.3-7.9 2.3-6.4 0-11.8-4.1-13.6-9.8l-7.8 6C6.5 42.6 14.6 48 24 48z"/></svg>
+          Sign in with Google
+        </button>
 
         <p className="text-sm text-ink-500 text-center mt-6">
           {mode === 'in'

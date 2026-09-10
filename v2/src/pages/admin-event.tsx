@@ -8,13 +8,13 @@ import { useAuth } from '../lib/auth';
 import { useWatch, useDoc } from '../lib/hooks';
 import { store } from '../lib/store';
 import { isAdmin } from '../lib/roles';
-import { formatRange, formatDate, formatTime, eachDate, nowIso, newId } from '../lib/time';
+import { formatRange, formatDate, formatTime, eachDate, nowIso, newId, formatStamp, formatClock } from '../lib/time';
 import { byStart, overlaps } from '../lib/schedule';
 import { parseCsv, rowsToSessions, parseSpeakers, CSV_TEMPLATE, ImportRow } from '../lib/csv';
 import { inviteId } from '../lib/hash';
 import { useEventData, TrackDot } from '../components/schedule';
 import { Scanner } from '../components/Scanner';
-import { Button, Card, Chip, Drawer, Empty, Field, Input, Notice, Select, Spinner, Textarea, PageHeader, Avatar, SubNav } from '../components/ui';
+import { Button, Card, Chip, Drawer, Empty, Field, Input, Notice, Select, Spinner, Textarea, PageHeader, Avatar, SubNav, TimeInput } from '../components/ui';
 
 const TYPES: SessionType[] = ['keynote', 'talk', 'workshop', 'panel', 'break', 'social'];
 const COLORS = ['#002B54', '#2A6791', '#56A0D3', '#5E6513', '#B04318', '#8B5E34', '#6B605A', '#7C3AED'];
@@ -220,8 +220,8 @@ const SessionEditor: React.FC<{ event: Event; session: Session | null; rooms: Ro
             <Field label="Type"><Select value={form.type} onChange={(e) => set({ type: e.target.value as SessionType })}>{TYPES.map((t) => <option key={t} value={t}>{SESSION_TYPE_LABEL[t]}</option>)}</Select></Field>
             <Field label="Day"><Select value={form.date} onChange={(e) => set({ date: e.target.value })}>{dates.map((d) => <option key={d} value={d}>{formatDate(d, { weekday: 'short', day: 'numeric', month: 'short' })}</option>)}</Select></Field>
             <Field label="Track"><Select value={form.trackId ?? ''} onChange={(e) => set({ trackId: e.target.value || undefined })}><option value="">None</option>{tracks.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select></Field>
-            <Field label="Starts"><Input type="time" value={form.start} onChange={(e) => set({ start: e.target.value })} /></Field>
-            <Field label="Ends"><Input type="time" value={form.end} onChange={(e) => set({ end: e.target.value })} /></Field>
+            <Field label="Starts"><TimeInput value={form.start} onChange={(v) => set({ start: v })} /></Field>
+            <Field label="Ends"><TimeInput value={form.end} onChange={(v) => set({ end: v })} /></Field>
             <Field label="Room"><Select value={form.roomId} onChange={(e) => { const r = rooms.find((x) => x.id === e.target.value); set({ roomId: e.target.value, ...(r && form.capacity === 0 && r.capacity ? { capacity: r.capacity } : {}) }); }}>{rooms.length === 0 && <option value="">Add a room first</option>}{rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}</Select></Field>
           </div>
           <div className="grid sm:grid-cols-[8rem_minmax(0,1fr)] gap-3">
@@ -406,7 +406,7 @@ export const AdminAccess: React.FC = () => {
                 const u = byEmail.get(i.email);
                 return (
                   <li key={i.id} className="py-2.5 flex items-center gap-3">
-                    <div className="min-w-0 flex-1"><div className="text-sm text-ink-900 truncate font-mono">{i.email}</div><div className="text-xs text-ink-500">{u ? `Signed in as ${u.name}` : `Invited ${new Date(i.createdAt).toLocaleDateString()}`}</div></div>
+                    <div className="min-w-0 flex-1"><div className="text-sm text-ink-900 truncate font-mono">{i.email}</div><div className="text-xs text-ink-500">{u ? `Signed in as ${u.name}` : `Invited ${formatStamp(i.createdAt, false)}`}</div></div>
                     {u && u.role === 'user' && !u.eventAccess.includes(id) && <Button size="sm" variant="secondary" onClick={() => void toggle(u, true)}>Put on list</Button>}
                     <Button size="sm" variant="ghost" onClick={() => void store.remove('invites', i.id)} title="Withdraw"><Trash2 className="w-3.5 h-3.5" /></Button>
                   </li>
@@ -491,7 +491,7 @@ export const AdminCheckIn: React.FC = () => {
                 {result.tone === 'again' && <Check className="w-10 h-10 text-blue-400 mx-auto" />}
                 {result.tone === 'unknown' && <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto" />}
                 <div className="text-lg font-bold text-ink-900 mt-2">{result.tone === 'unknown' ? 'Not on this event' : result.name}</div>
-                <div className="text-sm text-ink-500">{result.tone === 'ok' ? `Checked in ${target ? 'to this session' : 'at the venue'}` : result.tone === 'again' ? `Already in, ${result.at ? new Date(result.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}` : result.name}</div>
+                <div className="text-sm text-ink-500">{result.tone === 'ok' ? `Checked in ${target ? 'to this session' : 'at the venue'}` : result.tone === 'again' ? `Already in${result.at ? `, ${formatClock(result.at)}` : ''}` : result.name}</div>
               </>
             ) : (
               <><QrCode className="w-8 h-8 text-ink-300 mx-auto" /><div className="text-sm text-ink-500 mt-2">Hold a badge up to the camera. {target ? 'Recording for the selected session.' : 'Recording arrival at the venue.'}</div></>
@@ -515,7 +515,7 @@ export const AdminCheckIn: React.FC = () => {
               <Avatar name={u.name} photoUrl={u.photoUrl} size={32} />
               <div className="min-w-0 flex-1"><div className="text-sm font-semibold text-ink-900 truncate">{u.name}</div><div className="text-xs text-ink-500 truncate">{[u.org, u.title].filter(Boolean).join(' · ') || u.email}</div></div>
               {r ? (
-                <><Chip tone="green"><CircleCheck className="w-3 h-3" />{new Date(r.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Chip><Button size="sm" variant="ghost" onClick={() => void undo(u)} title="Undo"><Undo2 className="w-3.5 h-3.5" /></Button></>
+                <><Chip tone="green"><CircleCheck className="w-3 h-3" />{formatClock(r.at)}</Chip><Button size="sm" variant="ghost" onClick={() => void undo(u)} title="Undo"><Undo2 className="w-3.5 h-3.5" /></Button></>
               ) : <Button size="sm" onClick={() => void checkIn(u)}>Check in</Button>}
             </div>
           );

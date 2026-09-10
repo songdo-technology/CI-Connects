@@ -9,8 +9,8 @@ import { useWatch, useDoc } from '../lib/hooks';
 import { store } from '../lib/store';
 import { isAdmin } from '../lib/roles';
 import { ROLES } from '../lib/roles';
-import { formatRange, eventPhase, nowIso, newId, todayYmd } from '../lib/time';
-import { Button, Card, Chip, Empty, Field, Input, Notice, Select, Spinner, Stat, Textarea, PageHeader, Avatar } from '../components/ui';
+import { formatRange, eventPhase, nowIso, newId, todayYmd, formatStamp } from '../lib/time';
+import { Button, Card, Chip, Empty, Field, Input, Notice, Select, Spinner, Stat, Textarea, PageHeader, Avatar, DateInput } from '../components/ui';
 import { PageTransition } from '../lib/motion';
 
 // ------------------------------------------------------------------ layout
@@ -189,8 +189,8 @@ export const AdminEventEdit: React.FC = () => {
           </Field>
           <Field label="Tagline" className="sm:col-span-2"><Input value={form.tagline} onChange={(e) => set({ tagline: e.target.value })} placeholder="One line under the name" /></Field>
           <Field label="Description" className="sm:col-span-2"><Textarea value={form.description} onChange={(e) => set({ description: e.target.value })} className="min-h-32" /></Field>
-          <Field label="Starts"><Input type="date" value={form.startDate} onChange={(e) => set({ startDate: e.target.value, ...(form.endDate < e.target.value ? { endDate: e.target.value } : {}) })} /></Field>
-          <Field label="Ends"><Input type="date" value={form.endDate} min={form.startDate} onChange={(e) => set({ endDate: e.target.value })} /></Field>
+          <Field label="Starts" hint="Year-month-day"><DateInput value={form.startDate} onChange={(v) => set({ startDate: v, ...(form.endDate < v ? { endDate: v } : {}) })} /></Field>
+          <Field label="Ends" hint="Same day for a one-day event"><DateInput value={form.endDate} min={form.startDate} onChange={(v) => set({ endDate: v })} /></Field>
           <Field label="Venue"><Input value={form.venueName} onChange={(e) => set({ venueName: e.target.value })} /></Field>
           <Field label="Address"><Input value={form.venueAddress ?? ''} onChange={(e) => set({ venueAddress: e.target.value || undefined })} /></Field>
           <Field label="Cover image URL" className="sm:col-span-2" hint="A wide photograph. Unsplash links work."><Input value={form.coverUrl} onChange={(e) => set({ coverUrl: e.target.value })} /></Field>
@@ -292,7 +292,7 @@ export const AdminAnnouncements: React.FC = () => {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap"><span className="font-semibold text-ink-900">{a.title}</span>{a.level === 'urgent' && <Chip tone="amber">Urgent</Chip>}<Chip>{a.eventId ? (events.items.find((e) => e.id === a.eventId)?.name ?? 'One event') : 'Everywhere'}</Chip>{!a.active && <Chip>Off</Chip>}</div>
                   {a.body && <p className="text-sm text-ink-700 mt-1">{a.body}</p>}
-                  <div className="text-[11px] text-ink-500 mt-1">{new Date(a.createdAt).toLocaleString()}</div>
+                  <div className="text-[11px] text-ink-500 mt-1">{formatStamp(a.createdAt)}</div>
                 </div>
                 <div className="flex gap-1 shrink-0">
                   <Button size="sm" variant="secondary" onClick={() => void store.update('announcements', a.id, { active: !a.active })}>{a.active ? 'Turn off' : 'Turn on'}</Button>

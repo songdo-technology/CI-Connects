@@ -1,4 +1,7 @@
-# Push to main -> typecheck -> build -> deploy to Cloudflare Pages (ci-events, production).
+# Push to main -> typecheck -> build v2 -> deploy to Cloudflare Pages (ci-events, production).
+#
+# The live site is v2 (the app in v2/). v1 at the repository root is sealed at
+# tag v1.0.0 and is not built here.
 #
 # Cloudflare's own Git integration is deliberately NOT used: ci-events was created
 # by direct upload and cannot be switched, and a new project would change the
@@ -24,6 +27,9 @@ jobs:
   web:
     name: ci-events (Cloudflare Pages)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v2
     steps:
       - uses: actions/checkout@v5
 
@@ -31,6 +37,7 @@ jobs:
         with:
           node-version-file: .node-version
           cache: npm
+          cache-dependency-path: v2/package-lock.json
 
       - run: npm ci
 
@@ -40,26 +47,28 @@ jobs:
       - name: Build
         env:
           # Public Firebase client config — identifies the project, does not
-          # authenticate. Kept as repository *variables*; see .env.example.
+          # authenticate. Kept as repository *variables*; see v2/.env.example.
+          # The auth domain is not passed: v2/.env.production fixes it to
+          # ci-events.pages.dev for every production build.
           VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
           VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID }}
           VITE_FIREBASE_STORAGE_BUCKET: ${{ vars.VITE_FIREBASE_STORAGE_BUCKET }}
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
-          VITE_ALLOWED_EMAIL_DOMAIN: ${{ vars.VITE_ALLOWED_EMAIL_DOMAIN }}
-          VITE_USE_FIRESTORE: 'true'
         run: |
           test -n "$VITE_FIREBASE_API_KEY" || { echo "::error::Repository variables VITE_FIREBASE_* are not set"; exit 1; }
-          test "$VITE_FIREBASE_AUTH_DOMAIN" = "ci-events.pages.dev" || { echo "::error::VITE_FIREBASE_AUTH_DOMAIN must be ci-events.pages.dev (see docs/auth-domain-runbook.md)"; exit 1; }
           npm run build
+          grep -lq 'ci-events\.pages\.dev' dist/assets/*.js || { echo "::error::Bundle is not built for ci-events.pages.dev — v2/.env.production is missing"; exit 1; }
 
       - name: Deploy to production
         if: env.HAS_CF_TOKEN == 'true'
+        # From the repository root, so ./functions (the auth-handler proxy
+        # sign-in depends on) is bundled with the site.
+        working-directory: .
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx wrangler pages deploy dist --project-name=ci-events --branch=main
+        run: npx --yes wrangler@4 pages deploy v2/dist --project-name=ci-events --branch=main
 
       - name: Not deployed
         if: env.HAS_CF_TOKEN != 'true'

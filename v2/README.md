@@ -2,23 +2,43 @@
 
 The rebuild. Same job as v1 — Chadwick International's events: programmes,
 seats, badges, the people in the room — with a smaller model, three roles
-and a new interface. **Not deployed.** It runs on this machine only until
-someone says otherwise; v1 stays live at ci-events.pages.dev.
+and a new interface. **Live at <https://ci-events.pages.dev> since 10 Sep
+2026**, replacing v1 (sealed at tag `v1.0.0`, still at the repository root).
 
 ## Run it
 
 ```sh
-npm install
-npm run dev        # http://localhost:3100 — real Google sign-in, Firestore /v2/data
-npm run demo       # http://localhost:3101 — no Firebase: in-memory seed, pick a persona
+npm install        # or, from the repository root: sh scripts/bootstrap.sh
+npm run dev        # http://localhost:3100 — real sign-in, Firestore /v2/data
 npm run lint       # tsc --noEmit
-npm run build
+npm run build      # production bundle in dist/
+npm run ship       # typecheck, build, push main, deploy to ci-events
 ```
 
-`.env.local` holds the same Firebase client config as v1 (copy it from
-`../.env.local`, with `VITE_FIREBASE_AUTH_DOMAIN=ci-connects.firebaseapp.com`
-— localhost signs in by pop-up, so the auth-domain proxy v1 needed does not
-apply here).
+There is no demo mode and no in-memory data: every screen talks to Firestore
+and every sign-in is real. `.env.local` (gitignored; `.env.example` lists
+the keys, `../scripts/bootstrap.sh` writes it) carries the public Firebase
+client config with `VITE_FIREBASE_AUTH_DOMAIN=ci-connects.firebaseapp.com`
+for localhost. The committed `.env.production` overrides that domain with
+`ci-events.pages.dev` for every `vite build`, so production signs in through
+its own origin: the Pages Function in `../functions/__/auth` proxies
+Firebase's OAuth handler, which is what makes the pop-up's redirect fallback
+work on phones (`../docs/auth-domain-runbook.md`).
+
+## Deploy
+
+`npm run ship` here or at the root: typecheck → build → `git push` →
+`wrangler pages deploy v2/dist --project-name=ci-events --branch=main`, run
+from the repository root so `functions/` ships with the bundle. It refuses a
+dirty tree or a branch other than `main`, and refuses a bundle that was not
+built for `ci-events.pages.dev`. `public/_redirects` sends every path to
+`index.html` for the router; `public/_headers` makes hashed assets immutable
+and the entry document always revalidate.
+
+Dates and times in the interface are English everywhere: session times and
+event dates are typed fields (`TimeInput`, `DateInput` in `components/ui.tsx`)
+rather than the browser's own pickers, which render in the operating
+system's language, and every timestamp is formatted with a fixed locale.
 
 ## Roles
 
@@ -76,8 +96,8 @@ The public page of a published event is for everyone; its programme is not.
 
 ```
 src/lib/types.ts       the model — one file
-src/lib/store.ts       Store interface; FirestoreStore (/v2/data/*) and MemoryStore (demo)
-src/lib/auth.tsx       Google sign-in, profile provisioning, "view as" for administrators
+src/lib/store.ts       Store interface and FirestoreStore (/v2/data/*)
+src/lib/auth.tsx       Google (pop-up, redirect fallback) and password sign-in, profile provisioning, "view as"
 src/lib/roles.ts       canSeeEvent(), isStaff(), isAdmin()
 src/lib/schedule.ts    slots, clashes, seat state, waitlist promotion
 src/lib/csv.ts         spreadsheet import

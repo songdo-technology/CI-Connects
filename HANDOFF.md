@@ -1,8 +1,26 @@
 # CI Connects — handoff
 
-Written 10 September 2026, moving from one Mac to another. Everything needed to
-resume is in this repository except the two files named under "Secrets", which
-are gitignored and must be recreated by hand.
+Written 10 September 2026, moving from one Mac to another; updated the same
+evening when v2 went live. Everything needed to resume is in this repository
+except `v2/.env.local`, which is gitignored and which `scripts/bootstrap.sh`
+recreates.
+
+## Where things stand (10 Sep 2026, evening)
+
+- **<https://ci-events.pages.dev> is v2** — the app in `v2/` — deployed by
+  `npm run ship` from this Mac. It replaced v1 on the same Pages project, so
+  the Firebase OAuth registration for this origin still holds.
+- **v1 is sealed** at tag `v1.0.0` (`e1a7fe6`), still at the repository
+  root. It builds; nothing deploys it. The sections below marked *v1* are
+  kept for reference and for its data, which is still in Firestore beside
+  v2's (`/v2/data/*`).
+- v2 has **no demo build**: the in-memory store and the persona picker were
+  removed before the deploy. Every screen is real sign-in (email and
+  password, or Google) against Firestore.
+- What only a person can test, and has not been yet: Google sign-in on the
+  live site from a phone (pop-up, with a redirect fallback), a password
+  account end to end, the badge camera scanner on a real device, and the
+  door-QR self check-in from a phone. See "Version 2" at the end.
 
 ## Machines
 
@@ -23,10 +41,11 @@ every event the school runs, plus the machinery to run them: registration,
 badges, door scanning, session proposals and scheduling, feedback, certificates
 of professional learning, and reporting.
 
-- **Live:** <https://ci-events.pages.dev>
+- **Live:** <https://ci-events.pages.dev> — v2, from `v2/`
 - **Repo:** <https://github.com/songdo-technology/CI-Connects> (branch `main`)
-- **Stack:** React 19 · TypeScript · Vite 6 · Tailwind 4 · Firebase (Auth,
-  Firestore, Storage) · Cloudflare Pages + Pages Functions
+- **Stack:** React 19 · TypeScript · Vite 6 · Tailwind 4 · react-router 7 ·
+  Firebase (Auth, Firestore) · Cloudflare Pages + Pages Functions (the
+  auth-handler proxy in `functions/`, shared by v1 and v2)
 
 ---
 
@@ -95,16 +114,17 @@ the working tree is clean with nothing unpushed.
 gh auth login                  # once; songdo-technology@chadwickschool.org
 gh repo clone songdo-technology/CI-Connects
 cd CI-Connects
-sh scripts/bootstrap.sh        # npm install, writes .env.local, typecheck, build
-npm run dev                    # http://localhost:3000
+sh scripts/bootstrap.sh        # v2: npm install, writes v2/.env.local, typecheck, build
+cd v2 && npm run dev           # http://localhost:3100
 ```
 
 `scripts/bootstrap.sh` (also `npm run bootstrap`) needs only Node 20+ and a
-logged-in `gh`. It writes `.env.local` from the GitHub repository variables —
-the same public Firebase config the Actions build uses — so nothing is copied
-by hand out of a console. Delete `.env.local` and re-run to regenerate it.
-Verified on 10 Sep 2026 from an empty directory: the build it produces is
-byte-identical to the live bundle.
+logged-in `gh`. It writes `v2/.env.local` from the GitHub repository
+variables — the same public Firebase config the Actions build uses — so
+nothing is copied by hand out of a console, with the auth domain set for
+localhost (`ci-connects.firebaseapp.com`; production takes
+`ci-events.pages.dev` from the committed `v2/.env.production`). Delete
+`v2/.env.local` and re-run to regenerate it.
 
 Node 24 and 25 with npm 11 have both been used; `.node-version` says 22.
 
@@ -192,7 +212,7 @@ Chadwick account — see the next steps. Full steps in `docs/ai-assist-setup.md`
 
 ---
 
-## What works
+## What works (v1 — sealed at `v1.0.0`; v2 is what is live)
 
 Verified on production, signed out and signed in, at the time of writing.
 
@@ -239,7 +259,7 @@ Verified on production, signed out and signed in, at the time of writing.
 - **Badges.** Printable lanyards in six sizes, name auto-fitted, both faces
   scaled so nothing is ever clipped.
 
-## What is not done
+## What is not done (v1)
 
 - **No email is sent by the platform.** Invitations are copy-and-paste text; a
   Preview button in Admin → Guests shows what to send. The full brief for
@@ -301,7 +321,7 @@ restored from HEAD. Commit often; run `npx tsc --noEmit` after scripted edits.
 
 ---
 
-## The next three things
+## The next three things (written for v1)
 
 1. **Test signing in on production, as a person.** The auth domain moved onto
    our own origin and the landing rule changed today; neither has been
@@ -323,7 +343,7 @@ restored from HEAD. Commit often; run `npx tsc --noEmit` after scripted edits.
 
 ---
 
-## How the app is put together
+## How the app is put together (v1)
 
 One page, no router library. `src/App.tsx` holds a `surface` — `hub`,
 `event`, `signin`, `portal`, `dashboard`, `gate`, `learning` — plus an
@@ -376,21 +396,57 @@ directory* as the signed-in person while their own was still loading, and
 the hub door that opened the admin panel on top of the sample conference —
 which is why closing Admin used to drop you into Chadwick Connects.
 
-## Version 2 — the rebuild (local only)
+## Version 2 — live
 
-Tagged `v1.0.0` (`e1a7fe6`) is the platform above. `v2/` is a fresh app —
-same job, three roles (`admin`, `schedule_admin`, `user`), one model file,
-react-router, a new interface with a cinematic launch, Pretendard and the
+`v2/` is a fresh app on the same job: three roles (`admin`, `schedule_admin`,
+`user`), one model file, react-router, a cinematic launch, Pretendard and the
 orbit mark; email-and-password accounts beside Google; badge scanning by
-camera and per-session door QR codes verified by the rules; sponsors — built
-10 Sep 2026 and **not deployed**: it
-runs at `localhost:3100` (Google sign-in, Firestore `/v2/data/*`) and
-`localhost:3101` (`npm run demo`, in-memory seed with personas). Its data is
-seeded beside v1's in the same project; the v2 rules block is at the end of
-`firestore.rules` (deployed). KORCOS 2026 is 17 October 2026 there, with a
-placeholder programme. See `v2/README.md`. When it is approved: build it,
-give it its own Cloudflare Pages project (or replace v1's), and register that
-origin with Firebase Auth.
+camera and per-session door QR codes verified by the rules; sponsors. Built
+10 Sep 2026 and **deployed the same evening to `ci-events`**, replacing v1.
+`v2/README.md` explains how it is put together.
+
+**How it is deployed.** `npm run ship` (root or `v2/`) → `v2/scripts/ship.sh`:
+typecheck, `vite build`, `git push`, then from the repository root
+`npx wrangler pages deploy v2/dist --project-name=ci-events --branch=main`,
+so `functions/` (the OAuth-handler proxy) ships with it. The committed
+`v2/.env.production` fixes `VITE_FIREBASE_AUTH_DOMAIN=ci-events.pages.dev`
+for every production build; `v2/.env.local` keeps
+`ci-connects.firebaseapp.com` for localhost pop-ups. `ship` refuses a bundle
+without the production domain. `deploy.yml` builds v2 on every push and
+deploys only with the (still unset, optional) `CLOUDFLARE_API_TOKEN`.
+`v2/public/_redirects` and `_headers` do what v1's did.
+
+**Sign-in.** Email and password, then Google, nothing else. Both providers
+are on in Firebase Auth (`signIn.email.enabled` checked 10 Sep 2026), and
+`ci-events.pages.dev` is on its authorised-domains list. Google opens a
+pop-up; if the browser refuses it (phones, in-app browsers) the app falls
+back to `signInWithRedirect`, which works on production because the handler
+is proxied through this origin — the same reason v1 needed the proxy. A
+Chadwick address is always sent to Google. First sign-in provisions
+`/v2/data/users/<uid>`; `songdo-technology@` and `jyyang@` become admins.
+
+**Data.** Under `/v2/data/<collection>/<id>` beside v1's data; the v2 rules
+block is at the end of `firestore.rules` (deployed). KORCOS 2026 is seeded
+there (17 Oct 2026, placeholder programme, `status: published`). Writing
+data from outside the app: the REST helper from the 10 Sep session used
+`col="v2/data/<collection>"` with the firebase-tools refresh token — nothing
+in the repo does this; the interface is the normal path now.
+
+**No demo build.** Removed at deploy time: `MemoryStore`, the seed import,
+the persona picker, `npm run demo`, `VITE_DEMO`. Anything that needs a
+signed-in person is verified on `localhost:3100` or live, by a person.
+
+**English only.** The user asked that nothing appear in Korean. Session
+times and event dates are typed fields (`TimeInput`, `DateInput`) instead of
+the browser's pickers, which render in the OS language; timestamps use a
+fixed locale (`formatClock`, `formatStamp` in `src/lib/time.ts`); the sign-in
+form is `noValidate` so the browser's own validation bubbles never show.
+
+**Still to test by a person** (needs a real account or a real camera): Google
+sign-in live from a phone; a password account created, signed out, signed
+in, and reset; Administration → Check-in → *Scan badges* on a device with a
+camera; a door QR (`/door/<eventId>/<sessionId>`) scanned by a phone to
+`/e/korcos-2026/here` and confirmed; the session editor's typed times.
 
 ## Documents in this repo
 

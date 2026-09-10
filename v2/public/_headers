@@ -1,0 +1,11 @@
+# Hashed assets never change at a given name: cache for a year.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# The entry document names those files, so it must always be re-checked —
+# that is what makes a deploy take effect at once.
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/
+  Cache-Control: public, max-age=0, must-revalidate

@@ -8,7 +8,7 @@ import { Event, Room, Session, Track, Sponsor, SPONSOR_TIERS, SPONSOR_TIER_LABEL
 import { useAuth } from '../lib/auth';
 import { useWatch } from '../lib/hooks';
 import { isStaff, canSeeEvent } from '../lib/roles';
-import { formatRange, formatDate, formatTime, eachDate, eventPhase, daysUntil, todayYmd } from '../lib/time';
+import { formatRange, formatDate, formatTime, eachDate, eventPhase, daysUntil, todayYmd, formatClock } from '../lib/time';
 import { byStart, slotsForDay, speakerIndex, overlaps, seatState } from '../lib/schedule';
 import { buildIcs, downloadText } from '../lib/ics';
 import { useEventData, SessionCard, RoomGrid, SessionDrawer, TrackDot } from '../components/schedule';
@@ -349,7 +349,7 @@ export const BadgePage: React.FC = () => {
         {(profile.title || profile.org) && <div className="text-sm text-ink-500">{[profile.title, profile.org].filter(Boolean).join(' · ')}</div>}
         <div className="mt-5">
           {arrived
-            ? <Chip tone="green"><CircleCheck className="w-3.5 h-3.5" />Checked in {new Date(arrived.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Chip>
+            ? <Chip tone="green"><CircleCheck className="w-3.5 h-3.5" />Checked in {formatClock(arrived.at)}</Chip>
             : <Chip><Clock className="w-3.5 h-3.5" />Show this at the desk</Chip>}
         </div>
       </Card>
@@ -359,7 +359,7 @@ export const BadgePage: React.FC = () => {
           <ul className="space-y-1.5">
             {attendance.items.filter((a) => a.sessionId).map((a) => {
               const s = sessions.find((x) => x.id === a.sessionId);
-              return <li key={a.id} className="text-sm flex items-center gap-2"><CircleCheck className="w-4 h-4 text-emerald-600 shrink-0" /><span className="text-ink-900">{s?.title ?? a.sessionId}</span><span className="text-xs text-ink-500 ml-auto">{new Date(a.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></li>;
+              return <li key={a.id} className="text-sm flex items-center gap-2"><CircleCheck className="w-4 h-4 text-emerald-600 shrink-0" /><span className="text-ink-900">{s?.title ?? a.sessionId}</span><span className="text-xs text-ink-500 ml-auto">{formatClock(a.at)}</span></li>;
             })}
           </ul>
         </Card>

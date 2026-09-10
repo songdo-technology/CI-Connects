@@ -8,7 +8,7 @@ import { useWatch, useDoc } from '../lib/hooks';
 import { store } from '../lib/store';
 import { isStaff } from '../lib/roles';
 import { randomCode } from '../lib/hash';
-import { formatTime, nowIso } from '../lib/time';
+import { formatTime, nowIso, formatClock } from '../lib/time';
 import { Mark } from '../components/Mark';
 import { Button, Card, Spinner, Empty } from '../components/ui';
 
@@ -110,7 +110,7 @@ export const HerePage: React.FC = () => {
         <div className="text-sm text-ink-500 mt-1">{formatTime(session.start)} – {formatTime(session.end)}{room ? ` · ${room.name}` : ''}</div>
         <div className="mt-6">
           {already || done ? (
-            <div className="inline-flex flex-col items-center gap-2 text-emerald-800"><CircleCheck className="w-10 h-10 text-emerald-600" /><span className="font-semibold">You are in.</span><span className="text-xs text-ink-500">Recorded {new Date((already?.at) ?? nowIso()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
+            <div className="inline-flex flex-col items-center gap-2 text-emerald-800"><CircleCheck className="w-10 h-10 text-emerald-600" /><span className="font-semibold">You are in.</span><span className="text-xs text-ink-500">Recorded {formatClock(already?.at ?? nowIso())}</span></div>
           ) : !valid ? (
             <div className="inline-flex flex-col items-center gap-2 text-amber-900"><AlertTriangle className="w-8 h-8 text-amber-600" /><span className="font-semibold">This door code is no longer valid.</span><span className="text-xs text-ink-500">Ask at the door for the current one.</span></div>
           ) : (

@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 3100 --host 0.0.0.0",
-    "demo": "VITE_DEMO=1 vite --port 3101 --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
+    "ship": "sh scripts/ship.sh",
     "seed": "node seed/seed.mjs"
   },
   "dependencies": {

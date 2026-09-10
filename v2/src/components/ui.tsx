@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { X, Loader2 } from 'lucide-react';
 import { CountUp } from '../lib/motion';
@@ -59,6 +59,37 @@ export const Field: React.FC<{ label: string; hint?: string; children: React.Rea
 
 export const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) =>
   <input {...props} className={`input ${props.className ?? ''}`} />;
+/**
+ * A time typed as text, kept as HH:MM. The browser's own time picker shows
+ * in the operating system's language and takes no `lang`, so on a Korean
+ * machine it read "오전 09:00"; this one reads the same everywhere and takes
+ * "9", "930", "9:30" or "9:30 pm".
+ */
+export const TimeInput: React.FC<{ value: string; onChange: (v: string) => void; className?: string }> = ({ value, onChange, className = '' }) => {
+  const [text, setText] = useState(value);
+  useEffect(() => { setText(value); }, [value]);
+  const commit = () => {
+    const v = parseClock(text);
+    if (!v) { setText(value); return; }
+    setText(v); if (v !== value) onChange(v);
+  };
+  return <input inputMode="numeric" value={text} placeholder="09:00" onChange={(e) => setText(e.target.value)} onBlur={commit}
+    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); commit(); } }} className={`input font-mono tabular-nums ${className}`} />;
+};
+
+/** A date typed as text, kept as YYYY-MM-DD, for the same reason as TimeInput. */
+export const DateInput: React.FC<{ value: string; onChange: (v: string) => void; min?: string; className?: string }> = ({ value, onChange, min, className = '' }) => {
+  const [text, setText] = useState(value);
+  useEffect(() => { setText(value); }, [value]);
+  const commit = () => {
+    const v = parseYmd(text);
+    if (!v || (min && v < min)) { setText(value); return; }
+    setText(v); if (v !== value) onChange(v);
+  };
+  return <input inputMode="numeric" value={text} placeholder="2026-10-17" onChange={(e) => setText(e.target.value)} onBlur={commit}
+    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); commit(); } }} className={`input font-mono tabular-nums ${className}`} />;
+};
+
 export const Textarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) =>
   <textarea {...props} className={`input min-h-24 ${props.className ?? ''}`} />;
 export const Select = (props: React.SelectHTMLAttributes<HTMLSelectElement>) =>
@@ -145,6 +176,7 @@ export const SubNav: React.FC<{ items: { to: string; label: string; end?: boolea
 );
 
 import { NavLink } from 'react-router';
+import { parseClock, parseYmd } from '../lib/time';
 const NavTab: React.FC<{ to: string; end?: boolean; children: React.ReactNode }> = ({ to, end, children }) => (
   <NavLink to={to} end={end}
     className={({ isActive }) => `px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${

@@ -5,10 +5,14 @@
 #   gh repo clone songdo-technology/CI-Connects && cd CI-Connects
 #   sh scripts/bootstrap.sh            # or: npm run bootstrap
 #
-# Needs Node 20+ and a logged-in gh. Writes .env.local from the GitHub
-# repository variables (the same public Firebase config the Actions build
-# uses), installs, typechecks and builds. Delete .env.local and re-run to
-# regenerate it. Deploying afterwards needs `npx wrangler login` once.
+# Sets up v2 — the live site, the app in v2/. Needs Node 20+ and a logged-in
+# gh. Writes v2/.env.local from the GitHub repository variables (the same
+# public Firebase config the Actions build uses), installs, typechecks and
+# builds. Delete v2/.env.local and re-run to regenerate it. Deploying
+# afterwards needs `npx wrangler login` once (then `npm run ship`).
+#
+# v1 at the repository root is sealed at tag v1.0.0 and is not set up here;
+# `npm install && npm run build` at the root still builds it.
 set -eu
 cd "$(dirname "$0")/.."
 REPO=songdo-technology/CI-Connects
@@ -27,13 +31,14 @@ if ! gh auth status >/dev/null 2>&1; then
 fi
 gh auth setup-git >/dev/null 2>&1 || true   # let git push over HTTPS with the gh login
 
-echo "bootstrap: npm install"
+cd v2
+echo "bootstrap: npm install (v2)"
 npm install --no-audit --no-fund
 
 if [ -f .env.local ]; then
-  echo "bootstrap: .env.local already exists — keeping it"
+  echo "bootstrap: v2/.env.local already exists — keeping it"
 else
-  echo "bootstrap: writing .env.local from the $REPO repository variables"
+  echo "bootstrap: writing v2/.env.local from the $REPO repository variables"
   vars=$(gh variable list -R "$REPO")
   get() {
     v=$(printf '%s\n' "$vars" | awk -F'\t' -v k="$1" '$1==k {print $2}')
@@ -43,19 +48,15 @@ else
   {
     echo "# Written by scripts/bootstrap.sh on $(date +%F) from the GitHub repository variables."
     echo "# Public Firebase client config, not credentials — access is governed by firestore.rules."
-    echo "# Regenerate: rm .env.local && sh scripts/bootstrap.sh"
-    for k in VITE_FIREBASE_API_KEY VITE_FIREBASE_AUTH_DOMAIN VITE_FIREBASE_PROJECT_ID \
-             VITE_FIREBASE_STORAGE_BUCKET VITE_FIREBASE_MESSAGING_SENDER_ID VITE_FIREBASE_APP_ID \
-             VITE_ALLOWED_EMAIL_DOMAIN; do
+    echo "# Regenerate: rm v2/.env.local && sh scripts/bootstrap.sh"
+    for k in VITE_FIREBASE_API_KEY VITE_FIREBASE_PROJECT_ID VITE_FIREBASE_STORAGE_BUCKET \
+             VITE_FIREBASE_MESSAGING_SENDER_ID VITE_FIREBASE_APP_ID; do
       echo "$k=$(get "$k")"
     done
-    echo "# The database is seeded; true = the real Firestore backend (the in-memory store hides permission bugs)."
-    echo "VITE_USE_FIRESTORE=true"
+    echo "# localhost signs in by pop-up straight against Firebase. Production builds"
+    echo "# take ci-events.pages.dev from .env.production instead (committed)."
+    echo "VITE_FIREBASE_AUTH_DOMAIN=ci-connects.firebaseapp.com"
   } > .env.local
-fi
-
-if ! grep -q '^VITE_FIREBASE_AUTH_DOMAIN=ci-events.pages.dev$' .env.local; then
-  echo "bootstrap: VITE_FIREBASE_AUTH_DOMAIN must be ci-events.pages.dev — see docs/auth-domain-runbook.md" >&2; exit 1
 fi
 
 echo "bootstrap: typecheck"
@@ -66,7 +67,7 @@ npm run build
 cat <<'DONE'
 
 bootstrap: done.
-  npm run dev              http://localhost:3000
+  cd v2 && npm run dev     http://localhost:3100  (Google + password sign-in, Firestore /v2/data)
   npx wrangler login       once, school account — then `npm run ship` pushes and deploys
   HANDOFF.md               current state, cloud wiring, gotchas, what is next
 DONE

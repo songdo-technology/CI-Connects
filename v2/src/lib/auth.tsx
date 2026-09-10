@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import {
-  GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut as fbSignOut,
+  GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut as fbSignOut,
   signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, updateProfile,
 } from 'firebase/auth';
-import { auth, isDemo, BOOTSTRAP_ADMINS } from './firebase';
-import { store, DEMO_MEMBERS } from './store';
+import { auth, BOOTSTRAP_ADMINS } from './firebase';
+import { store } from './store';
 import { Profile, Role } from './types';
 import { nowIso } from './time';
 
@@ -28,9 +28,6 @@ export interface AuthState {
   signOut: () => Promise<void>;
   viewAs: Role | null;
   setViewAs: (role: Role | null) => void;
-  /** Demo build only. */
-  personas: Profile[];
-  signInAs: (id: string) => void;
 }
 
 const Ctx = createContext<AuthState | null>(null);
@@ -41,7 +38,6 @@ export const useAuth = (): AuthState => {
   return v;
 };
 
-const DEMO_KEY = 'ci-connects-v2:demo-persona';
 export const isChadwick = (email: string) => email.trim().toLowerCase().endsWith('@chadwickschool.org');
 /** What a new password account told us about itself, for the profile. */
 let pendingExtras: { name?: string; org?: string; title?: string } | null = null;
@@ -53,25 +49,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [invitedEventIds, setInvited] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [viewAs, setViewAs] = useState<Role | null>(null);
-  const [personas, setPersonas] = useState<Profile[]>([]);
 
-  // ------------------------------------------------------------ demo
   useEffect(() => {
-    if (!isDemo) return;
-    const off = store.watch('users', [], (list) => setPersonas(list));
-    const saved = (() => { try { return localStorage.getItem(DEMO_KEY); } catch { return null; } })();
-    if (saved) {
-      store.get('users', saved).then((p) => {
-        if (p) { setUser({ uid: p.id, email: p.email, name: p.name }); setStatus('signed_in'); }
-        else setStatus('signed_out');
-      });
-    } else setStatus('signed_out');
-    return off;
-  }, []);
-
-  // ------------------------------------------------------------ firebase
-  useEffect(() => {
-    if (isDemo || !auth) { if (!isDemo) setStatus('signed_out'); return; }
+    if (!auth) { setStatus('signed_out'); return; }
+    // A redirect sign-in (the pop-up fallback below) lands back here; its
+    // errors surface the same way as the pop-up's.
+    getRedirectResult(auth).catch((e) => setError(describe((e as { code?: string }).code ?? '', (e as Error).message)));
     return onAuthStateChanged(auth, async (u) => {
       if (!u) { setUser(null); setRealProfile(null); setInvited([]); setStatus('signed_out'); return; }
       const me: AuthUser = {
@@ -99,13 +82,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async () => {
     setError(null);
-    if (isDemo || !auth) return;
+    if (!auth) return;
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     try { await signInWithPopup(auth, provider); }
     catch (e) {
       const code = (e as { code?: string }).code ?? '';
       if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return;
+      // Phones and in-app browsers often refuse the pop-up. The redirect
+      // works there because the OAuth handler is served from this origin
+      // (functions/__/auth), so the hand-back is same-site.
+      if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
+        try { await signInWithRedirect(auth, provider); } catch (e2) { setError(describe((e2 as { code?: string }).code ?? '', (e2 as Error).message)); }
+        return;
+      }
       setError(describe(code, (e as Error).message));
     }
   };
@@ -113,11 +103,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithPassword = async (email: string, password: string) => {
     setError(null);
     const em = email.trim().toLowerCase();
-    if (isDemo) {
-      const p = personas.find((x) => x.email === em);
-      if (!p) { setError('No demo persona has that address.'); throw new Error('demo'); }
-      signInAs(p.id); return;
-    }
     if (!auth) return;
     if (isChadwick(em)) { setError('Chadwick accounts sign in with Google — use the button below.'); throw new Error('chadwick'); }
     try { await signInWithEmailAndPassword(auth, em, password); }
@@ -128,12 +113,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     const em = email.trim().toLowerCase();
     if (isChadwick(em)) { setError('Chadwick accounts sign in with Google — no account to create.'); throw new Error('chadwick'); }
-    if (isDemo) {
-      const id = `demo-${Date.now().toString(36)}`;
-      await store.set('users', id, { id, email: em, name: name.trim(), org: org?.trim() || undefined, title: title?.trim() || undefined, role: 'user', eventAccess: [], createdAt: nowIso() });
-      try { localStorage.setItem(DEMO_KEY, id); } catch { /* ignore */ }
-      setUser({ uid: id, email: em, name: name.trim() }); setStatus('signed_in'); return;
-    }
     if (!auth) return;
     try {
       pendingExtras = { name: name.trim(), org: org?.trim() || undefined, title: title?.trim() || undefined };
@@ -148,24 +127,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resetPassword = async (email: string) => {
     setError(null);
-    if (isDemo || !auth) return;
+    if (!auth) return;
     try { await sendPasswordResetEmail(auth, email.trim().toLowerCase()); }
     catch (e) { const code = (e as { code?: string }).code ?? ''; setError(describe(code, (e as Error).message)); throw e; }
   };
 
   const signOut = async () => {
     setViewAs(null);
-    if (isDemo) { try { localStorage.removeItem(DEMO_KEY); } catch { /* ignore */ } setUser(null); setRealProfile(null); setStatus('signed_out'); return; }
     if (auth) await fbSignOut(auth);
-  };
-
-  const signInAs = (id: string) => {
-    if (!isDemo) return;
-    const p = personas.find((x) => x.id === id);
-    if (!p) return;
-    try { localStorage.setItem(DEMO_KEY, id); } catch { /* ignore */ }
-    setUser({ uid: p.id, email: p.email, name: p.name });
-    setStatus('signed_in');
   };
 
   const profile = useMemo<Profile | null>(
@@ -175,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value: AuthState = {
     status, user, profile, realProfile, invitedEventIds, error, signIn, signInWithPassword, createAccount, resetPassword, signOut,
-    viewAs, setViewAs, personas: isDemo ? personas : [], signInAs,
+    viewAs, setViewAs,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 };
@@ -218,4 +187,3 @@ function describe(code: string, message: string): string {
   }
 }
 
-export { DEMO_MEMBERS };
