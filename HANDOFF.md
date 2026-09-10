@@ -380,7 +380,10 @@ which is why closing Admin used to drop you into Chadwick Connects.
 
 Tagged `v1.0.0` (`e1a7fe6`) is the platform above. `v2/` is a fresh app —
 same job, three roles (`admin`, `schedule_admin`, `user`), one model file,
-react-router, a new interface — built 10 Sep 2026 and **not deployed**: it
+react-router, a new interface with a cinematic launch, Pretendard and the
+orbit mark; email-and-password accounts beside Google; badge scanning by
+camera and per-session door QR codes verified by the rules; sponsors — built
+10 Sep 2026 and **not deployed**: it
 runs at `localhost:3100` (Google sign-in, Firestore `/v2/data/*`) and
 `localhost:3101` (`npm run demo`, in-memory seed with personas). Its data is
 seeded beside v1's in the same project; the v2 rules block is at the end of

@@ -32,6 +32,32 @@ apply here).
 administrators on first sign-in (`BOOTSTRAP_ADMINS` in `src/lib/firebase.ts`,
 mirrored in `firestore.rules`). Everyone else arrives as a member.
 
+## Signing in
+
+Email and password first, Google below, nothing else. Guests create an
+account with their name, school and title; a Chadwick address is sent to
+Google instead (their Workspace profile is what shows). Both use Firebase
+Auth's providers on project `ci-connects`.
+
+## Attendance and QR
+
+- **Badge → staff camera.** Every person's badge is a QR (`ci2:<uid>`).
+  Administration → Events → Check-in → *Scan badges* opens the camera
+  (jsQR) and records arrival at the venue, or at the session chosen in the
+  dropdown. A handheld scanner typing into the field works too.
+- **Door → person's phone.** Choose a session on Check-in and open *Door
+  QR* (`/door/<eventId>/<sessionId>`): a full-screen code for a tablet or a
+  print. Scanning it opens `/e/<slug>/here?s=…&c=…`; the person taps
+  *Confirm I am here* and records their own attendance. The rules accept it
+  only while `c` matches the session's `checkinCode`; *New code* retires
+  every earlier copy. The badge page lists the sessions a person was at.
+
+## Sponsors
+
+Per event, with tiers, logos and websites (Administration → Events →
+Sponsors). Shown as *Supported by* on the public page, as a Sponsors tab
+in the portal, and as a partner credit on any session that names one.
+
 ## Who sees an event
 
 Inside an event — programme, seats, badge, speakers, venue — is for people an
@@ -67,6 +93,6 @@ HANDOFF.md) or, once an administrator can sign in, through the interface.
 
 ## Not in v2 (yet)
 
-Certificates, dining choices, lucky draw, sponsors, spend, room signage,
-messaging and the community board, AI import, camera badge scanning. Each has
-a place in the model when it is wanted; none was asked for in the rebuild.
+Certificates, dining choices, lucky draw, spend, room signage, messaging and
+the community board, AI import. Each has a place in the model when it is
+wanted; none was asked for in the rebuild.
