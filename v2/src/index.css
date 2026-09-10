@@ -85,6 +85,11 @@
   .progress-run { transform-origin: left; animation: grow linear both; }
   /* The event threshold's orbit, turning once every half minute. */
   .welcome-ring { animation: welcome-spin 32s linear infinite; transform-origin: 50% 50%; will-change: transform; }
+  .welcome-arrive { animation: welcome-fade-in .9s ease-out both; }
+  .welcome-leave { animation: welcome-fade-out .75s cubic-bezier(.4, 0, .2, 1) both; pointer-events: none; }
+  .welcome-lift { animation: welcome-lift .75s cubic-bezier(.4, 0, .2, 1) both; }
+  .welcome-bloom { animation: welcome-bloom 1.4s cubic-bezier(.2, .7, .2, 1) both; }
+  .welcome-bloom-leave { animation: welcome-bloom-out .75s cubic-bezier(.4, 0, .2, 1) both; }
 }
 
 /* ---- the feel: scroll reveals, page arrivals, cursor, marquee, curtain ---- */
@@ -142,10 +147,15 @@
 
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @keyframes welcome-spin { to { transform: rotate(360deg); } }
+@keyframes welcome-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes welcome-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes welcome-lift { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-14px) scale(1.02); } }
+@keyframes welcome-bloom { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: none; } }
+@keyframes welcome-bloom-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(1.12); } }
 @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes breathe { 0%, 100% { transform: scale(1); opacity: .45; } 50% { transform: scale(1.08); opacity: .8; } }
 @media (prefers-reduced-motion: reduce) {
-  .rise, .rise-slow, .breathe, .progress-run, .page-in, .drawer-in, .scrim-in, .marquee__track, .spin-slow, .welcome-ring { animation: none !important; }
+  .rise, .rise-slow, .breathe, .progress-run, .page-in, .drawer-in, .scrim-in, .marquee__track, .spin-slow, .welcome-ring, .welcome-arrive, .welcome-leave, .welcome-lift, .welcome-bloom, .welcome-bloom-leave { animation: none !important; }
   .fade-up, .stagger > * { opacity: 1 !important; transform: none !important; transition: none !important; }
   .grain, .cursor { display: none; }
 }

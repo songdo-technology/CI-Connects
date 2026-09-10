@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { Link, Navigate, Outlet, useNavigate, useOutletContext, useParams } from 'react-router';
+import { Link, Navigate, Outlet, useNavigate, useOutletContext, useParams, useLocation } from 'react-router';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   CalendarDays, MapPin, Search, LayoutList, LayoutGrid, Download, Users, Lock, ArrowLeft, CircleCheck, Clock, ShieldCheck, ExternalLink,
@@ -13,7 +13,7 @@ import { byStart, slotsForDay, speakerIndex, overlaps, seatState } from '../lib/
 import { buildIcs, downloadText } from '../lib/ics';
 import { useEventData, SessionCard, RoomGrid, SessionDrawer, TrackDot } from '../components/schedule';
 import { AnnouncementBar } from '../components/layouts';
-import { EventWelcome } from '../components/EventWelcome';
+import { EventWelcome, seenWelcome } from '../components/EventWelcome';
 import { PageTransition } from '../lib/motion';
 import { Avatar, Button, Card, Chip, Empty, Spinner, SubNav } from '../components/ui';
 
@@ -40,6 +40,8 @@ export const EventLayout: React.FC = () => {
   const [welcome, setWelcome] = useState(true);
   useEffect(() => { setWelcome(true); }, [slug]);
   const closeWelcome = useCallback(() => setWelcome(false), []);
+  // Someone who scanned a door code is here to confirm their seat, not to be welcomed.
+  const atDoor = useLocation().pathname.endsWith('/here');
   if (!ready) return <Spinner />;
   if (!event) return <Navigate to="/dashboard" replace />;
   const base = `/e/${event.slug}`;
@@ -63,7 +65,7 @@ export const EventLayout: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-6 lg:py-8">
-      {welcome && profile && (
+      {welcome && profile && !seenWelcome(event.id, profile.id) && !atDoor && (
         <EventWelcome event={event} profile={profile} isStaff={isStaff(profile)} ready={data.ready} sessionCount={data.sessions.length}
           roomCount={data.rooms.length} reservedCount={mine.length} onDone={closeWelcome} />
       )}

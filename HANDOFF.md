@@ -440,9 +440,13 @@ presenters with titles) and written with `v2/seed/seed.mjs`
 held seats and roles on re-import). It is published as a past event beside
 the KORCOS 2026 placeholder; both scripts are in the repo for the 2026
 programme when it appears on Sched. The event threshold (`EventWelcome`)
-now renders through a portal — full screen, orbit centred and turning,
-2.2 s hold that doubles as the loading screen — after the first version
-showed up as a column with the ring cut off in the corner.
+renders through a portal — full screen, orbit centred and turning — after
+the first version showed up as a column with the ring cut off in the
+corner. It is a gate, not a splash: it stays until Enter (button or key),
+leaves with a 750 ms fade-and-lift, and is raised once per event per
+browser session (`sessionStorage` `ci2:welcome:<eventId>:<uid>`); the
+door-QR page (`/e/<slug>/here`) skips it. Every event gets one — nothing
+in it is specific to KORCOS.
 
 **No demo build.** Removed at deploy time: `MemoryStore`, the seed import,
 the persona picker, `npm run demo`, `VITE_DEMO`. Anything that needs a

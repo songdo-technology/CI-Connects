@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CalendarDays, MapPin, ArrowRight, CircleCheck, ShieldCheck } from 'lucide-react';
 import { Event, Profile } from '../lib/types';
@@ -6,37 +6,53 @@ import { formatRange, eachDate, daysUntil, eventPhase } from '../lib/time';
 import { Mark } from './Mark';
 import { OrbitDiagram } from './Orbit';
 
-/** How long the threshold holds once the programme is here. */
-const HOLD_MS = 2200;
-/** And never longer than this, however slow the programme is. */
-const MAX_MS = 8000;
+/** How long the threshold takes to let go once Enter is pressed. */
+const LEAVE_MS = 750;
+
+const seenKey = (eventId: string, uid: string) => `ci2:welcome:${eventId}:${uid}`;
+/** Whether this person has already come through this event's threshold in
+ *  this browser session. Once through, moving around the event — or coming
+ *  back to it from the dashboard — does not raise it again. */
+export const seenWelcome = (eventId: string, uid: string): boolean => {
+  try { return sessionStorage.getItem(seenKey(eventId, uid)) === '1'; } catch { return false; }
+};
+const markSeen = (eventId: string, uid: string) => { try { sessionStorage.setItem(seenKey(eventId, uid), '1'); } catch { /* private mode */ } };
 
 /**
- * The threshold of one event — shown on every arrival from outside.
+ * The threshold of one event — every event has one, and it is raised the
+ * first time a person enters that event in a session.
  *
- * The same chrome sits on top of every event, so stepping into one needs a
- * moment that says which. It fills the screen (a portal, so no ancestor's
- * transform can shrink it to a column), turns the orbit in the centre, and
- * doubles as the loading screen: it lets go when the programme has arrived
- * and the moment has had its two seconds — or the instant you press Enter.
+ * It fills the screen (a portal, so no ancestor's transform can shrink it
+ * to a column), turns the orbit in the centre, and stays until the person
+ * presses Enter — the button or the key. It does not let itself out. When
+ * it goes it goes gently: the words lift, the orbit blooms outward, and the
+ * programme underneath comes through the fade.
  */
 export const EventWelcome: React.FC<{
   event: Event; profile: Profile; isStaff: boolean; ready: boolean;
   sessionCount: number; roomCount: number; reservedCount: number; onDone: () => void;
 }> = ({ event, profile, isStaff, ready, sessionCount, roomCount, reservedCount, onDone }) => {
   const reduced = useMemo(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false, []);
-  const hold = reduced ? 1200 : HOLD_MS;
-  const [held, setHeld] = useState(false);
-  // The parent may hand over a new onDone on every render; the timers are set once.
+  const [leaving, setLeaving] = useState(false);
+  const leavingRef = useRef(false);
+  // The parent may hand over a new onDone on every render; the exit uses the latest.
   const done = useRef(onDone); done.current = onDone;
+
+  const enter = useCallback(() => {
+    if (leavingRef.current) return;
+    leavingRef.current = true; setLeaving(true);
+    markSeen(event.id, profile.id);
+    window.setTimeout(() => done.current(), reduced ? 200 : LEAVE_MS);
+  }, [event.id, profile.id, reduced]);
+
   useEffect(() => {
-    const t = window.setTimeout(() => setHeld(true), hold);
-    const cap = window.setTimeout(() => done.current(), MAX_MS);
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === 'Escape') done.current(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); enter(); } };
     window.addEventListener('keydown', onKey);
-    return () => { window.clearTimeout(t); window.clearTimeout(cap); window.removeEventListener('keydown', onKey); };
-  }, [hold]);
-  useEffect(() => { if (held && ready) done.current(); }, [held, ready]);
+    // Nothing behind the threshold scrolls while it is up.
+    const prev = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    return () => { window.removeEventListener('keydown', onKey); document.documentElement.style.overflow = prev; };
+  }, [enter]);
 
   const days = eachDate(event.startDate, event.endDate).length;
   const phase = eventPhase(event.startDate, event.endDate);
@@ -44,21 +60,23 @@ export const EventWelcome: React.FC<{
   const stat = (n: number) => (ready ? String(n) : '–');
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] overflow-hidden bg-blue-950 text-white" role="dialog" aria-label={`Entering ${event.name}`}>
+    <div className={`fixed inset-0 z-[100] overflow-hidden bg-blue-950 text-white ${leaving ? 'welcome-leave' : 'welcome-arrive'}`}
+      data-lenis-prevent role="dialog" aria-label={`Entering ${event.name}`}>
       <img src={event.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 scale-105 blur-[2px]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,43,84,.55)_0%,rgba(2,14,36,.94)_72%)]" />
 
       {/* The orbit: centred, turning, the size of the screen. */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
-        <div className="welcome-ring text-blue-200" style={{ width: 'min(96vh, 96vw)', height: 'min(96vh, 96vw)' }}>
-          <OrbitDiagram active={3} label={false} className="w-full h-full opacity-30" />
+        <div className={leaving ? 'welcome-bloom-leave' : 'welcome-bloom'} style={{ width: 'min(96vh, 96vw)', height: 'min(96vh, 96vw)' }}>
+          <div className="welcome-ring text-blue-200 w-full h-full">
+            <OrbitDiagram active={3} label={false} className="w-full h-full opacity-30" />
+          </div>
         </div>
       </div>
 
-      <div className="relative h-full flex flex-col">
-        <header className="flex items-center justify-between px-5 sm:px-8 pt-5 sm:pt-6 shrink-0">
+      <div className={`relative h-full flex flex-col ${leaving ? 'welcome-lift' : ''}`}>
+        <header className="flex items-center px-5 sm:px-8 pt-5 sm:pt-6 shrink-0">
           <span className="flex items-center gap-2.5 rise"><Mark size={28} light /><span className="font-display font-bold tracking-tight">CI Connects</span></span>
-          <button onClick={onDone} className="text-sm text-white/60 hover:text-white rise">Skip</button>
         </header>
 
         <main className="flex-1 min-h-0 overflow-y-auto flex items-center justify-center px-5 sm:px-8 py-4">
@@ -84,7 +102,7 @@ export const EventWelcome: React.FC<{
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-3 mt-7 rise d5">
-              <button onClick={onDone} className="btn bg-white text-blue-700 hover:bg-blue-50 px-6 py-3.5 text-base">
+              <button onClick={enter} disabled={leaving} className="btn bg-white text-blue-700 hover:bg-blue-50 px-6 py-3.5 text-base transition-transform duration-300 hover:scale-[1.03]">
                 Enter {event.name}<ArrowRight className="w-4 h-4" />
               </button>
               <span className="inline-flex items-center gap-1.5 text-sm text-white/75">
@@ -94,12 +112,13 @@ export const EventWelcome: React.FC<{
           </div>
         </main>
 
-        <footer className="px-5 sm:px-8 pb-5 sm:pb-6 shrink-0 rise d5">
+        <footer className="px-5 sm:px-8 pb-5 sm:pb-6 shrink-0 rise d6">
           <div className="flex items-center justify-between text-[11px] text-white/50 mb-2">
-            <span>{held && !ready ? 'Loading the programme…' : 'Opening the programme'}</span><span>Enter ↵</span>
+            <span className="transition-opacity duration-500">{ready ? `Programme ready · ${sessionCount} session${sessionCount === 1 ? '' : 's'}` : 'Loading the programme…'}</span>
+            <span>Enter ↵</span>
           </div>
-          <div className="h-0.5 bg-white/15 rounded-full overflow-hidden">
-            <div className={`h-full bg-blue-200 ${held && !ready ? 'breathe' : 'progress-run'}`} style={{ animationDuration: `${hold}ms` }} />
+          <div className="h-px bg-white/15 rounded-full overflow-hidden">
+            <div className={`h-full bg-blue-200 transition-[width] duration-700 ease-out ${ready ? 'w-full' : 'w-1/4 breathe'}`} />
           </div>
         </footer>
       </div>
