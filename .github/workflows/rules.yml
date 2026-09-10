@@ -44,4 +44,6 @@ jobs:
 
       - name: Not deployed
         if: env.HAS_FIREBASE_SA != 'true'
-        run: echo "::warning::FIREBASE_SERVICE_ACCOUNT is not set. Rules changed on main but were NOT deployed — run: npx firebase deploy --only firestore:rules,storage --project ci-connects"
+        run: |
+          echo "::warning::FIREBASE_SERVICE_ACCOUNT is not set. Rules changed on main but were NOT deployed."
+          echo "Deploy them by hand:  npx firebase deploy --only firestore:rules,storage --project ci-connects"
