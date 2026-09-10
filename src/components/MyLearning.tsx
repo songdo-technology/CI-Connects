@@ -81,8 +81,12 @@ export const MyLearning: React.FC<MyLearningProps> = ({
       .filter((i) => i.email.toLowerCase() === currentUser.email.toLowerCase())
       .map((i) => i.eventId));
 
+    // Being put on an event's list by an organiser is the plainest form of
+    // involvement there is — it is the whole reason the event should be here.
+    const listedOn = new Set(currentUser.eventAccess ?? []);
+
     const involved = new Set(
-      [...bookedEventIds, ...attendedEventIds, ...certified, ...invitedTo]);
+      [...bookedEventIds, ...attendedEventIds, ...certified, ...invitedTo, ...listedOn]);
 
     return {
       attendedSessionIds,
@@ -95,7 +99,7 @@ export const MyLearning: React.FC<MyLearningProps> = ({
         && e.status !== 'draft' && !e.isTemplate)
         .sort((a, b) => a.startDate.localeCompare(b.startDate)),
     };
-  }, [events, sessions, attendance, certificates, invites, currentUser.id, currentUser.email]);
+  }, [events, sessions, attendance, certificates, invites, currentUser.id, currentUser.email, currentUser.eventAccess]);
 
   /** Anything they are presenting, at any stage of the proposal pipeline. */
   const mySessions = sessions.filter(
@@ -202,7 +206,7 @@ export const MyLearning: React.FC<MyLearningProps> = ({
         {/* ---------- Booked on ---------- */}
         {mine.upcoming.length > 0 && (
           <section>
-            <h2 className="text-sm font-bold text-slate-900 mb-3">You are booked on</h2>
+            <h2 className="text-sm font-bold text-slate-900 mb-3">Your events</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               {mine.upcoming.map((e) => {
                 const days = Math.ceil(

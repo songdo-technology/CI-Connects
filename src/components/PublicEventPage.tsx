@@ -24,6 +24,8 @@ interface PublicEventPageProps {
   /** Why the programme is not shown, when it is not. */
   programmeGate?: 'signin' | 'assign' | null;
   onOpenDashboard?: () => void;
+  /** For somebody on this event's list: straight into the portal. */
+  onEnterEvent?: () => void;
 }
 
 /**
@@ -37,8 +39,14 @@ interface PublicEventPageProps {
  */
 export const PublicEventPage: React.FC<PublicEventPageProps> = ({
   event, sessions, tracks, rooms, profiles, sponsors, onSignIn, onBackToEvents,
-  signedIn = false, programmeGate = null, onOpenDashboard,
+  signedIn = false, programmeGate = null, onOpenDashboard, onEnterEvent,
 }) => {
+  /** What the main buttons do for this viewer: sign in; or, once in, go
+   *  through the event's own door — or to the dashboard when not listed. */
+  const primaryAction = !signedIn ? onSignIn
+    : (!programmeGate && onEnterEvent) ? onEnterEvent
+    : (onOpenDashboard ?? onSignIn);
+  const primaryLabel = !signedIn ? null : !programmeGate ? `Enter ${event.shortName}` : 'My dashboard';
   // Only the flagship has a programme wired up. For a landing-page-only event
   // the agenda, speaker and venue-room sections are hidden rather than shown
   // empty, which would read as a broken page rather than a lighter one.
@@ -132,12 +140,14 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
           </nav>
 
           <button
-            onClick={signedIn && onOpenDashboard ? onOpenDashboard : onSignIn}
+            onClick={!signedIn ? onSignIn : (!programmeGate && onEnterEvent) ? onEnterEvent : (onOpenDashboard ?? onSignIn)}
             className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
           >
             <LogIn className="w-4 h-4" />
-            <span className="hidden sm:inline">{signedIn ? 'My dashboard' : 'Attendee sign in'}</span>
-            <span className="sm:hidden">{signedIn ? 'Dashboard' : 'Sign in'}</span>
+            <span className="hidden sm:inline">
+              {!signedIn ? 'Attendee sign in' : !programmeGate ? `Enter ${event.shortName}` : 'My dashboard'}
+            </span>
+            <span className="sm:hidden">{!signedIn ? 'Sign in' : !programmeGate ? 'Enter' : 'Dashboard'}</span>
           </button>
         </div>
       </header>
@@ -197,10 +207,10 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
                 if (reg.state === 'open') {
                   return (
                     <button
-                      onClick={onSignIn}
+                      onClick={primaryAction}
                       className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl bg-white text-blue-800 font-bold hover:bg-blue-50 transition-colors cursor-pointer"
                     >
-                      Register now
+                      {primaryLabel ?? 'Register now'}
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   );
@@ -565,7 +575,7 @@ export const PublicEventPage: React.FC<PublicEventPageProps> = ({
               personal agenda.
             </p>
             <button
-              onClick={onSignIn}
+              onClick={primaryAction}
               className="shrink-0 inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
             >
               Reserve your seat

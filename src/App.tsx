@@ -280,6 +280,9 @@ export default function App() {
   }, [ready, surface, allEvents, activeEventSlug]);
 
   const openSignIn = () => {
+    // Somebody already signed in has no business on the sign-in page; every
+    // "sign in" call to action they can still reach goes home instead.
+    if (authSession) { openHome(); return; }
     if (surface === 'hub' || surface === 'event') setReturnSurface(surface);
     setEnteringPortal(true);
     setSurface('signin');
@@ -1214,9 +1217,10 @@ export default function App() {
         onSignOut={handleSignOut}
         onOpenEvent={openEvent}
         onRegister={(slug) => {
-          // Remember which event: the redirect comes back to a cold load with
-          // none of this state, and the dashboard can then point at it.
           setActiveEventSlug(slug);
+          // Already in: the event's own door decides — the welcome, or the
+          // "not on the list" screen. Not a sign-in form for somebody signed in.
+          if (authSession) { setActiveTab('agenda'); setSurface('portal'); return; }
           setReturnSurface('hub');
           setEnteringPortal(true);
           setSurface('signin');
@@ -1245,6 +1249,7 @@ export default function App() {
         signedIn={Boolean(viewer)}
         programmeGate={gate}
         onOpenDashboard={openHome}
+        onEnterEvent={() => { setActiveTab('agenda'); setSurface('portal'); }}
       />
     );
   }
