@@ -11,6 +11,7 @@ import { isAdmin } from '../lib/roles';
 import { ROLES } from '../lib/roles';
 import { formatRange, eventPhase, nowIso, newId, todayYmd } from '../lib/time';
 import { Button, Card, Chip, Empty, Field, Input, Notice, Select, Spinner, Stat, Textarea, PageHeader, Avatar } from '../components/ui';
+import { PageTransition } from '../lib/motion';
 
 // ------------------------------------------------------------------ layout
 export const AdminLayout: React.FC = () => {
@@ -35,7 +36,7 @@ export const AdminLayout: React.FC = () => {
           </NavLink>
         ))}
       </div>
-      <Outlet />
+      <PageTransition><Outlet /></PageTransition>
     </div>
   );
 };

@@ -10,6 +10,7 @@ import { formatRange, formatDate, formatTime, eventPhase, daysUntil, todayYmd } 
 import { byStart } from '../lib/schedule';
 import { Button, Card, Chip, Empty, Field, Input, Notice, Spinner, PageHeader } from '../components/ui';
 import { AnnouncementBar } from '../components/layouts';
+import { Reveal } from '../lib/motion';
 import { ROLE_LABEL } from '../lib/types';
 
 const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; };
@@ -47,7 +48,7 @@ export const Dashboard: React.FC = () => {
       <AnnouncementBar eventId={null} />
 
       {staff && (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+        <Reveal stagger={0.08} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
           {[
             { to: '/admin/events', icon: CalendarDays, t: 'Events', b: 'Create, publish, schedule' },
             ...(isAdmin(profile) ? [
@@ -62,7 +63,7 @@ export const Dashboard: React.FC = () => {
               <div className="text-xs text-ink-500">{x.b}</div>
             </Link>
           ))}
-        </div>
+        </Reveal>
       )}
 
       <div className="grid lg:grid-cols-[minmax(0,1fr)_20rem] gap-8">

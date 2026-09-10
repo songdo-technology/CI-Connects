@@ -8,29 +8,53 @@ import { isStaff, canSeeEvent } from '../lib/roles';
 import { formatRange, eventPhase, daysUntil } from '../lib/time';
 import { Button, Card, Chip, Empty, Notice, Spinner } from '../components/ui';
 import { isDemo } from '../lib/firebase';
+import { ConnectsOrbit, MODES } from '../components/Orbit';
+import { Reveal, Marquee, useParallax, useMouseParallax, CountUp } from '../lib/motion';
+import { useIntroDone } from '../components/Intro';
+import { Mark } from '../components/Mark';
 
 const usePublishedEvents = () => useWatch('events', [{ field: 'status', op: '==', value: 'published' }]);
 
 const EventCard: React.FC<{ event: Event; big?: boolean }> = ({ event, big }) => {
   const phase = eventPhase(event.startDate, event.endDate);
-  return (
-    <Link to={`/events/${event.slug}`} className={`card overflow-hidden group hover:border-blue-300 transition-colors ${big ? 'grid md:grid-cols-2' : ''}`}>
-      <div className={`${big ? 'aspect-[4/3] md:aspect-auto md:h-full' : 'aspect-[16/9]'} bg-sand-200 overflow-hidden`}>
-        <img src={event.coverUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" />
-      </div>
-      <div className={`p-5 ${big ? 'md:p-8 flex flex-col justify-center' : ''}`}>
-        <div className="flex items-center gap-2 mb-2">
-          {phase === 'live' && <Chip tone="green">Happening now</Chip>}
-          {phase === 'upcoming' && <Chip tone="blue">In {daysUntil(event.startDate)} days</Chip>}
-          {phase === 'past' && <Chip>Past</Chip>}
+  const chips = (
+    <>
+      {phase === 'live' && <Chip tone="green">Happening now</Chip>}
+      {phase === 'upcoming' && <Chip tone={big ? 'neutral' : 'blue'} className={big ? 'bg-white/15 text-white border border-white/20' : ''}>In {daysUntil(event.startDate)} days</Chip>}
+      {phase === 'past' && <Chip>Past</Chip>}
+    </>
+  );
+  if (big) {
+    return (
+      <Link to={`/events/${event.slug}`} className="group relative block overflow-hidden rounded-3xl bg-ink-900 text-white min-h-[26rem] sm:min-h-[32rem] shadow-[var(--shadow-pop)] transition-transform duration-500 hover:-translate-y-1">
+        <img src={event.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-75 group-hover:scale-[1.04] transition-transform duration-[1200ms] ease-[cubic-bezier(.16,1,.3,1)]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/35 to-transparent" />
+        <div className="relative h-full min-h-[26rem] sm:min-h-[32rem] flex flex-col justify-end p-7 sm:p-10">
+          <div className="flex items-center gap-2 mb-3">{chips}</div>
+          <h3 className="font-display font-bold tracking-[-0.03em] text-4xl sm:text-6xl leading-[0.98] max-w-3xl">{event.name}</h3>
+          <p className="text-white/80 text-base sm:text-lg mt-3 max-w-xl">{event.tagline}</p>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-5 text-sm text-white/75">
+            <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-4 h-4" />{formatRange(event.startDate, event.endDate)}</span>
+            <span className="inline-flex items-center gap-1.5"><MapPin className="w-4 h-4" />{event.venueName}</span>
+          </div>
+          <span className="btn bg-white text-blue-700 hover:bg-blue-50 mt-7 w-fit">See the event<ArrowRight className="w-4 h-4" /></span>
         </div>
-        <h3 className={`font-display text-ink-900 leading-tight ${big ? 'text-4xl sm:text-5xl' : 'text-2xl'}`}>{event.name}</h3>
-        <p className={`text-ink-700 mt-2 ${big ? 'text-base' : 'text-sm line-clamp-2'}`}>{event.tagline}</p>
+      </Link>
+    );
+  }
+  return (
+    <Link to={`/events/${event.slug}`} className="card overflow-hidden group hover:border-blue-300 transition-colors block">
+      <div className="aspect-[16/9] bg-sand-200 overflow-hidden">
+        <img src={event.coverUrl} alt="" className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" />
+      </div>
+      <div className="p-5">
+        <div className="flex items-center gap-2 mb-2">{chips}</div>
+        <h3 className="font-display font-bold tracking-tight text-ink-900 leading-tight text-2xl">{event.name}</h3>
+        <p className="text-ink-700 mt-2 text-sm line-clamp-2">{event.tagline}</p>
         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-4 text-sm text-ink-500">
           <span className="inline-flex items-center gap-1.5"><CalendarDays className="w-4 h-4" />{formatRange(event.startDate, event.endDate)}</span>
           <span className="inline-flex items-center gap-1.5"><MapPin className="w-4 h-4" />{event.venueName}</span>
         </div>
-        {big && <span className="btn-primary mt-6 w-fit">See the event<ArrowRight className="w-4 h-4" /></span>}
       </div>
     </Link>
   );
@@ -41,61 +65,111 @@ export const Landing: React.FC = () => {
   const { items, ready } = usePublishedEvents();
   const { doc: site } = useDoc('settings', 'site');
   const { status } = useAuth();
+  const introDone = useIntroDone();
+  const glow = useMouseParallax(26);
   const upcoming = items.filter((e) => eventPhase(e.startDate, e.endDate) !== 'past').sort((a, b) => a.startDate.localeCompare(b.startDate));
   const past = items.filter((e) => eventPhase(e.startDate, e.endDate) === 'past').sort((a, b) => b.startDate.localeCompare(a.startDate));
   const next = upcoming[0];
+  const cta = 'btn bg-white text-blue-700 hover:bg-blue-50 px-6 py-3.5 text-base shadow-[var(--shadow-pop)]';
   return (
-    <div className="max-w-6xl mx-auto px-5">
-      <section className="pt-14 pb-10 sm:pt-20 sm:pb-14">
-        <div className="eyebrow mb-4">Chadwick International · Events</div>
-        <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl leading-[1.02] text-ink-900 max-w-3xl">
-          {site?.tagline ?? "Chadwick International's events, in one place."}
-        </h1>
-        <p className="text-lg text-ink-700 mt-5 max-w-xl">Programmes, seats, badges and the people in the room — for conferences the school hosts and the days it opens its doors.</p>
-        <div className="flex flex-wrap gap-3 mt-7">
-          {status === 'signed_in'
-            ? <Button to="/dashboard">Go to your dashboard<ArrowRight className="w-4 h-4" /></Button>
-            : <Button to="/signin"><LogIn className="w-4 h-4" />Sign in with Google</Button>}
-          <Button variant="secondary" to="/events">All events</Button>
+    <div>
+      {/* ---------------- The hero: the brand's own world ---------------- */}
+      <section className="relative overflow-hidden bg-blue-900 text-white">
+        <div ref={glow} className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="absolute -top-40 -left-32 w-[44rem] h-[44rem] rounded-full bg-blue-500/30 blur-3xl breathe" />
+          <div className="absolute -bottom-52 right-[-12%] w-[48rem] h-[48rem] rounded-full bg-blue-400/20 blur-3xl breathe" style={{ animationDelay: '-3s' }} />
+        </div>
+        <div className="absolute inset-0 opacity-[0.07] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '26px 26px' }} aria-hidden="true" />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vmax] h-[120vmax] rounded-full border border-white/[0.06] spin-slow pointer-events-none" aria-hidden="true" />
+
+        {introDone ? (
+          <div className="relative max-w-6xl mx-auto px-5 pt-28 pb-16 lg:pt-32 lg:pb-20 grid lg:grid-cols-[1.05fr_1fr] gap-12 lg:gap-16 items-center min-h-[92vh]">
+            <div>
+              <div className="eyebrow text-blue-200/80 rise">Chadwick International · Events</div>
+              <h1 className="font-display font-bold tracking-[-0.03em] text-5xl sm:text-6xl lg:text-7xl leading-[1.0] mt-5 max-w-xl rise d1">
+                {site?.tagline ?? "Chadwick International's events, in one place."}
+              </h1>
+              <p className="text-lg text-white/70 mt-6 max-w-lg rise d2">Programmes, seats, badges and the people in the room — for the conferences the school hosts and the days it opens its doors.</p>
+              <div className="flex flex-wrap gap-3 mt-8 rise d3">
+                {status === 'signed_in'
+                  ? <Link to="/dashboard" className={cta}>Go to your dashboard<ArrowRight className="w-4 h-4" /></Link>
+                  : <Link to="/signin" className={cta}><LogIn className="w-4 h-4" />Sign in with Google</Link>}
+                <Link to="/events" className="btn border border-white/25 text-white hover:bg-white/10 px-6 py-3.5 text-base">All events</Link>
+              </div>
+              <div className="flex flex-wrap gap-x-10 gap-y-5 mt-12 rise d4">
+                <div>
+                  <div className="text-3xl font-display font-bold tabular-nums leading-none"><CountUp value={items.length} /></div>
+                  <div className="text-[11px] uppercase tracking-[0.14em] text-white/50 mt-2">events announced</div>
+                </div>
+                {next && (
+                  <div>
+                    <div className="text-3xl font-display font-bold tabular-nums leading-none"><CountUp value={Math.max(0, daysUntil(next.startDate))} /></div>
+                    <div className="text-[11px] uppercase tracking-[0.14em] text-white/50 mt-2">days to {next.name}</div>
+                  </div>
+                )}
+                <div>
+                  <div className="text-3xl font-display font-bold tabular-nums leading-none"><CountUp value={4} /></div>
+                  <div className="text-[11px] uppercase tracking-[0.14em] text-white/50 mt-2">circles of connection</div>
+                </div>
+              </div>
+            </div>
+            <div className="rise d2"><ConnectsOrbit /></div>
+          </div>
+        ) : <div className="min-h-[92vh]" />}
+
+        <div className="relative border-t border-white/10">
+          <Marquee className="text-blue-200/70 text-[13px] font-semibold uppercase tracking-[0.16em] py-4"
+            items={[...MODES.map((m) => `CI Connects ${m.headline}`), ...(next ? [`${next.name} · ${formatRange(next.startDate, next.endDate)}`, next.venueName] : [])]} />
         </div>
       </section>
 
-      {!ready ? <Spinner /> : next ? (
-        <section className="mb-14">
-          <div className="eyebrow mb-3">Next up</div>
-          <EventCard event={next} big />
-        </section>
-      ) : (
-        <Empty icon={CalendarDays} title="No events announced yet" body="Published events appear here." />
-      )}
+      <div className="max-w-6xl mx-auto px-5">
+        {!ready ? <Spinner /> : next ? (
+          <Reveal className="mt-16 mb-16">
+            <div className="flex items-end justify-between gap-4 mb-4">
+              <div>
+                <div className="eyebrow mb-1.5">Next up</div>
+                <h2 className="font-display font-bold text-2xl sm:text-3xl tracking-tight text-ink-900">The next time the doors open</h2>
+              </div>
+              <Link to="/events" className="text-sm font-semibold text-blue-700 hover:underline shrink-0">All events →</Link>
+            </div>
+            <EventCard event={next} big />
+          </Reveal>
+        ) : (
+          <div className="mt-16 mb-16"><Empty icon={CalendarDays} title="No events announced yet" body="Published events appear here." /></div>
+        )}
 
-      {upcoming.length > 1 && (
-        <section className="mb-14">
-          <div className="eyebrow mb-3">Also coming</div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">{upcoming.slice(1).map((e) => <EventCard key={e.id} event={e} />)}</div>
-        </section>
-      )}
+        {upcoming.length > 1 && (
+          <section className="mb-16">
+            <Reveal><div className="eyebrow mb-3">Also coming</div></Reveal>
+            <Reveal stagger={0.1} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">{upcoming.slice(1).map((e) => <EventCard key={e.id} event={e} />)}</Reveal>
+          </section>
+        )}
 
-      <section className="mb-14 grid md:grid-cols-3 gap-4">
-        {[
-          ['Sign in', 'With the Google account you were invited at. Nothing to create, nothing to remember.'],
-          ['Get on the list', 'Organisers put you on an event. Then its programme, badge and venue open to you.'],
-          ['Build your day', 'Reserve seats, join a waitlist when a room is full, and take your day to your calendar.'],
-        ].map(([t, b], i) => (
-          <Card key={t} className="p-5">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 text-white inline-flex items-center justify-center font-bold text-sm mb-3">{i + 1}</div>
-            <div className="font-semibold text-ink-900">{t}</div>
-            <p className="text-sm text-ink-500 mt-1">{b}</p>
-          </Card>
-        ))}
-      </section>
-
-      {past.length > 0 && (
-        <section className="mb-6">
-          <div className="eyebrow mb-3">Past events</div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">{past.map((e) => <EventCard key={e.id} event={e} />)}</div>
+        <section className="mb-16">
+          <Reveal><div className="eyebrow mb-1.5">How it works</div><h2 className="font-display font-bold text-2xl sm:text-3xl tracking-tight text-ink-900 mb-6">Three steps, no forms to fill</h2></Reveal>
+          <Reveal stagger={0.12} className="grid md:grid-cols-3 gap-4">
+            {[
+              ['Sign in', 'With the Google account you were invited at. Nothing to create, nothing to remember.'],
+              ['Get on the list', 'Organisers put you on an event. Then its programme, badge and venue open to you.'],
+              ['Build your day', 'Reserve seats, join a waitlist when a room is full, and take your day to your calendar.'],
+            ].map(([t, b], i) => (
+              <Card key={t} className="p-6">
+                <div className="w-9 h-9 rounded-xl bg-blue-600 text-white inline-flex items-center justify-center font-display font-bold mb-4">{i + 1}</div>
+                <div className="font-semibold text-ink-900 text-lg">{t}</div>
+                <p className="text-sm text-ink-500 mt-1.5">{b}</p>
+              </Card>
+            ))}
+          </Reveal>
         </section>
-      )}
+
+        {past.length > 0 && (
+          <section className="mb-6">
+            <Reveal><div className="eyebrow mb-3">Past events</div></Reveal>
+            <Reveal stagger={0.1} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">{past.map((e) => <EventCard key={e.id} event={e} />)}</Reveal>
+          </section>
+        )}
+      </div>
     </div>
   );
 };
@@ -107,7 +181,7 @@ export const EventsIndex: React.FC = () => {
   const past = items.filter((e) => eventPhase(e.startDate, e.endDate) === 'past').sort((a, b) => b.startDate.localeCompare(a.startDate));
   return (
     <div className="max-w-6xl mx-auto px-5 py-10">
-      <h1 className="font-display text-4xl sm:text-5xl text-ink-900 mb-8">Events</h1>
+      <h1 className="font-display font-bold tracking-tight text-4xl sm:text-5xl text-ink-900 mb-8 rise">Events</h1>
       {!ready ? <Spinner /> : items.length === 0 ? <Empty icon={CalendarDays} title="No events announced yet" /> : (
         <div className="space-y-12">
           {upcoming.length > 0 && <section><div className="eyebrow mb-3">Upcoming</div><div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">{upcoming.map((e) => <EventCard key={e.id} event={e} />)}</div></section>}
@@ -121,6 +195,7 @@ export const EventsIndex: React.FC = () => {
 // ------------------------------------------------------------------ one event, public
 export const EventPublic: React.FC = () => {
   const { slug } = useParams();
+  const cover = useParallax(0.25);
   const { status, profile, invitedEventIds } = useAuth();
   const staff = isStaff(profile);
   const filters = [{ field: 'slug', op: '==' as const, value: slug }, ...(staff ? [] : [{ field: 'status', op: '==' as const, value: 'published' }])];
@@ -134,9 +209,9 @@ export const EventPublic: React.FC = () => {
   return (
     <div>
       <div className="relative h-[46vh] min-h-[22rem] bg-ink-900">
-        <img src={event.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />
+        <img ref={cover} src={event.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60 will-change-transform" />
         <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/40 to-transparent" />
-        <div className="relative max-w-6xl mx-auto px-5 h-full flex flex-col justify-end pb-10 text-white">
+        <div className="relative max-w-6xl mx-auto px-5 h-full flex flex-col justify-end pb-10 text-white rise">
           <div className="flex items-center gap-2 mb-3">
             {event.status === 'draft' && <Chip tone="amber">Draft — only organisers see this</Chip>}
             {phase === 'live' && <Chip tone="green">Happening now</Chip>}
@@ -153,8 +228,8 @@ export const EventPublic: React.FC = () => {
 
       <div className="max-w-6xl mx-auto px-5 py-10 grid lg:grid-cols-[minmax(0,1fr)_22rem] gap-10">
         <div className="space-y-8">
-          <p className="text-lg text-ink-700 leading-relaxed whitespace-pre-line max-w-2xl">{event.description}</p>
-          <Card className="p-6">
+          <Reveal><p className="text-lg text-ink-700 leading-relaxed whitespace-pre-line max-w-2xl">{event.description}</p></Reveal>
+          <Reveal delay={0.1}><Card className="p-6">
             {allowed ? (
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -176,9 +251,9 @@ export const EventPublic: React.FC = () => {
                 {status !== 'signed_in' && <Button to={`/signin?next=${encodeURIComponent(`/events/${event.slug}`)}`}><LogIn className="w-4 h-4" />Sign in</Button>}
               </div>
             )}
-          </Card>
+          </Card></Reveal>
         </div>
-        <aside className="space-y-4">
+        <Reveal stagger={0.12} className="space-y-4">
           <Card className="p-5">
             <div className="eyebrow mb-2">When</div>
             <div className="font-semibold text-ink-900">{formatRange(event.startDate, event.endDate)}</div>
@@ -189,7 +264,7 @@ export const EventPublic: React.FC = () => {
             {event.venueAddress && <p className="text-sm text-ink-500 mt-1">{event.venueAddress}</p>}
             <a href={maps} target="_blank" rel="noreferrer" className="btn-secondary btn-sm mt-3"><ExternalLink className="w-3.5 h-3.5" />Open in Maps</a>
           </Card>
-        </aside>
+        </Reveal>
       </div>
     </div>
   );
@@ -206,8 +281,8 @@ export const SignIn: React.FC = () => {
   return (
     <div className="max-w-md mx-auto px-5 py-16">
       <Card className="p-8">
-        <div className="eyebrow mb-2">CI Connects</div>
-        <h1 className="text-2xl font-bold text-ink-900">Sign in</h1>
+        <Mark size={44} className="mb-4" />
+        <h1 className="text-2xl font-display font-bold text-ink-900">Sign in to CI Connects</h1>
         <p className="text-sm text-ink-500 mt-2">Use the Google account you were invited at — a Chadwick account or any other.</p>
         {error && <Notice tone="error" className="mt-4">{error}</Notice>}
         {isDemo ? (

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router';
 import { X, Loader2 } from 'lucide-react';
+import { CountUp } from '../lib/motion';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -114,13 +115,13 @@ export const Drawer: React.FC<{ open: boolean; onClose: () => void; title?: stri
     if (!open) return null;
     return (
       <div className="fixed inset-0 z-50 flex justify-end">
-        <div className="absolute inset-0 bg-ink-900/40" onClick={onClose} />
-        <div className={`relative h-full bg-white shadow-[var(--shadow-pop)] w-full ${wide ? 'max-w-2xl' : 'max-w-lg'} flex flex-col`} role="dialog" aria-modal="true" aria-label={title}>
+        <div className="absolute inset-0 bg-ink-900/40 scrim-in" onClick={onClose} />
+        <div className={`relative h-full bg-white shadow-[var(--shadow-pop)] w-full ${wide ? 'max-w-2xl' : 'max-w-lg'} flex flex-col drawer-in`} role="dialog" aria-modal="true" aria-label={title}>
           <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-sand-200">
             <h2 className="font-semibold text-ink-900 truncate">{title}</h2>
             <button onClick={onClose} className="btn-ghost btn-sm" aria-label="Close"><X className="w-4 h-4" /></button>
           </div>
-          <div className="flex-1 overflow-y-auto px-5 py-5">{children}</div>
+          <div className="flex-1 overflow-y-auto px-5 py-5" data-lenis-prevent>{children}</div>
         </div>
       </div>
     );
@@ -128,7 +129,7 @@ export const Drawer: React.FC<{ open: boolean; onClose: () => void; title?: stri
 
 export const Stat: React.FC<{ value: string | number; label: string; note?: string }> = ({ value, label, note }) => (
   <div className="card p-4">
-    <div className="text-2xl font-bold tabular-nums text-ink-900 leading-none">{value}</div>
+    <div className="text-2xl font-bold tabular-nums text-ink-900 leading-none">{typeof value === 'number' ? <CountUp value={value} /> : value}</div>
     <div className="text-xs font-semibold text-ink-700 mt-2">{label}</div>
     {note && <div className="text-[11px] text-ink-500 mt-0.5">{note}</div>}
   </div>

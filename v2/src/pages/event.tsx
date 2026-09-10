@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, Outlet, useNavigate, useOutletContext, useParams } from 'react-router';
 import { QRCodeSVG } from 'qrcode.react';
 import {
@@ -13,6 +13,8 @@ import { byStart, slotsForDay, speakerIndex, overlaps, seatState } from '../lib/
 import { buildIcs, downloadText } from '../lib/ics';
 import { useEventData, SessionCard, RoomGrid, SessionDrawer, TrackDot } from '../components/schedule';
 import { AnnouncementBar } from '../components/layouts';
+import { EventWelcome } from '../components/EventWelcome';
+import { PageTransition } from '../lib/motion';
 import { Avatar, Button, Card, Chip, Empty, Spinner, SubNav } from '../components/ui';
 
 interface EventCtx { event: Event; sessions: Session[]; rooms: Room[]; tracks: Track[]; mine: Session[]; base: string }
@@ -34,6 +36,9 @@ export const EventLayout: React.FC = () => {
   const { event, ready } = useEventBySlug(slug);
   const allowed = event ? canSeeEvent(profile, event.id, invitedEventIds) : false;
   const data = useEventData(allowed && event ? event.id : null);
+  // The threshold, every time this event is arrived at from outside.
+  const [welcome, setWelcome] = useState(true);
+  useEffect(() => { setWelcome(true); }, [slug]);
   if (!ready) return <Spinner />;
   if (!event) return <Navigate to="/dashboard" replace />;
   const base = `/e/${event.slug}`;
@@ -57,6 +62,10 @@ export const EventLayout: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-6 lg:py-8">
+      {welcome && profile && data.ready && (
+        <EventWelcome event={event} profile={profile} isStaff={isStaff(profile)} sessionCount={data.sessions.length}
+          roomCount={data.rooms.length} reservedCount={mine.length} onDone={() => setWelcome(false)} />
+      )}
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -85,7 +94,7 @@ export const EventLayout: React.FC = () => {
         ]} />
       </div>
       <AnnouncementBar eventId={event.id} />
-      {!data.ready ? <Spinner /> : <Outlet context={ctx} />}
+      {!data.ready ? <Spinner /> : <PageTransition><Outlet context={ctx} /></PageTransition>}
     </div>
   );
 };

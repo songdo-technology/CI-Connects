@@ -1,5 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { AuthProvider } from './lib/auth';
+import { MotionRoot, Cursor, Grain } from './lib/motion';
+import { Intro } from './components/Intro';
 import { PublicLayout, AppShell, RequireAuth, RequireStaff, RequireAdmin } from './components/layouts';
 import { Landing, EventsIndex, EventPublic, SignIn } from './pages/public';
 import { Dashboard, ProfilePage, NotFound } from './pages/app';
@@ -11,6 +13,10 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <MotionRoot />
+        <Cursor />
+        <Grain />
+        <Intro />
         <Routes>
           <Route element={<PublicLayout />}>
             <Route index element={<Landing />} />

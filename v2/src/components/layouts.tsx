@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router';
 import {
   LayoutDashboard, CalendarDays, UserRound, ShieldCheck, LogOut, Menu, X, Eye, Megaphone,
@@ -8,31 +8,36 @@ import { useWatch, useDoc } from '../lib/hooks';
 import { isStaff, isAdmin } from '../lib/roles';
 import { Role, ROLE_LABEL } from '../lib/types';
 import { Avatar, Spinner } from './ui';
+import { Mark, Wordmark } from './Mark';
+import { PageTransition, onScroll } from '../lib/motion';
 
 // ------------------------------------------------------------------ public
 export const PublicLayout: React.FC = () => {
   const { status } = useAuth();
   const { doc: site } = useDoc('settings', 'site');
+  const { pathname } = useLocation();
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const on = () => setScrolled(window.scrollY > 48);
+    on();
+    return onScroll(on);
+  }, []);
+  const overHero = pathname === '/' && !scrolled;
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-40 bg-sand-100/90 backdrop-blur border-b border-sand-200">
+      <header className={`fixed top-0 inset-x-0 z-40 transition-colors duration-500 ${overHero ? 'bg-transparent border-b border-transparent' : 'bg-sand-100/85 backdrop-blur border-b border-sand-200'}`}>
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-2.5 min-w-0">
-            <span className="w-8 h-8 rounded-lg bg-blue-600 text-white inline-flex items-center justify-center font-bold text-sm">CI</span>
-            <span className="leading-tight">
-              <span className="block font-semibold text-ink-900">{site?.name ?? 'CI Connects'}</span>
-              <span className="block text-[11px] text-ink-500">Chadwick International</span>
-            </span>
-          </Link>
+          <Link to="/" className="min-w-0"><Wordmark light={overHero} navTarget /></Link>
           <nav className="flex items-center gap-1">
-            <NavLink to="/events" className={({ isActive }) => `btn-ghost btn-sm ${isActive ? 'text-ink-900 bg-sand-200/70' : ''}`}>Events</NavLink>
+            <NavLink to="/events" className={({ isActive }) => `btn-ghost btn-sm ${overHero ? 'text-white/85 hover:text-white hover:bg-white/10' : ''} ${isActive ? 'text-ink-900 bg-sand-200/70' : ''}`}>Events</NavLink>
             {status === 'signed_in'
-              ? <Link to="/dashboard" className="btn-primary btn-sm">Dashboard</Link>
-              : <Link to="/signin" className="btn-primary btn-sm">Sign in</Link>}
+              ? <Link to="/dashboard" className={`btn-sm ${overHero ? 'btn bg-white text-blue-700 hover:bg-blue-50' : 'btn-primary'}`}>Dashboard</Link>
+              : <Link to="/signin" className={`btn-sm ${overHero ? 'btn bg-white text-blue-700 hover:bg-blue-50' : 'btn-primary'}`}>Sign in</Link>}
           </nav>
         </div>
       </header>
-      <main className="flex-1"><Outlet /></main>
+      <div className={pathname === '/' ? '' : 'h-16'} />
+      <main className="flex-1"><PageTransition><Outlet /></PageTransition></main>
       <footer className="border-t border-sand-200 mt-16">
         <div className="max-w-6xl mx-auto px-5 py-8 text-xs text-ink-500 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
           <span>{site?.name ?? 'CI Connects'} · Chadwick International</span>
@@ -135,13 +140,7 @@ export const AppShell: React.FC = () => {
     <div className="min-h-screen lg:flex">
       {/* Sidebar (wide) */}
       <aside className="hidden lg:flex lg:flex-col w-64 shrink-0 border-r border-sand-200 bg-sand-50 px-4 py-5 sticky top-0 h-screen">
-        <Link to="/" className="flex items-center gap-2.5 px-2 mb-7">
-          <span className="w-8 h-8 rounded-lg bg-blue-600 text-white inline-flex items-center justify-center font-bold text-sm">CI</span>
-          <span className="leading-tight">
-            <span className="block font-semibold text-ink-900">{site?.name ?? 'CI Connects'}</span>
-            <span className="block text-[11px] text-ink-500">Chadwick International</span>
-          </span>
-        </Link>
+        <Link to="/" className="px-2 mb-7"><Wordmark navTarget /></Link>
         <div className="flex-1">{nav}</div>
         <div className="pt-4 border-t border-sand-200">{account}</div>
       </aside>
@@ -149,16 +148,21 @@ export const AppShell: React.FC = () => {
       {/* Top bar (narrow) */}
       <div className="lg:hidden sticky top-0 z-40 bg-sand-100/90 backdrop-blur border-b border-sand-200">
         <div className="px-4 h-14 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded-md bg-blue-600 text-white inline-flex items-center justify-center font-bold text-xs">CI</span>
-            <span className="font-semibold text-ink-900">{site?.name ?? 'CI Connects'}</span>
-          </Link>
+          <Link to="/dashboard" className="flex items-center gap-2"><Mark size={28} /><span className="font-display font-bold text-ink-900">{site?.name ?? 'CI Connects'}</span></Link>
           <button onClick={() => setOpen((v) => !v)} className="btn-ghost btn-sm" aria-label="Menu">{open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}</button>
         </div>
         {open && <div className="px-4 pb-4 space-y-4 border-t border-sand-200 bg-sand-50">{nav}{account}</div>}
       </div>
 
-      <main className="flex-1 min-w-0"><Outlet /></main>
+      <main className="flex-1 min-w-0">
+        {viewAs && (
+          <div className="bg-amber-100 border-b border-amber-200 text-amber-950 text-sm px-4 sm:px-6 py-2 flex items-center justify-between gap-3">
+            <span className="inline-flex items-center gap-2"><Eye className="w-4 h-4" />Viewing as <strong>{ROLE_LABEL[viewAs]}</strong> — this changes only what you see, not what you may do.</span>
+            <button onClick={() => setViewAs(null)} className="font-semibold underline underline-offset-2">Exit preview</button>
+          </div>
+        )}
+        <PageTransition depth={2}><Outlet /></PageTransition>
+      </main>
     </div>
   );
 };
