@@ -352,6 +352,13 @@ not the rules': `sessions` stay world-readable because the unattended room
 signage reads them with no account. `firestore.rules` lets organisers write
 `eventAccess`/`hasEventAccess` on any profile and nothing else.
 
+Administration (`/admin`) is a rail of grouped sections — Plan · Venue &
+partners · People · On the day · Insight · Platform — not one row of sixteen
+tabs. The "setting up your first real event" checklist is gone; the first
+real event exists (KORCOS 2026, created 10 Sep 2026 with two placeholder
+sessions and jyyang@chadwickschool.org on its list), and the rail already
+says where each job lives.
+
 Data arrives through `DataProvider` from one of two stores chosen in
 `main.tsx`: `FirestoreStore` (production, `VITE_USE_FIRESTORE=true`) or the
 seeded `memoryStore` (`npm run dev:demo`, port 3002), which also swaps the

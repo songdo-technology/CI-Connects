@@ -19,7 +19,6 @@ import { AdminGuests } from './AdminGuests';
 import { AdminImport } from './AdminImport';
 import { AdminProposals } from './AdminProposals';
 import { AdminReset } from './AdminReset';
-import { AdminGettingStarted } from './AdminGettingStarted';
 import { AdminCertificates } from './AdminCertificates';
 import { AdminAnalytics } from './AdminAnalytics';
 import { AdminAttendance } from './AdminAttendance';
@@ -119,10 +118,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     mayManageSystem && ['system', 'System', Database],
   ].filter(Boolean) as [Section, string, typeof ShieldCheck][]);
 
-  /** Bumped by the checklist to open a blank form in the editor below. */
-  const [newEventNonce, setNewEventNonce] = useState(0);
   const [section, setSection] = useState<Section>(
     openTo === 'events-new' ? 'events' : sections[0]?.[0] ?? 'system');
+
+  /** The sections by what an organiser is doing, not in one row of sixteen. */
+  const GROUPS: [string, Section[]][] = [
+    ['Plan', ['events', 'programme', 'proposals', 'import']],
+    ['Venue & partners', ['rooms', 'dining', 'sponsors']],
+    ['People', ['guests', 'access', 'people']],
+    ['On the day', ['attendance', 'certificates', 'prizes']],
+    ['Insight', ['analytics', 'costs']],
+    ['Platform', ['system']],
+  ];
+  const byId = new Map(sections.map((entry) => [entry[0], entry] as const));
+  const groups = GROUPS
+    .map(([label, ids]) => [label, ids.filter((id) => byId.has(id))] as const)
+    .filter(([, ids]) => ids.length > 0);
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -143,43 +154,75 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </button>
         </div>
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-1 overflow-x-auto">
-          {sections.map(([id, label, Icon]) => (
-            <button
-              key={id}
-              onClick={() => setSection(id)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors cursor-pointer ${
-                section === id
-                  ? 'border-blue-400 text-white'
-                  : 'border-transparent text-slate-400 hover:text-white'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {label}
-            </button>
-          ))}
-        </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:flex lg:gap-8 lg:items-start">
+        <nav aria-label="Administration" className="lg:w-56 lg:shrink-0 mb-5 lg:mb-0">
+          {/* Wide screens: a rail, grouped. */}
+          <div className="hidden lg:block sticky top-6 space-y-5">
+            {groups.map(([label, ids]) => (
+              <div key={label}>
+                <div className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                  {label}
+                </div>
+                <ul className="space-y-0.5">
+                  {ids.map((id) => {
+                    const entry = byId.get(id);
+                    if (!entry) return null;
+                    const [, itemLabel, Icon] = entry;
+                    const active = section === id;
+                    return (
+                      <li key={id}>
+                        <button
+                          onClick={() => setSection(id)}
+                          aria-current={active ? 'page' : undefined}
+                          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
+                            active
+                              ? 'bg-white text-blue-700 font-semibold shadow-xs border border-slate-200'
+                              : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
+                          }`}
+                        >
+                          <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-blue-600' : 'text-slate-400'}`} />
+                          {itemLabel}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
+          {/* Narrow screens: one strip, same order. */}
+          <div className="lg:hidden -mx-4 px-4 overflow-x-auto scrollbar-none">
+            <div className="flex items-center gap-1 w-max">
+              {sections.map(([id, itemLabel, Icon]) => (
+                <button
+                  key={id}
+                  onClick={() => setSection(id)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                    section === id ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 border border-slate-200'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {itemLabel}
+                </button>
+              ))}
+            </div>
+          </div>
+        </nav>
+
+        <main className="flex-1 min-w-0">
         {section === 'people' && (
           <AdminPeople users={users} currentUser={currentUser} onChangeRole={onChangeRole} />
         )}
 
         {section === 'events' && (
-          <>
-          <AdminGettingStarted
-            events={events} sessions={sessions} rooms={rooms} invites={invites}
-            onCreateEvent={() => setNewEventNonce((n) => n + 1)}
-            onGo={(s) => setSection(s as Section)}
-          />
-          <AdminEvents newEventSignal={(openTo === 'events-new' ? 1 : 0) + newEventNonce}
+          <AdminEvents newEventSignal={openTo === 'events-new' ? 1 : 0}
             events={events}
             currentUser={currentUser}
             onSave={onSaveEvent}
             onDelete={onDeleteEvent}
           />
-          </>
         )}
 
         {section === 'programme' && (
@@ -330,7 +373,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
           </>
         )}
-      </main>
+        </main>
+      </div>
     </div>
   );
 };
