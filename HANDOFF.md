@@ -469,6 +469,16 @@ address in English and Korean, directions from Seoul and the airport,
 the contact — is `SiteFooter`, on every page of the public site and the
 app.
 
+**Photos are uploaded, not linked (11 Sep 2026).** The event cover and
+sponsor logos are `ImagePicker` fields: click or drop a file, it is resized
+in the browser (`src/lib/upload.ts`: covers to 2000px JPEG, logos to 800px,
+PNG keeps transparency, SVG untouched) and put in Firebase Storage under
+`v2/covers/<eventId>/` or `v2/logos/<eventId>/`; the download URL is what
+the document stores, so nothing else changed. `storage.rules` has a v2 block
+(deployed): public read, writes by v2 admin / schedule_admin via a
+cross-service `firestore.get` on `/v2/data/users/<uid>`, 8 MB, images only.
+"Use a link instead" keeps the old way for Unsplash and the like.
+
 **No demo build.** Removed at deploy time: `MemoryStore`, the seed import,
 the persona picker, `npm run demo`, `VITE_DEMO`. Anything that needs a
 signed-in person is verified on `localhost:3100` or live, by a person.

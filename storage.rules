@@ -42,6 +42,23 @@ service firebase.storage {
                    && request.resource.contentType.matches('image/.*');
     }
 
+    // v2 — event covers and sponsor logos, put there through the event
+    // editor by administrators and schedule administrators. Public to
+    // read: they appear on the public event pages.
+    function v2Role() {
+      return signedIn()
+        ? firestore.get(/databases/(default)/documents/v2/data/users/$(request.auth.uid)).data.role
+        : 'anonymous';
+    }
+    match /v2/{kind}/{ownerId}/{fileName} {
+      allow read: if true;
+      allow write: if kind in ['covers', 'logos']
+                   && v2Role() in ['admin', 'schedule_admin']
+                   && request.resource.size < 8 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+      allow delete: if v2Role() == 'admin';
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

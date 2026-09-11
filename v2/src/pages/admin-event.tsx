@@ -15,6 +15,7 @@ import { inviteId } from '../lib/hash';
 import { useEventData, TrackDot } from '../components/schedule';
 import { Scanner } from '../components/Scanner';
 import { Button, Card, Chip, Drawer, Empty, Field, Input, Notice, Select, Spinner, Textarea, PageHeader, Avatar, SubNav, TimeInput } from '../components/ui';
+import { ImagePicker } from '../components/ImagePicker';
 
 const TYPES: SessionType[] = ['keynote', 'talk', 'workshop', 'panel', 'break', 'social'];
 const COLORS = ['#002B54', '#2A6791', '#56A0D3', '#5E6513', '#B04318', '#8B5E34', '#6B605A', '#7C3AED'];
@@ -571,8 +572,7 @@ export const AdminSponsors: React.FC = () => {
           <div className="space-y-4">
             <Field label="Name"><Input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} autoFocus /></Field>
             <Field label="Tier"><Select value={editing.tier} onChange={(e) => setEditing({ ...editing, tier: e.target.value as SponsorTier })}>{SPONSOR_TIERS.map((t) => <option key={t} value={t}>{SPONSOR_TIER_LABEL[t]}</option>)}</Select></Field>
-            <Field label="Logo URL" hint="A PNG or SVG on a light background works best."><Input value={editing.logoUrl ?? ''} onChange={(e) => setEditing({ ...editing, logoUrl: e.target.value })} placeholder="https://…/logo.png" /></Field>
-            {editing.logoUrl && <div className="h-24 rounded-xl bg-sand-50 border border-sand-200 flex items-center justify-center"><img src={editing.logoUrl} alt="" className="max-h-[60%] max-w-[70%] object-contain" /></div>}
+            <Field label="Logo"><ImagePicker value={editing.logoUrl} onChange={(url) => setEditing({ ...editing, logoUrl: url })} folder={`v2/logos/${editing.eventId}`} shape="logo" removable /></Field>
             <Field label="Website"><Input value={editing.url ?? ''} onChange={(e) => setEditing({ ...editing, url: e.target.value })} placeholder="https://" /></Field>
             <Field label="One line about them"><Textarea value={editing.blurb ?? ''} onChange={(e) => setEditing({ ...editing, blurb: e.target.value })} className="min-h-20" /></Field>
             <div className="flex items-center justify-between gap-3 pt-3 border-t border-sand-200">

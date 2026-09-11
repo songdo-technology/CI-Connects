@@ -12,6 +12,7 @@ import { ROLES } from '../lib/roles';
 import { formatRange, eventPhase, nowIso, newId, todayYmd, formatStamp } from '../lib/time';
 import { Button, Card, Chip, Empty, Field, Input, Notice, Select, Spinner, Stat, Textarea, PageHeader, Avatar, DateInput } from '../components/ui';
 import { PageTransition } from '../lib/motion';
+import { ImagePicker } from '../components/ImagePicker';
 
 /** Addresses out of whatever was typed: commas, spaces or lines between them. */
 const parseEmails = (text: string): string[] =>
@@ -201,12 +202,13 @@ export const AdminEventEdit: React.FC = () => {
           <Field label="Ends" hint="Same day for a one-day event"><DateInput value={form.endDate} min={form.startDate} onChange={(v) => set({ endDate: v })} /></Field>
           <Field label="Venue"><Input value={form.venueName} onChange={(e) => set({ venueName: e.target.value })} /></Field>
           <Field label="Address"><Input value={form.venueAddress ?? ''} onChange={(e) => set({ venueAddress: e.target.value || undefined })} /></Field>
-          <Field label="Cover image URL" className="sm:col-span-2" hint="A wide photograph. Unsplash links work."><Input value={form.coverUrl} onChange={(e) => set({ coverUrl: e.target.value })} /></Field>
           <Field label="Organisers" className="sm:col-span-2" hint="Email addresses, separated by commas. Shown as “Organised by” on the event page and greeted at the door. What each may edit comes from their role under People.">
             <Input value={organizersText ?? (form.organizers ?? []).join(', ')} onChange={(e) => setOrganizersText(e.target.value)} placeholder="dnorman@chadwickschool.org, songdo-technology@chadwickschool.org" />
           </Field>
         </div>
-        {form.coverUrl && <div className="aspect-[21/9] rounded-lg overflow-hidden bg-sand-200"><img src={form.coverUrl} alt="" className="w-full h-full object-cover" /></div>}
+        <Field label="Cover photo" hint="On the event card, at the top of the event page and behind the door. Click the picture to change it.">
+          <ImagePicker value={form.coverUrl || undefined} onChange={(url) => set({ coverUrl: url ?? '' })} folder={`v2/covers/${form.id}`} shape="wide" />
+        </Field>
         <label className="flex items-center gap-2 text-sm text-ink-700"><input type="checkbox" checked={form.registrationOpen} onChange={(e) => set({ registrationOpen: e.target.checked })} />Registration open</label>
         <div className="flex items-center justify-between gap-3 pt-2 border-t border-sand-200">
           {!isNew ? (
