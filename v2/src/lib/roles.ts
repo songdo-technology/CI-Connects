@@ -12,4 +12,8 @@ export function canSeeEvent(p: Profile | null | undefined, eventId: string, invi
   return p.eventAccess.includes(eventId) || invitedEventIds.includes(eventId);
 }
 
+/** Staff, or someone named as an organiser of this event. */
+export const runsEvent = (p: Profile | null | undefined, event: { organizers?: string[] } | null | undefined) =>
+  Boolean(p) && (isStaff(p) || (event?.organizers ?? []).includes(p!.email));
+
 export const ROLES: Role[] = ['admin', 'schedule_admin', 'user'];

@@ -1,0 +1,24 @@
+{
+  "events": [
+    {
+      "id": "ci-professional-learning-day-2026",
+      "slug": "ci-professional-learning-day-2026",
+      "name": "CI Professional Learning Day",
+      "tagline": "Relationships Drive our Mission",
+      "description": "Chadwick International's professional development day for faculty and staff, the day before KORCOS 2026 — and the first event run on CI Connects from end to end: colleagues scanned into the school and into their sessions, badges, sponsors on show, and signage around the campus.",
+      "startDate": "2026-10-16",
+      "endDate": "2026-10-16",
+      "venueName": "Chadwick International, Songdo",
+      "venueAddress": "45 Art center-daero 97beon-gil, Yeonsu-gu, Incheon",
+      "coverUrl": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1600&q=80&auto=format&fit=crop",
+      "status": "published",
+      "registrationOpen": false,
+      "organizers": [
+        "songdo-technology@chadwickschool.org",
+        "dnorman@chadwickschool.org"
+      ],
+      "createdBy": "dvJmHITUlbgjsgaDJ4c1h0vFy2v2",
+      "createdAt": "2026-09-11T00:25:01.136878Z"
+    }
+  ]
+}

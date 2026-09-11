@@ -448,6 +448,27 @@ browser session (`sessionStorage` `ci2:welcome:<eventId>:<uid>`); the
 door-QR page (`/e/<slug>/here`) skips it. Every event gets one — nothing
 in it is specific to KORCOS.
 
+**Chadwick's own events (11 Sep 2026).** v1's flagship "Chadwick Connects"
+was carried over as **CI Mission** (`ci-mission-2027`, 15–16 Oct 2027) with
+its five mission-strand tracks in v1's colours, six rooms, thirteen
+sessions (v1's illustrative programme and speakers — replace as the real
+one forms), ten sponsors; and **CI Professional Learning Day**
+(`ci-professional-learning-day-2026`, 16 Oct 2026, "Relationships Drive
+our Mission") was created from Dion Norman's request — the internal PD day
+that is the first real test of the platform. Both list
+`organizers: [songdo-technology@, dnorman@chadwickschool.org]`: a new
+`Event.organizers` field, edited in the event editor, shown as "Organised
+by" on the public page and greeted at the threshold. Rights still come from
+the role: `dnorman@` was added to `BOOTSTRAP_ADMINS` (code and rules, rules
+deployed), so he becomes an administrator the first time he signs in with
+Google — nothing to do by hand. Seeds: `v2/seed/ci-mission-2027.json`,
+`v2/seed/ci-professional-learning-day-2026.json`.
+
+**Footer (11 Sep 2026).** v1's footer — the mission and core values, the
+address in English and Korean, directions from Seoul and the airport,
+the contact — is `SiteFooter`, on every page of the public site and the
+app.
+
 **No demo build.** Removed at deploy time: `MemoryStore`, the seed import,
 the persona picker, `npm run demo`, `VITE_DEMO`. Anything that needs a
 signed-in person is verified on `localhost:3100` or live, by a person.

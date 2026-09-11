@@ -54,6 +54,10 @@ export interface Event {
   coverUrl: string;
   status: 'draft' | 'published';
   registrationOpen: boolean;
+  /** Email addresses of the people who run it — shown as "Organised by"
+   *  and greeted as such at the threshold. Editing rights come from the
+   *  person's role. */
+  organizers?: string[];
   createdBy: string;
   createdAt: string;
 }

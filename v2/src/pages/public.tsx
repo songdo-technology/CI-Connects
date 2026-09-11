@@ -278,6 +278,14 @@ export const EventPublic: React.FC = () => {
             {event.venueAddress && <p className="text-sm text-ink-500 mt-1">{event.venueAddress}</p>}
             <a href={maps} target="_blank" rel="noreferrer" className="btn-secondary btn-sm mt-3"><ExternalLink className="w-3.5 h-3.5" />Open in Maps</a>
           </Card>
+          {event.organizers && event.organizers.length > 0 && (
+            <Card className="p-5">
+              <div className="eyebrow mb-2">Organised by</div>
+              <ul className="space-y-1.5">
+                {event.organizers.map((m) => <li key={m}><a href={`mailto:${m}`} className="text-sm font-semibold text-ink-900 hover:text-blue-700 break-all">{m}</a></li>)}
+              </ul>
+            </Card>
+          )}
         </Reveal>
       </div>
     </div>

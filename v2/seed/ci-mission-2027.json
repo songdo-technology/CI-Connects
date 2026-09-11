@@ -1,0 +1,550 @@
+{
+  "events": [
+    {
+      "id": "ci-mission-2027",
+      "slug": "ci-mission-2027",
+      "name": "CI Mission",
+      "tagline": "Relationships Drive Our Mission",
+      "description": "Chadwick Connects brings the Chadwick Schools community together with educators and experts from around the world for two days built on a single conviction: relationships drive our mission. The programme runs across the five strands of that mission — global citizens with keen minds, exemplary character, self-knowledge and the ability to lead — and asks what each demands of us as our tools begin to think.",
+      "startDate": "2027-10-15",
+      "endDate": "2027-10-16",
+      "venueName": "Chadwick International, Songdo",
+      "venueAddress": "45 Art center-daero 97beon-gil, Yeonsu-gu, Incheon",
+      "coverUrl": "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=1600&q=80&auto=format&fit=crop",
+      "status": "published",
+      "registrationOpen": true,
+      "organizers": [
+        "songdo-technology@chadwickschool.org",
+        "dnorman@chadwickschool.org"
+      ],
+      "createdBy": "dvJmHITUlbgjsgaDJ4c1h0vFy2v2",
+      "createdAt": "2026-09-11T00:25:01.136878Z"
+    }
+  ],
+  "rooms": [
+    {
+      "id": "ci-mission-2027-r-main-theater",
+      "eventId": "ci-mission-2027",
+      "name": "Main Theater",
+      "capacity": 600,
+      "order": 1
+    },
+    {
+      "id": "ci-mission-2027-r-black-box",
+      "eventId": "ci-mission-2027",
+      "name": "Black Box",
+      "capacity": 200,
+      "order": 2
+    },
+    {
+      "id": "ci-mission-2027-r-collaboration-and-innovation-hub",
+      "eventId": "ci-mission-2027",
+      "name": "Collaboration and Innovation Hub",
+      "capacity": 40,
+      "order": 3
+    },
+    {
+      "id": "ci-mission-2027-r-b-201",
+      "eventId": "ci-mission-2027",
+      "name": "B-201",
+      "capacity": 25,
+      "order": 4
+    },
+    {
+      "id": "ci-mission-2027-r-b-202",
+      "eventId": "ci-mission-2027",
+      "name": "B-202",
+      "capacity": 25,
+      "order": 5
+    },
+    {
+      "id": "ci-mission-2027-r-b-203",
+      "eventId": "ci-mission-2027",
+      "name": "B-203",
+      "capacity": 25,
+      "order": 6
+    }
+  ],
+  "tracks": [
+    {
+      "id": "ci-mission-2027-t-global-citizenship",
+      "eventId": "ci-mission-2027",
+      "name": "Global Citizenship",
+      "color": "#002B54",
+      "order": 1
+    },
+    {
+      "id": "ci-mission-2027-t-keen-minds",
+      "eventId": "ci-mission-2027",
+      "name": "Keen Minds",
+      "color": "#2A6791",
+      "order": 2
+    },
+    {
+      "id": "ci-mission-2027-t-exemplary-character",
+      "eventId": "ci-mission-2027",
+      "name": "Exemplary Character",
+      "color": "#5E6513",
+      "order": 3
+    },
+    {
+      "id": "ci-mission-2027-t-self-knowledge",
+      "eventId": "ci-mission-2027",
+      "name": "Self-Knowledge",
+      "color": "#6B605A",
+      "order": 4
+    },
+    {
+      "id": "ci-mission-2027-t-leadership",
+      "eventId": "ci-mission-2027",
+      "name": "Leadership",
+      "color": "#B04318",
+      "order": 5
+    }
+  ],
+  "sponsors": [
+    {
+      "id": "ci-mission-2027-s-incheon",
+      "eventId": "ci-mission-2027",
+      "name": "Incheon Tourism Organization",
+      "tier": "platinum",
+      "order": 1,
+      "blurb": "Supporting international gatherings across the Incheon region."
+    },
+    {
+      "id": "ci-mission-2027-s-mcgraw",
+      "eventId": "ci-mission-2027",
+      "name": "McGraw Hill Education",
+      "tier": "platinum",
+      "order": 2,
+      "url": "https://www.mheducation.com",
+      "blurb": "Learning science and curriculum resources for schools worldwide."
+    },
+    {
+      "id": "ci-mission-2027-s-rustic",
+      "eventId": "ci-mission-2027",
+      "name": "Rustic Pathways",
+      "tier": "platinum",
+      "order": 3,
+      "blurb": "Student travel and service learning programmes worldwide."
+    },
+    {
+      "id": "ci-mission-2027-s-britannica",
+      "eventId": "ci-mission-2027",
+      "name": "Britannica Education",
+      "tier": "gold",
+      "order": 4
+    },
+    {
+      "id": "ci-mission-2027-s-creverse",
+      "eventId": "ci-mission-2027",
+      "name": "Creverse",
+      "tier": "gold",
+      "order": 5
+    },
+    {
+      "id": "ci-mission-2027-s-faria",
+      "eventId": "ci-mission-2027",
+      "name": "Faria",
+      "tier": "gold",
+      "order": 6
+    },
+    {
+      "id": "ci-mission-2027-s-poin2lab",
+      "eventId": "ci-mission-2027",
+      "name": "Poin2Lab",
+      "tier": "gold",
+      "order": 7
+    },
+    {
+      "id": "ci-mission-2027-s-upgrad",
+      "eventId": "ci-mission-2027",
+      "name": "upGrad",
+      "tier": "gold",
+      "order": 8
+    },
+    {
+      "id": "ci-mission-2027-s-edevents",
+      "eventId": "ci-mission-2027",
+      "name": "Ed Events",
+      "tier": "partner",
+      "order": 9
+    },
+    {
+      "id": "ci-mission-2027-s-scalaedu",
+      "eventId": "ci-mission-2027",
+      "name": "Scalaedu",
+      "tier": "partner",
+      "order": 10
+    }
+  ],
+  "sessions": [
+    {
+      "id": "ci-mission-2027-01-keynote",
+      "eventId": "ci-mission-2027",
+      "title": "Opening Keynote: Human at the Centre in an Age of Intelligent Machines",
+      "abstract": "Our mission asks us to develop global citizens with keen minds, exemplary character, self-knowledge and the ability to lead. What does each of those words demand of us now that machines can write, reason and persuade? A frank look at what technology should, and should not, be asked to carry.",
+      "type": "keynote",
+      "date": "2027-10-15",
+      "start": "09:00",
+      "end": "10:15",
+      "roomId": "ci-mission-2027-r-main-theater",
+      "speakers": [
+        {
+          "name": "Ted Hill",
+          "title": "Head of School",
+          "org": "Chadwick International"
+        },
+        {
+          "name": "Dean Norman",
+          "title": "Director of Academic Technology & Systems",
+          "org": "Chadwick International"
+        }
+      ],
+      "capacity": 600,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "trackId": "ci-mission-2027-t-global-citizenship",
+      "materials": [
+        {
+          "label": "Human-at-the-Centre-Keynote.pdf",
+          "url": "https://storage.googleapis.com/ci-conference-2026/keynote-architecture-v1.pdf"
+        }
+      ],
+      "featured": true,
+      "sponsorId": "ci-mission-2027-s-mcgraw"
+    },
+    {
+      "id": "ci-mission-2027-02-ai-classroom",
+      "eventId": "ci-mission-2027",
+      "title": "Thinking With Machines, Not For Them: Prompt Literacy as Critical Inquiry",
+      "abstract": "A hands-on workshop on using AI to sharpen student reasoning rather than replace it. Participants build prompts that demand evidence, surface assumptions and invite disagreement, then test them against real student work.",
+      "type": "workshop",
+      "date": "2027-10-15",
+      "start": "10:45",
+      "end": "12:00",
+      "roomId": "ci-mission-2027-r-b-201",
+      "speakers": [
+        {
+          "name": "Dr. Sarah Lin",
+          "title": "Computer Science Department Chair",
+          "org": "Chadwick International"
+        }
+      ],
+      "capacity": 25,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "trackId": "ci-mission-2027-t-keen-minds",
+      "materials": [
+        {
+          "label": "Prompt-Literacy-Workshop.pdf",
+          "url": "https://storage.googleapis.com/ci-conference-2026/prompt-literacy-workshop.pdf"
+        }
+      ],
+      "featured": true,
+      "sponsorId": "ci-mission-2027-s-mcgraw"
+    },
+    {
+      "id": "ci-mission-2027-03-ethics-panel",
+      "eventId": "ci-mission-2027",
+      "title": "Integrity When the Machine Can Write: Honour in an AI Era",
+      "abstract": "Exemplary character is easy to name and hard to assess. A candid panel on what academic honesty means when the tools are this good, why detection alone fails, and how honour has to be taught rather than policed.",
+      "type": "panel",
+      "date": "2027-10-15",
+      "start": "10:45",
+      "end": "12:00",
+      "roomId": "ci-mission-2027-r-black-box",
+      "speakers": [
+        {
+          "name": "Prof. David Kim",
+          "title": "Humanities & Academic Ethics Lead",
+          "org": "Chadwick International"
+        },
+        {
+          "name": "Chloe Bennett",
+          "title": "Student Technology Ambassador",
+          "org": "Chadwick International"
+        }
+      ],
+      "capacity": 200,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "trackId": "ci-mission-2027-t-exemplary-character",
+      "materials": [
+        {
+          "label": "Integrity-in-an-AI-Era.pdf",
+          "url": "https://storage.googleapis.com/ci-conference-2026/academic-integrity-panel.pdf"
+        }
+      ],
+      "sponsorId": "ci-mission-2027-s-incheon"
+    },
+    {
+      "id": "ci-mission-2027-04-lunch-collab",
+      "eventId": "ci-mission-2027",
+      "title": "Community Luncheon & Cross-Divisional Conversations",
+      "abstract": "Lunch with intent. Tables are grouped by mission strand rather than by division, so Lower School and Upper School colleagues end up discussing the same question from opposite ends of a student journey.",
+      "type": "social",
+      "date": "2027-10-15",
+      "start": "12:15",
+      "end": "13:30",
+      "roomId": "ci-mission-2027-r-main-theater",
+      "speakers": [
+        {
+          "name": "Dean Norman",
+          "title": "Director of Academic Technology & Systems",
+          "org": "Chadwick International"
+        }
+      ],
+      "capacity": 600,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "trackId": "ci-mission-2027-t-global-citizenship",
+      "sponsorId": "ci-mission-2027-s-incheon"
+    },
+    {
+      "id": "ci-mission-2027-05-robotics-maker",
+      "eventId": "ci-mission-2027",
+      "title": "Inquiry-Based Robotics: Building Cross-Disciplinary Challenges",
+      "abstract": "How an open-ended robotics challenge develops keen minds across subjects — the engineering is the visible part, but the reasoning, iteration and argument are the point. Includes a challenge design template to take back to your division.",
+      "type": "talk",
+      "date": "2027-10-15",
+      "start": "13:45",
+      "end": "15:00",
+      "roomId": "ci-mission-2027-r-collaboration-and-innovation-hub",
+      "speakers": [
+        {
+          "name": "Elena Rostova",
+          "title": "Director of Innovation & Learning",
+          "org": "Seoul Foreign School"
+        }
+      ],
+      "capacity": 40,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "trackId": "ci-mission-2027-t-keen-minds",
+      "materials": [
+        {
+          "label": "Inquiry-Robotics-Challenges.pdf",
+          "url": "https://storage.googleapis.com/ci-conference-2026/robotics-stem-curriculum.pdf"
+        }
+      ],
+      "sponsorId": "ci-mission-2027-s-rustic"
+    },
+    {
+      "id": "ci-mission-2027-06-veracross-sync",
+      "eventId": "ci-mission-2027",
+      "title": "Systems That Serve People: Designing School Operations Around Learning",
+      "abstract": "A working session on the unglamorous half of leadership — timetables, rooms, rosters and the systems beneath them. How we choose and build tools so they absorb administrative friction rather than adding it, leaving teachers free to teach.",
+      "type": "talk",
+      "date": "2027-10-15",
+      "start": "13:45",
+      "end": "15:00",
+      "roomId": "ci-mission-2027-r-b-202",
+      "speakers": [
+        {
+          "name": "Marcus Vance",
+          "title": "Principal Distributed Systems Architect",
+          "org": "Vance Systems & EdTech Alliance"
+        },
+        {
+          "name": "Dean Norman",
+          "title": "Director of Academic Technology & Systems",
+          "org": "Chadwick International"
+        }
+      ],
+      "capacity": 25,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "trackId": "ci-mission-2027-t-leadership",
+      "materials": [
+        {
+          "label": "Systems-That-Serve-People.pdf",
+          "url": "https://storage.googleapis.com/ci-conference-2026/veracross-google-sync.pdf"
+        }
+      ]
+    },
+    {
+      "id": "ci-mission-2027-10-wellness-belonging",
+      "eventId": "ci-mission-2027",
+      "title": "Wellness and Belonging: The Conditions Learning Needs",
+      "abstract": "Keen minds do not grow in anxious rooms. An honest session on the conditions that have to hold before any of the rest of the mission is possible: belonging, psychological safety, workload, and the quiet signals that tell a student whether this place is theirs.",
+      "type": "talk",
+      "date": "2027-10-15",
+      "start": "13:45",
+      "end": "15:00",
+      "roomId": "ci-mission-2027-r-black-box",
+      "speakers": [
+        {
+          "name": "Elena Rostova",
+          "title": "Director of Innovation & Learning",
+          "org": "Seoul Foreign School"
+        }
+      ],
+      "capacity": 200,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "trackId": "ci-mission-2027-t-self-knowledge"
+    },
+    {
+      "id": "ci-mission-2027-07-math-dataviz",
+      "eventId": "ci-mission-2027",
+      "title": "Reading the World in Data: Climate, Migration and Global Citizenship",
+      "abstract": "Global citizenship needs more than sympathy — it needs the ability to read the evidence. Working with real climate and migration datasets, this session builds the statistical judgement students need to hold an informed position, and to notice when a chart is arguing with them.",
+      "type": "talk",
+      "date": "2027-10-16",
+      "start": "09:00",
+      "end": "10:15",
+      "roomId": "ci-mission-2027-r-b-201",
+      "speakers": [
+        {
+          "name": "Mei-Ling Zhou",
+          "title": "Senior Mathematics Instructor",
+          "org": "Chadwick International"
+        }
+      ],
+      "capacity": 25,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "trackId": "ci-mission-2027-t-global-citizenship",
+      "materials": [
+        {
+          "label": "Reading-the-World-in-Data.pdf",
+          "url": "https://storage.googleapis.com/ci-conference-2026/math-dataviz.pdf"
+        }
+      ],
+      "sponsorId": "ci-mission-2027-s-rustic"
+    },
+    {
+      "id": "ci-mission-2027-08-wellbeing-digital",
+      "eventId": "ci-mission-2027",
+      "title": "Attention, Balance and Self-Knowledge on a Connected Campus",
+      "abstract": "Self-knowledge is the strand most easily crowded out by a device. Practical approaches to helping students notice their own attention, name what a tool is doing to it, and choose deliberately — drawing on what we have learned from our own 1:1 programme.",
+      "type": "talk",
+      "date": "2027-10-16",
+      "start": "09:00",
+      "end": "10:15",
+      "roomId": "ci-mission-2027-r-black-box",
+      "speakers": [
+        {
+          "name": "Prof. David Kim",
+          "title": "Humanities & Academic Ethics Lead",
+          "org": "Chadwick International"
+        }
+      ],
+      "capacity": 200,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "trackId": "ci-mission-2027-t-self-knowledge"
+    },
+    {
+      "id": "ci-mission-2027-11-chadwick-way",
+      "eventId": "ci-mission-2027",
+      "title": "The Chadwick Way: Framing Emerging Technology Against a Mission",
+      "abstract": "Most schools decide about technology tool by tool. This session makes the case for deciding against a mission instead, offering a working framework for asking what a new capability does to global citizenship, keen minds, character, self-knowledge and leadership before asking what it costs.",
+      "type": "talk",
+      "date": "2027-10-16",
+      "start": "10:45",
+      "end": "12:00",
+      "roomId": "ci-mission-2027-r-main-theater",
+      "speakers": [
+        {
+          "name": "Dean Norman",
+          "title": "Director of Academic Technology & Systems",
+          "org": "Chadwick International"
+        },
+        {
+          "name": "Prof. David Kim",
+          "title": "Humanities & Academic Ethics Lead",
+          "org": "Chadwick International"
+        }
+      ],
+      "capacity": 600,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "trackId": "ci-mission-2027-t-leadership"
+    },
+    {
+      "id": "ci-mission-2027-12-belonging-design",
+      "eventId": "ci-mission-2027",
+      "title": "Belonging by Design: Inclusive Practice Across Four Divisions",
+      "abstract": "What inclusion looks like when it is structural rather than aspirational. Colleagues from Early Years through Upper School trace one practice across a whole student journey, and the visiting cohort is invited to push back with what works elsewhere.",
+      "type": "talk",
+      "date": "2027-10-16",
+      "start": "10:45",
+      "end": "12:00",
+      "roomId": "ci-mission-2027-r-collaboration-and-innovation-hub",
+      "speakers": [
+        {
+          "name": "Mei-Ling Zhou",
+          "title": "Senior Mathematics Instructor",
+          "org": "Chadwick International"
+        },
+        {
+          "name": "Dr. Sarah Lin",
+          "title": "Computer Science Department Chair",
+          "org": "Chadwick International"
+        }
+      ],
+      "capacity": 40,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "trackId": "ci-mission-2027-t-global-citizenship"
+    },
+    {
+      "id": "ci-mission-2027-13-inside-chadwick",
+      "eventId": "ci-mission-2027",
+      "title": "Inside Chadwick: Campus Walkthrough and Open Conversation",
+      "abstract": "For visiting colleagues curious about how this actually works day to day. Walk the campus with the people who teach in it, sit in on a space mid-use, and ask the unguarded questions about the school, the community, and what it is like to build a career here.",
+      "type": "talk",
+      "date": "2027-10-16",
+      "start": "13:45",
+      "end": "15:00",
+      "roomId": "ci-mission-2027-r-b-203",
+      "speakers": [
+        {
+          "name": "Dean Norman",
+          "title": "Director of Academic Technology & Systems",
+          "org": "Chadwick International"
+        },
+        {
+          "name": "Chloe Bennett",
+          "title": "Student Technology Ambassador",
+          "org": "Chadwick International"
+        }
+      ],
+      "capacity": 25,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "trackId": "ci-mission-2027-t-self-knowledge"
+    },
+    {
+      "id": "ci-mission-2027-09-closing-raffle",
+      "eventId": "ci-mission-2027",
+      "title": "Closing Plenary: The Ability to Lead, and What We Do on Monday",
+      "abstract": "The conference closes where the mission does — with the ability to lead. Strand leads report what emerged, we name the commitments worth carrying into the year, and the community draw sends everyone home. Leadership here means whoever chooses to act first.",
+      "type": "keynote",
+      "date": "2027-10-16",
+      "start": "15:30",
+      "end": "16:45",
+      "roomId": "ci-mission-2027-r-main-theater",
+      "speakers": [
+        {
+          "name": "Dean Norman",
+          "title": "Director of Academic Technology & Systems",
+          "org": "Chadwick International"
+        },
+        {
+          "name": "Marcus Vance",
+          "title": "Principal Distributed Systems Architect",
+          "org": "Vance Systems & EdTech Alliance"
+        }
+      ],
+      "capacity": 600,
+      "reservedUserIds": [],
+      "waitlistUserIds": [],
+      "trackId": "ci-mission-2027-t-leadership",
+      "featured": true,
+      "sponsorId": "ci-mission-2027-s-mcgraw"
+    }
+  ]
+}

@@ -343,7 +343,7 @@ service cloud.firestore {
     }
     function v2Listed(eventId) { return signedIn() && v2Exists() && eventId in v2Me().get('eventAccess', []); }
     function v2CanSee(eventId) { return v2Staff() || v2Listed(eventId) || v2Invited(eventId); }
-    function v2Bootstrap(email) { return email in ['songdo-technology@chadwickschool.org', 'jyyang@chadwickschool.org']; }
+    function v2Bootstrap(email) { return email in ['songdo-technology@chadwickschool.org', 'jyyang@chadwickschool.org', 'dnorman@chadwickschool.org']; }
     function v2OnlyTouches(fields) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields); }
 
     match /v2/data/users/{userId} {

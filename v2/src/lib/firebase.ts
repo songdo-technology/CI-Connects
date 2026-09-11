@@ -30,4 +30,5 @@ export { app, auth, db };
 export const BOOTSTRAP_ADMINS = [
   'songdo-technology@chadwickschool.org',
   'jyyang@chadwickschool.org',
+  'dnorman@chadwickschool.org',
 ];

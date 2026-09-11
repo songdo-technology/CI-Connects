@@ -13,6 +13,10 @@ import { formatRange, eventPhase, nowIso, newId, todayYmd, formatStamp } from '.
 import { Button, Card, Chip, Empty, Field, Input, Notice, Select, Spinner, Stat, Textarea, PageHeader, Avatar, DateInput } from '../components/ui';
 import { PageTransition } from '../lib/motion';
 
+/** Addresses out of whatever was typed: commas, spaces or lines between them. */
+const parseEmails = (text: string): string[] =>
+  [...new Set(text.split(/[\s,;]+/).map((x) => x.trim().toLowerCase()).filter((x) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x)))];
+
 // ------------------------------------------------------------------ layout
 export const AdminLayout: React.FC = () => {
   const { profile } = useAuth();
@@ -105,6 +109,7 @@ export const AdminEvents: React.FC = () => {
                     {phase === 'past' && <Chip>Past</Chip>}
                   </div>
                   <div className="text-sm text-ink-500 mt-0.5">{formatRange(e.startDate, e.endDate)} · {e.venueName} · {n} session{n === 1 ? '' : 's'}</div>
+                  {e.organizers && e.organizers.length > 0 && <div className="text-xs text-ink-500 mt-0.5">Organised by {e.organizers.join(', ')}</div>}
                 </div>
                 <div className="flex flex-wrap gap-2 shrink-0">
                   <Button size="sm" to={`/admin/events/${e.id}/schedule`}><ListTree className="w-3.5 h-3.5" />Schedule</Button>
@@ -140,6 +145,8 @@ export const AdminEventEdit: React.FC = () => {
   const sessions = useWatch('sessions', id ? [{ field: 'eventId', op: '==', value: id }] : [], Boolean(id));
   const [form, setForm] = useState<Event | null>(null);
   const [slugTouched, setSlugTouched] = useState(false);
+  // Typed as one line; parsed into addresses when saved.
+  const [organizersText, setOrganizersText] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -158,7 +165,8 @@ export const AdminEventEdit: React.FC = () => {
     if (form.endDate < form.startDate) return setError('The end date is before the start date.');
     setBusy(true);
     try {
-      await store.set('events', form.id, { ...form, name: form.name.trim(), slug: slugify(form.slug) });
+      const organizers = parseEmails(organizersText ?? (form.organizers ?? []).join(', '));
+      await store.set('events', form.id, { ...form, name: form.name.trim(), slug: slugify(form.slug), organizers: organizers.length ? organizers : undefined });
       navigate('/admin/events');
     } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   };
@@ -194,6 +202,9 @@ export const AdminEventEdit: React.FC = () => {
           <Field label="Venue"><Input value={form.venueName} onChange={(e) => set({ venueName: e.target.value })} /></Field>
           <Field label="Address"><Input value={form.venueAddress ?? ''} onChange={(e) => set({ venueAddress: e.target.value || undefined })} /></Field>
           <Field label="Cover image URL" className="sm:col-span-2" hint="A wide photograph. Unsplash links work."><Input value={form.coverUrl} onChange={(e) => set({ coverUrl: e.target.value })} /></Field>
+          <Field label="Organisers" className="sm:col-span-2" hint="Email addresses, separated by commas. Shown as “Organised by” on the event page and greeted at the door. What each may edit comes from their role under People.">
+            <Input value={organizersText ?? (form.organizers ?? []).join(', ')} onChange={(e) => setOrganizersText(e.target.value)} placeholder="dnorman@chadwickschool.org, songdo-technology@chadwickschool.org" />
+          </Field>
         </div>
         {form.coverUrl && <div className="aspect-[21/9] rounded-lg overflow-hidden bg-sand-200"><img src={form.coverUrl} alt="" className="w-full h-full object-cover" /></div>}
         <label className="flex items-center gap-2 text-sm text-ink-700"><input type="checkbox" checked={form.registrationOpen} onChange={(e) => set({ registrationOpen: e.target.checked })} />Registration open</label>

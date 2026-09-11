@@ -9,6 +9,7 @@ import { isStaff, isAdmin } from '../lib/roles';
 import { Role, ROLE_LABEL } from '../lib/types';
 import { Avatar, Spinner } from './ui';
 import { Mark, Wordmark } from './Mark';
+import { SiteFooter } from './SiteFooter';
 import { PageTransition, onScroll } from '../lib/motion';
 
 // ------------------------------------------------------------------ public
@@ -38,12 +39,7 @@ export const PublicLayout: React.FC = () => {
       </header>
       <div className={pathname === '/' ? '' : 'h-16'} />
       <main className="flex-1"><PageTransition><Outlet /></PageTransition></main>
-      <footer className="border-t border-sand-200 mt-16">
-        <div className="max-w-6xl mx-auto px-5 py-8 text-xs text-ink-500 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
-          <span>{site?.name ?? 'CI Connects'} · Chadwick International</span>
-          {site?.contactEmail && <a className="hover:text-ink-900" href={`mailto:${site.contactEmail}`}>{site.contactEmail}</a>}
-        </div>
-      </footer>
+      <SiteFooter contactEmail={site?.contactEmail} />
     </div>
   );
 };
@@ -162,6 +158,7 @@ export const AppShell: React.FC = () => {
           </div>
         )}
         <PageTransition depth={2}><Outlet /></PageTransition>
+        <SiteFooter contactEmail={site?.contactEmail} />
       </main>
     </div>
   );

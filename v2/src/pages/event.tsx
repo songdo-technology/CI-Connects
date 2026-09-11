@@ -7,7 +7,7 @@ import {
 import { Event, Room, Session, Track, Sponsor, SPONSOR_TIERS, SPONSOR_TIER_LABEL } from '../lib/types';
 import { useAuth } from '../lib/auth';
 import { useWatch } from '../lib/hooks';
-import { isStaff, canSeeEvent } from '../lib/roles';
+import { isStaff, canSeeEvent, runsEvent } from '../lib/roles';
 import { formatRange, formatDate, formatTime, eachDate, eventPhase, daysUntil, todayYmd, formatClock } from '../lib/time';
 import { byStart, slotsForDay, speakerIndex, overlaps, seatState } from '../lib/schedule';
 import { buildIcs, downloadText } from '../lib/ics';
@@ -66,7 +66,7 @@ export const EventLayout: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto px-5 py-6 lg:py-8">
       {welcome && profile && !seenWelcome(event.id, profile.id) && !atDoor && (
-        <EventWelcome event={event} profile={profile} isStaff={isStaff(profile)} ready={data.ready} sessionCount={data.sessions.length}
+        <EventWelcome event={event} profile={profile} isStaff={runsEvent(profile, event)} ready={data.ready} sessionCount={data.sessions.length}
           roomCount={data.rooms.length} reservedCount={mine.length} onDone={closeWelcome} />
       )}
       <div className="flex flex-col gap-4 mb-6">
