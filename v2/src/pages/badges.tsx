@@ -45,7 +45,7 @@ export const BadgesPage: React.FC = () => {
   if (!profile) return null;
   return (
     <div className="max-w-6xl mx-auto px-5 py-6 lg:py-8">
-      <PageHeader title="Your badges" description="One for every event you are on. Show the code at the door and at each room — it works from any phone signed in as you, and it prints." />
+      <PageHeader title="Your badges" description="One for every event you are on. Show the code at the entrance and at each room — it works from any phone signed in as you." />
       {!ready ? <Spinner /> : mine.length === 0 ? (
         <Empty icon={IdCardLanyard} title="No badges yet" body="A badge appears here the moment an organiser lists you for an event." />
       ) : (

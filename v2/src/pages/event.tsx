@@ -8,13 +8,14 @@ import { Event, Room, Session, Track, Sponsor, SPONSOR_TIERS, SPONSOR_TIER_LABEL
 import { useAuth } from '../lib/auth';
 import { useWatch } from '../lib/hooks';
 import { isStaff, canSeeEvent, runsEvent } from '../lib/roles';
-import { formatRange, formatDate, formatTime, eachDate, eventPhase, daysUntil, todayYmd, formatClock } from '../lib/time';
+import { formatRange, formatDate, formatTime, eachDate, eventPhase, daysUntil, todayYmd, formatClock, toMinutes } from '../lib/time';
 import { byStart, slotsForDay, speakerIndex, overlaps, seatState } from '../lib/schedule';
 import { buildIcs, downloadText } from '../lib/ics';
 import { useEventData, SessionCard, RoomGrid, SessionDrawer, TrackDot } from '../components/schedule';
 import { AnnouncementBar } from '../components/layouts';
 import { EventWelcome, seenWelcome } from '../components/EventWelcome';
 import { BadgeCard, BadgeFullscreen } from '../components/Badge';
+import { HostPanel } from './checkin';
 import { PageTransition } from '../lib/motion';
 import { Avatar, Button, Card, Chip, Empty, Spinner, SubNav } from '../components/ui';
 
@@ -336,37 +337,31 @@ export const SponsorsPage: React.FC = () => {
 
 // ------------------------------------------------------------------ badge
 export const BadgePage: React.FC = () => {
-  const { event, sessions } = useEvent();
+  const { event, sessions, rooms } = useEvent();
   const { user, profile } = useAuth();
   const attendance = useWatch('attendance', [{ field: 'eventId', op: '==', value: event.id }, { field: 'userId', op: '==', value: user?.uid ?? '' }], Boolean(user));
   const [door, setDoor] = useState(false);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => { const t = window.setInterval(() => setNow(new Date()), 30_000); return () => window.clearInterval(t); }, []);
   if (!user || !profile) return null;
   const arrived = attendance.items.find((a) => a.sessionId === null) ?? null;
   const me = profile.name.trim().toLowerCase();
   const speaker = sessions.some((s) => s.speakers.some((p) => p.name.trim().toLowerCase() === me));
   const reserved = sessions.filter((s) => s.reservedUserIds.includes(profile.id)).length;
   const been = attendance.items.filter((a) => a.sessionId).sort((a, b) => a.at.localeCompare(b.at));
+  // The rooms this person runs that are on right now — their view of the door.
+  const today = todayYmd(); const mins = now.getHours() * 60 + now.getMinutes();
+  const hosting = sessions.filter((s) => (s.hostIds ?? []).includes(profile.id) && s.date === today && toMinutes(s.start) - 15 <= mins && mins <= toMinutes(s.end));
   return (
-    <div className="grid lg:grid-cols-[auto_minmax(0,1fr)] gap-8 items-start">
-      <div className="flex flex-col items-center gap-4 mx-auto lg:mx-0">
-        <BadgeCard event={event} profile={profile} speaker={speaker} reserved={reserved} arrived={arrived} size="full" className="rise" />
-        <div className="flex gap-2 print:hidden">
-          <Button onClick={() => setDoor(true)}><Maximize2 className="w-4 h-4" />Show at the door</Button>
-          <Button variant="secondary" onClick={() => window.print()}><Printer className="w-4 h-4" />Print</Button>
+    <div className="max-w-3xl mx-auto space-y-5">
+      {hosting.map((s) => <HostPanel key={s.id} event={event} session={s} room={rooms.find((r) => r.id === s.roomId)} />)}
+      <div className="grid md:grid-cols-[auto_minmax(0,1fr)] gap-6 items-start">
+        <div className="mx-auto md:mx-0">
+          <BadgeCard event={event} profile={profile} speaker={speaker} reserved={reserved} arrived={arrived} size="full" className="rise" onCodeClick={() => setDoor(true)} />
         </div>
-      </div>
-      <div className="space-y-4 print:hidden">
-        <Card className="p-5">
-          <div className="eyebrow mb-2">How it works</div>
-          <ul className="text-sm text-ink-700 space-y-2">
-            <li className="flex gap-2"><ScanLine className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />At the entrance and at each room, hold the code up to the scanner. The screen greets you and you are counted in.</li>
-            <li className="flex gap-2"><QrCode className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />Walked in without being scanned? Scan the code on the room's screen with your phone instead — that records you too.</li>
-            <li className="flex gap-2"><Printer className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />Print it for a lanyard, or keep it on your phone. The code is yours, not the event's: the same badge works at every event you are on.</li>
-          </ul>
-        </Card>
         <Card className="p-5">
           <div className="eyebrow mb-2">Where you have been</div>
-          {been.length === 0 && !arrived ? <p className="text-sm text-ink-500">Nothing yet — your arrivals will be listed here.</p> : (
+          {been.length === 0 && !arrived ? <p className="text-sm text-ink-500">Nothing yet — hold the code up to the scanner at the entrance and at each room, and your arrivals are listed here.</p> : (
             <ul className="space-y-1.5">
               {arrived && <li className="text-sm flex items-center gap-2"><CircleCheck className="w-4 h-4 text-emerald-600 shrink-0" /><span className="text-ink-900">Arrived at {event.venueName}</span><span className="text-xs text-ink-500 ml-auto">{formatClock(arrived.at)}</span></li>}
               {been.map((a) => {

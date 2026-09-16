@@ -345,9 +345,14 @@ service cloud.firestore {
     function v2CanSee(eventId) { return v2Staff() || v2Listed(eventId) || v2Invited(eventId); }
     function v2Bootstrap(email) { return email in ['songdo-technology@chadwickschool.org', 'jyyang@chadwickschool.org', 'dnorman@chadwickschool.org']; }
     function v2OnlyTouches(fields) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields); }
+    // The sessions a person runs, kept on their profile by staff when they
+    // are named on a session — what lets a host who is not staff see their
+    // own room.
+    function v2HostOf() { return signedIn() && v2Exists() ? v2Me().get('hostOf', []) : []; }
+    function v2Hosts(sessionId) { return sessionId in v2HostOf(); }
 
     match /v2/data/users/{userId} {
-      allow get: if signedIn() && (userId == uid() || v2Staff());
+      allow get: if signedIn() && (userId == uid() || v2Staff() || v2HostOf().size() > 0);
       allow list: if v2Staff() || (signedIn() && resource.data.id == uid());
       // Self-provisioning on first sign-in: as a member, or as an
       // administrator for the bootstrap addresses. Never with a list.
@@ -358,8 +363,9 @@ service cloud.firestore {
                         || (request.resource.data.role == 'admin' && v2Bootstrap(v2Email())));
       // One's own profile, but never one's role, address or lists.
       allow update: if v2Admin()
+                    || (v2Staff() && v2OnlyTouches(['hostOf']))
                     || (signedIn() && userId == uid()
-                        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'email', 'id', 'eventAccess']));
+                        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'email', 'id', 'eventAccess', 'hostOf']));
       allow delete: if v2Admin();
     }
 
@@ -379,6 +385,7 @@ service cloud.firestore {
       // A listed person manages their own seat. Constrained to the two
       // arrays, so a booking cannot smuggle in a title or a capacity.
       allow update: if v2Staff()
+                    || (v2Hosts(sessionId) && v2OnlyTouches(['checkinCode']))
                     || (v2CanSee(resource.data.eventId) && v2OnlyTouches(['reservedUserIds', 'waitlistUserIds']));
     }
 
@@ -393,11 +400,13 @@ service cloud.firestore {
     }
 
     match /v2/data/attendance/{recordId} {
-      allow read: if v2Staff() || (signedIn() && resource.data.userId == uid());
-      // Staff record anyone. A person records themselves at a session's door
+      allow read: if v2Staff() || (signedIn() && resource.data.userId == uid())
+                  || (signedIn() && resource.data.sessionId is string && v2Hosts(resource.data.sessionId));
+      // Staff record anyone; a session's host records anyone at that session. A person records themselves at a session's door
       // by scanning its QR: the code they carry must be the one on the
       // session right now, so a photograph of last week's poster is no use.
       allow create: if v2Staff()
+                    || (signedIn() && request.resource.data.sessionId is string && v2Hosts(request.resource.data.sessionId))
                     || (signedIn()
                         && request.resource.data.userId == uid()
                         && request.resource.data.sessionId is string

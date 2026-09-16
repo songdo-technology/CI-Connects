@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 import {
-  ArrowLeft, Plus, Trash2, Upload, AlertTriangle, Check, DoorOpen, Tag, Search, UserPlus, Mail, ScanLine, CircleCheck, Undo2, KeyRound, ClipboardCheck, ListTree, Camera, QrCode, Handshake, Pencil, Radio, MonitorPlay,
+  ArrowLeft, Plus, Trash2, Upload, AlertTriangle, Check, DoorOpen, Tag, Search, UserPlus, Mail, ScanLine, CircleCheck, Undo2, KeyRound, ClipboardCheck, ListTree, Camera, QrCode, Handshake, Pencil, Radio, MonitorPlay, X,
 } from 'lucide-react';
 import { Event, Session, Room, Track, SessionType, SESSION_TYPE_LABEL, Invite, Profile, Attendance, Sponsor, SponsorTier, SPONSOR_TIERS, SPONSOR_TIER_LABEL } from '../lib/types';
 import { useAuth } from '../lib/auth';
@@ -190,6 +190,8 @@ const SessionEditor: React.FC<{ event: Event; session: Session | null; rooms: Ro
     const [force, setForce] = useState(false);
     const [busy, setBusy] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState(false);
+    const users = useWatch('users', []);
+    const people = useMemo(() => users.items.filter((u) => u.role !== 'user' || u.eventAccess.includes(event.id)).sort((a, b) => a.name.localeCompare(b.name)), [users.items, event.id]);
     useEffect(() => {
       setForm(session); setSpeakers(session ? speakersToText(session.speakers) : ''); setMaterials(session ? materialsToText(session.materials) : '');
       setError(null); setForce(false); setConfirmDelete(false);
@@ -208,7 +210,12 @@ const SessionEditor: React.FC<{ event: Event; session: Session | null; rooms: Ro
       setBusy(true);
       try {
         const mats = textToMaterials(materials);
-        await store.set('sessions', form.id, { ...form, title: form.title.trim(), speakers: parseSpeakers(speakers), materials: mats.length ? mats : undefined, trackId: form.trackId || undefined, sponsorId: form.sponsorId || undefined });
+        const hosts = form.hostIds ?? [];
+        await store.set('sessions', form.id, { ...form, title: form.title.trim(), speakers: parseSpeakers(speakers), materials: mats.length ? mats : undefined, trackId: form.trackId || undefined, sponsorId: form.sponsorId || undefined, hostIds: hosts.length ? hosts : undefined });
+        // Each host's profile lists the sessions they run; that list is what the rules check.
+        const before = session?.hostIds ?? [];
+        for (const id of hosts.filter((x) => !before.includes(x))) { const u = users.items.find((x) => x.id === id); if (u) await store.update('users', id, { hostOf: [...new Set([...(u.hostOf ?? []), form.id])] }); }
+        for (const id of before.filter((x) => !hosts.includes(x))) { const u = users.items.find((x) => x.id === id); if (u) await store.update('users', id, { hostOf: (u.hostOf ?? []).filter((s) => s !== form.id) }); }
         onClose();
       } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
     };
@@ -230,6 +237,19 @@ const SessionEditor: React.FC<{ event: Event; session: Session | null; rooms: Ro
             <Field label="Seats" hint="0 = open seating"><Input type="number" min={0} value={form.capacity} onChange={(e) => set({ capacity: Math.max(0, Number(e.target.value) || 0) })} /></Field>
             <Field label="Speakers" hint="Name (Title, Org); Name (Title, Org)"><Input value={speakers} onChange={(e) => setSpeakers(e.target.value)} placeholder="Jane Kim (Head of School, Chadwick International)" /></Field>
           </div>
+          <Field label="Run by" hint="Whoever runs the session sees who is in the room while it is on, from their own badge page, and can open its door screen — they need not be staff.">
+            {(form.hostIds ?? []).length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {(form.hostIds ?? []).map((id) => { const u = users.items.find((x) => x.id === id); return (
+                  <span key={id} className="chip bg-blue-50 text-blue-800 border border-blue-100">{u?.name ?? id}<button type="button" onClick={() => set({ hostIds: (form.hostIds ?? []).filter((h) => h !== id) })} className="ml-1 hover:text-rose-700" aria-label={`Remove ${u?.name ?? id}`}><X className="w-3 h-3" /></button></span>
+                ); })}
+              </div>
+            )}
+            <Select value="" onChange={(e) => { if (e.target.value) set({ hostIds: [...(form.hostIds ?? []), e.target.value] }); }}>
+              <option value="">Add a person…</option>
+              {people.filter((u) => !(form.hostIds ?? []).includes(u.id)).map((u) => <option key={u.id} value={u.id}>{u.name}{u.org ? ` · ${u.org}` : ''}</option>)}
+            </Select>
+          </Field>
           <Field label="Abstract"><Textarea value={form.abstract} onChange={(e) => set({ abstract: e.target.value })} className="min-h-28" /></Field>
           <Field label="Materials" hint="One per line: Label | https://…"><Textarea value={materials} onChange={(e) => setMaterials(e.target.value)} className="min-h-16" placeholder="Slides | https://docs.google.com/…" /></Field>
           {sponsors.length > 0 && (

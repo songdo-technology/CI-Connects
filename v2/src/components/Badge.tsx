@@ -60,7 +60,9 @@ const roleLabel = (p: Profile, speaker: boolean) => (p.role === 'user' ? (speake
 export const BadgeCard: React.FC<{
   event: Event; profile: Profile; speaker?: boolean; reserved?: number; arrived?: Attendance | null;
   size?: 'wallet' | 'full'; className?: string;
-}> = ({ event, profile, speaker = false, reserved = 0, arrived = null, size = 'full', className = '' }) => {
+  /** Tapping the code — to enlarge it for a scanner. */
+  onCodeClick?: () => void;
+}> = ({ event, profile, speaker = false, reserved = 0, arrived = null, size = 'full', className = '', onCodeClick }) => {
   const tilt = useTilt(size === 'full' ? 7 : 5);
   const full = size === 'full';
   const role = roleLabel(profile, speaker);
@@ -89,10 +91,12 @@ export const BadgeCard: React.FC<{
             {speaker && profile.role !== 'user' && <span className="chip bg-amber-100 text-amber-900"><Mic className="w-3 h-3" />Speaker</span>}
           </div>
           <div className={`flex items-center gap-4 ${full ? 'mt-5 pb-5' : 'mt-4 pb-4'}`}>
-            <div className="p-2 bg-white rounded-xl border border-sand-200 shrink-0"><QRCodeSVG value={badgeCode(profile.id)} size={full ? 140 : 104} level="M" /></div>
+            {onCodeClick
+              ? <button type="button" onClick={(e) => { e.preventDefault(); onCodeClick(); }} title="Enlarge the code" className="p-2 bg-white rounded-xl border border-sand-200 shrink-0 hover:border-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors"><QRCodeSVG value={badgeCode(profile.id)} size={full ? 140 : 104} level="M" /></button>
+              : <div className="p-2 bg-white rounded-xl border border-sand-200 shrink-0"><QRCodeSVG value={badgeCode(profile.id)} size={full ? 140 : 104} level="M" /></div>}
             <div className="text-xs text-ink-500 leading-relaxed min-w-0">
               <div className="font-semibold text-ink-900">Scan at the door</div>
-              <div className="mt-0.5">Any phone signed in as you shows the same code.</div>
+              <div className="mt-0.5">{onCodeClick ? 'Tap the code to enlarge it.' : 'Any phone signed in as you shows the same code.'}</div>
               <div className="font-mono text-[10px] tracking-widest text-ink-300 mt-2 uppercase">{profile.id.slice(0, 8)}</div>
             </div>
           </div>

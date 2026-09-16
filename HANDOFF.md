@@ -502,6 +502,18 @@ so a screen can greet without a lookup. `AdminLive`
 (`/admin/events/<id>/live`) is the organiser's live table: per-session
 counts, names, room-screen links.
 
+**Session hosts (16 Sep 2026, after "why does the door stuff show on my
+badge?").** A member's badge page is the badge — tap the code to enlarge
+it — plus where they have been. The room only appears to the people who
+*run* a session, and only while it is on: `Session.hostIds`, set in the
+session editor under **Run by** (any listed person, staff or not), mirrored
+to each profile's `hostOf` by the editor. The rules let a host read and
+create attendance for their own sessions, set the session's `checkinCode`,
+and `get` a user document (to resolve a scanned badge); a host's badge page
+shows `HostPanel` (live count, names, *Open the door screen*) for a hosted
+session that is on now, and `/door/<event>/<session>` admits hosts as well
+as staff. Staff keep the Live tab and door screens for everything.
+
 **No demo build.** Removed at deploy time: `MemoryStore`, the seed import,
 the persona picker, `npm run demo`, `VITE_DEMO`. Anything that needs a
 signed-in person is verified on `localhost:3100` or live, by a person.

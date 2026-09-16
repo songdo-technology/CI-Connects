@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useOutletContext, useParams, useSearchParams } from 'react-router';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-  ArrowLeft, CircleCheck, Clock, MapPin, RefreshCw, AlertTriangle, ScanLine, Camera, Maximize2, Users, Mic, IdCardLanyard, UserCheck,
+  ArrowLeft, CircleCheck, Clock, MapPin, RefreshCw, AlertTriangle, ScanLine, Camera, Maximize2, Users, Mic, IdCardLanyard, UserCheck, MonitorPlay,
 } from 'lucide-react';
 import { Attendance, Event, Profile, Room, Session, Sponsor, Track } from '../lib/types';
 import { useAuth } from '../lib/auth';
@@ -74,9 +74,10 @@ export const DoorScreen: React.FC = () => {
   const arrivals = useWatch('attendance', session && eventId ? [{ field: 'eventId', op: '==', value: eventId }, { field: 'sessionId', op: '==', value: session.id }] : [], Boolean(session));
 
   // A session without a door code gets one the first time its screen opens.
+  const mayRun = staff || Boolean(profile && session && (session.hostIds ?? []).includes(profile.id));
   useEffect(() => {
-    if (staff && session && !session.checkinCode) void store.update('sessions', session.id, { checkinCode: randomCode() });
-  }, [staff, session]);
+    if (mayRun && session && !session.checkinCode) void store.update('sessions', session.id, { checkinCode: randomCode() });
+  }, [mayRun, session]);
 
   const byUser = useMemo(() => new Map(users.items.map((u) => [u.id, u])), [users.items]);
   const invited = useMemo(() => new Set(invites.items.map((i) => i.email)), [invites.items]);
@@ -115,14 +116,18 @@ export const DoorScreen: React.FC = () => {
   const handleCode = useCallback(async (text: string) => {
     if (!session || !profile || !eventId) return;
     const uid = badgeUid(text) ?? text.trim();
-    const u = people.find((p) => p.id === uid);
+    // Staff know everyone on the event; a host looks the person up as they scan.
+    let u: Profile | undefined = people.find((p) => p.id === uid);
+    if (!u && !staff) {
+      try { const d = await store.get('users', uid); if (d && (d.role !== 'user' || d.eventAccess.includes(eventId))) u = d; } catch { /* not readable */ }
+    }
     if (!u) { setToast({ text: 'That badge is not on this event', tone: 'warn' }); return; }
     const existing = arrivals.items.find((a) => a.userId === uid);
     if (existing) { setToast({ text: `${u.name} is already in · ${formatClock(existing.at)}`, tone: 'ok' }); return; }
     const rec: Attendance = { id: `${eventId}__${session.id}__${uid}`, eventId, sessionId: session.id, userId: uid, at: nowIso(), by: profile.id, name: u.name, org: u.org };
     try { await store.set('attendance', rec.id, rec); }
     catch { setToast({ text: 'That did not record — check the connection', tone: 'warn' }); }
-  }, [session, profile, eventId, people, arrivals.items]);
+  }, [session, profile, eventId, people, arrivals.items, staff]);
   useEffect(() => {
     let buf = ''; let last = 0;
     const onKey = (e: KeyboardEvent) => {
@@ -138,8 +143,10 @@ export const DoorScreen: React.FC = () => {
   const [camera, setCamera] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  if (!staff) return <Navigate to="/dashboard" replace />;
   if (!eReady || !sessions.ready || !rooms.ready) return <div className="min-h-screen bg-blue-950"><Spinner /></div>;
+  // Staff open any door; a session's host opens their own.
+  const host = Boolean(profile && session && (session.hostIds ?? []).includes(profile.id));
+  if (!staff && !host) return <Navigate to={profile ? '/badge' : '/dashboard'} replace />;
   if (!event || !eventId) return <div className="p-10"><Empty icon={ScanLine} title="No such event" action={<Button to="/admin/events">Events</Button>} /></div>;
   const room = rooms.items.find((r) => r.id === (session?.roomId ?? roomId));
   if (!session) {
@@ -222,7 +229,9 @@ export const DoorScreen: React.FC = () => {
       </main>
 
       <footer className="relative flex flex-wrap items-center justify-between gap-3 px-6 lg:px-10 pb-5 text-xs text-white/50">
-        <Link to={`/admin/events/${event.id}/live`} className="inline-flex items-center gap-1.5 hover:text-white"><ArrowLeft className="w-3.5 h-3.5" />Live attendance</Link>
+        {staff
+          ? <Link to={`/admin/events/${event.id}/live`} className="inline-flex items-center gap-1.5 hover:text-white"><ArrowLeft className="w-3.5 h-3.5" />Live attendance</Link>
+          : <Link to="/badge" className="inline-flex items-center gap-1.5 hover:text-white"><ArrowLeft className="w-3.5 h-3.5" />Your badge</Link>}
         <div className="flex items-center gap-2">
           <button onClick={() => setCamera((v) => !v)} className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 transition-colors ${camera ? 'bg-white text-blue-900 border-white' : 'border-white/20 hover:border-white/50 hover:text-white'}`}><Camera className="w-3.5 h-3.5" />{camera ? 'Stop camera' : 'Scan with camera'}</button>
           <button onClick={() => void rotate()} disabled={busy} className="inline-flex items-center gap-1.5 rounded-full border border-white/20 px-3 py-1.5 hover:border-white/50 hover:text-white"><RefreshCw className={`w-3.5 h-3.5 ${busy ? 'animate-spin' : ''}`} />New code</button>
@@ -336,11 +345,22 @@ export const BadgeLinkPage: React.FC = () => {
   const { uid } = useParams();
   const { profile } = useAuth();
   const staff = isStaff(profile);
-  const { doc: person, ready } = useDoc('users', uid ?? null);
-  const events = useWatch('events', [], staff);
+  const hostOf = profile?.hostOf ?? [];
+  // A single read, which the rules allow staff and hosts; a list would not be.
+  const [person, setPerson] = useState<Profile | null | undefined>(undefined);
+  useEffect(() => {
+    if (!uid || !profile) return;
+    let on = true;
+    store.get('users', uid).then((d) => { if (on) setPerson(d); }).catch(() => { if (on) setPerson(null); });
+    return () => { on = false; };
+  }, [uid, profile]);
+  const ready = person !== undefined;
+  const events = useWatch('events', [], staff || hostOf.length > 0);
   const [eventId, setEventId] = useState('');
   const eventFilter = eventId ? [{ field: 'eventId', op: '==' as const, value: eventId }] : [];
-  const sessions = useWatch('sessions', eventFilter, Boolean(eventId));
+  const allSessions = useWatch('sessions', eventFilter, Boolean(eventId));
+  // Staff may record at any session; a host only at their own.
+  const sessions = useMemo(() => ({ items: staff ? allSessions.items : allSessions.items.filter((s) => hostOf.includes(s.id)), ready: allSessions.ready }), [allSessions, staff, hostOf]);
   const invites = useWatch('invites', eventFilter, Boolean(eventId) && staff);
   const attendance = useWatch('attendance', eventId && uid ? [...eventFilter, { field: 'userId', op: '==', value: uid }] : [], Boolean(eventId && uid));
   const [sessionId, setSessionId] = useState('');
@@ -365,11 +385,12 @@ export const BadgeLinkPage: React.FC = () => {
 
   if (profile && uid === profile.id) return <Navigate to="/badge" replace />;
   if (!ready) return <Spinner />;
+  const runs = staff || hostOf.length > 0;
   if (!person) {
     return (
       <div className="max-w-md mx-auto">
-        <Empty icon={IdCardLanyard} title={staff ? 'No such badge' : 'Badges are read at the door'}
-          body={staff ? 'This code does not belong to anyone on CI Connects.' : 'An organiser scans a badge to check its owner in. Your own badge is under Badge.'}
+        <Empty icon={IdCardLanyard} title={runs ? 'No such badge' : 'Badges are read at the door'}
+          body={runs ? 'This code does not belong to anyone on CI Connects.' : 'An organiser, or whoever runs the session, scans a badge to check its owner in. Your own badge is under Badge.'}
           action={<Button to="/badge">Your badge</Button>} />
       </div>
     );
@@ -399,7 +420,7 @@ export const BadgeLinkPage: React.FC = () => {
           <div className="mt-1.5"><Chip tone={person.role === 'user' ? undefined : 'blue'}>{person.role === 'user' ? 'Participant' : ROLE_LABEL[person.role]}</Chip></div>
         </div>
       </Card>
-      {staff ? (
+      {runs ? (
         <Card className="p-5 mt-4 space-y-4">
           <div className="eyebrow">Check in</div>
           <Field label="Event">
@@ -409,7 +430,8 @@ export const BadgeLinkPage: React.FC = () => {
           </Field>
           <Field label="Where">
             <Select value={sessionId} onChange={(e) => { setSessionId(e.target.value); setNote(null); }}>
-              <option value="">Arrival at the venue</option>
+              {staff && <option value="">Arrival at the venue</option>}
+              {!staff && sessions.items.length === 0 && <option value="">None of your sessions is on this event</option>}
               {[...sessions.items].sort((a, b) => a.date.localeCompare(b.date) || toMinutes(a.start) - toMinutes(b.start)).map((s) => <option key={s.id} value={s.id}>{formatTime(s.start)} · {s.title}</option>)}
             </Select>
           </Field>
@@ -417,7 +439,7 @@ export const BadgeLinkPage: React.FC = () => {
           {note && <Notice tone={note.tone}>{note.text}</Notice>}
           {existing && !note
             ? <Notice tone="success"><CircleCheck className="w-4 h-4 inline mr-1 -mt-0.5" />Already in · {formatClock(existing.at)}</Notice>
-            : !note && <Button onClick={() => void checkIn()} busy={busy} disabled={!event} className="w-full py-3.5 text-base"><UserCheck className="w-4 h-4" />Check in {first}</Button>}
+            : !note && <Button onClick={() => void checkIn()} busy={busy} disabled={!event || (!staff && !sessionId)} className="w-full py-3.5 text-base"><UserCheck className="w-4 h-4" />Check in {first}</Button>}
           {attendance.items.length > 0 && (
             <div>
               <div className="text-[11px] uppercase tracking-wider text-ink-500 mb-1.5">Seen at {event?.name}</div>
@@ -434,5 +456,41 @@ export const BadgeLinkPage: React.FC = () => {
         <p className="text-sm text-ink-500 text-center mt-4">An organiser scans this from their own phone to check {first} in.</p>
       )}
     </div>
+  );
+};
+
+/**
+ * A host's view of their room while their session is on: the count, who
+ * has arrived, and the way to put the door screen on the projector. Shown
+ * on the badge page only to the people named as running the session, and
+ * only while it is on — nobody else needs it there.
+ */
+export const HostPanel: React.FC<{ event: Event; session: Session; room?: Room }> = ({ event, session, room }) => {
+  const arrivals = useWatch('attendance', [{ field: 'eventId', op: '==', value: event.id }, { field: 'sessionId', op: '==', value: session.id }]);
+  const latest = [...arrivals.items].sort((a, b) => b.at.localeCompare(a.at));
+  return (
+    <Card className="p-5 border-blue-200 bg-blue-50/50 rise">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="min-w-0">
+          <div className="eyebrow text-blue-700">Your session is on</div>
+          <div className="font-display font-bold text-lg text-ink-900 mt-1 [text-wrap:balance]">{session.title}</div>
+          <div className="text-sm text-ink-500">{formatTime(session.start)} – {formatTime(session.end)}{room ? ` · ${room.name}` : ''}</div>
+        </div>
+        <div className="text-right shrink-0">
+          <div className="font-display font-extrabold text-4xl tabular-nums text-ink-900 leading-none">{arrivals.items.length}</div>
+          <div className="text-[11px] uppercase tracking-wider text-ink-500 mt-1">in the room{session.capacity ? ` · of ${session.capacity}` : ''}</div>
+        </div>
+      </div>
+      {latest.length > 0 && (
+        <ul className="mt-3 flex flex-wrap gap-1.5">
+          {latest.slice(0, 24).map((a) => <li key={a.id} className="text-xs rounded-full bg-white border border-sand-200 px-2.5 py-1 text-ink-700">{a.name ?? 'Someone'} <span className="text-ink-300 tabular-nums">{formatClock(a.at)}</span></li>)}
+          {latest.length > 24 && <li className="text-xs text-ink-500 px-1 py-1">+{latest.length - 24} more</li>}
+        </ul>
+      )}
+      <div className="flex flex-wrap items-center gap-3 mt-4">
+        <a href={`/door/${event.id}/${session.id}`} target="_blank" rel="noreferrer" className="btn-primary btn-sm"><MonitorPlay className="w-3.5 h-3.5" />Open the door screen</a>
+        <span className="text-xs text-ink-500">Put it on the room's projector: it shows the code people scan, greets each arrival by name and counts the room.</span>
+      </div>
+    </Card>
   );
 };

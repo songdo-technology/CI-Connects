@@ -20,7 +20,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 const PROJECT = 'ci-connects';
-const PROTECTED = { sessions: ['reservedUserIds', 'waitlistUserIds', 'checkinCode'], users: ['role', 'eventAccess'] };
+const PROTECTED = { sessions: ['reservedUserIds', 'waitlistUserIds', 'checkinCode'], users: ['role', 'eventAccess', 'hostOf'] };
 const ORDER = ['settings', 'users', 'events', 'rooms', 'tracks', 'sponsors', 'sessions', 'announcements', 'invites'];
 
 const file = process.argv[2];

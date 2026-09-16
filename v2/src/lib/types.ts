@@ -25,6 +25,9 @@ export interface Profile {
   role: Role;
   /** Events this person may see inside of. Written by administrators only. */
   eventAccess: string[];
+  /** Sessions this person runs — set by staff from the session editor. It
+   *  is what lets someone who is not staff see their own room. */
+  hostOf?: string[];
   dietary?: string;
   createdAt: string;
 }
@@ -91,6 +94,9 @@ export interface Session {
   reservedUserIds: string[];
   waitlistUserIds: string[];
   materials?: { label: string; url: string }[];
+  /** Who runs it: they see the room while the session is on and may open
+   *  its door screen, whatever their role. Mirrored on each profile's hostOf. */
+  hostIds?: string[];
   featured?: boolean;
   /** A partner credited on this session. */
   sponsorId?: string;
