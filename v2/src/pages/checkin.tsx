@@ -18,6 +18,7 @@ import { Avatar, Button, Card, Spinner, Empty, Field, Select, Notice, Chip } fro
 import { badgeUid } from '../components/Badge';
 import { canSeeEvent } from '../lib/roles';
 import { ROLE_LABEL } from '../lib/types';
+import { roomLabel, roomWhere } from '../lib/rooms';
 
 /** The address a door QR opens. */
 export const hereUrl = (slug: string, sessionId: string, code: string) =>
@@ -149,21 +150,22 @@ export const DoorScreen: React.FC = () => {
   if (!staff && !host) return <Navigate to={profile ? '/badge' : '/dashboard'} replace />;
   if (!event || !eventId) return <div className="p-10"><Empty icon={ScanLine} title="No such event" action={<Button to="/admin/events">Events</Button>} /></div>;
   const room = rooms.items.find((r) => r.id === (session?.roomId ?? roomId));
+  const roomName = room ? roomLabel(room) : undefined;
   if (!session) {
     return (
       <div className="min-h-screen bg-blue-950 text-white flex flex-col items-center justify-center gap-3 px-6 text-center">
         <Mark size={40} light />
-        <div className="font-display font-bold text-2xl mt-2">{room?.name ?? event.name}</div>
+        <div className="font-display font-bold text-2xl mt-2">{roomName ?? event.name}</div>
         <p className="text-white/60 max-w-sm">Nothing is scheduled in this room yet. Add sessions to the programme and this screen picks them up on its own.</p>
         <Link to={`/admin/events/${event.id}/live`} className="btn-secondary btn-sm mt-3"><ArrowLeft className="w-4 h-4" />Live attendance</Link>
       </div>
     );
   }
   const latest = [...arrivals.items].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 14).map(toArrival);
-  const heading = picked.state === 'now' ? `Now in ${room?.name ?? 'this room'}`
-    : picked.state === 'next' ? `Next in ${room?.name ?? 'this room'} · ${formatTime(session.start)}`
-    : picked.state === 'later' ? `${formatDate(session.date, { weekday: 'long', day: 'numeric', month: 'long' })} in ${room?.name ?? 'this room'}`
-    : `Last in ${room?.name ?? 'this room'}`;
+  const heading = picked.state === 'now' ? `Now in ${roomName ?? 'this room'}`
+    : picked.state === 'next' ? `Next in ${roomName ?? 'this room'} · ${formatTime(session.start)}`
+    : picked.state === 'later' ? `${formatDate(session.date, { weekday: 'long', day: 'numeric', month: 'long' })} in ${roomName ?? 'this room'}`
+    : `Last in ${roomName ?? 'this room'}`;
   const rotate = async () => { setBusy(true); await store.update('sessions', session.id, { checkinCode: randomCode() }); setBusy(false); };
   const fullscreen = () => { if (document.fullscreenElement) void document.exitFullscreen(); else void document.documentElement.requestFullscreen?.(); };
 
@@ -175,7 +177,7 @@ export const DoorScreen: React.FC = () => {
       <header className="relative flex items-center justify-between px-6 lg:px-10 py-5">
         <div className="flex items-center gap-3">
           <Mark size={30} light />
-          <div><div className="font-display font-bold leading-tight">{event.name}</div>{room && <div className="text-xs text-blue-200/70">{room.name}</div>}</div>
+          <div><div className="font-display font-bold leading-tight">{event.name}</div>{room && <div className="text-xs text-blue-200/70">{roomLabel(room)}{roomWhere(room) ? ` · ${roomWhere(room)}` : ''}</div>}</div>
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-3 py-1 text-white/80"><ScanLine className="w-3.5 h-3.5 text-emerald-300" />Scanner ready</span>
@@ -189,7 +191,7 @@ export const DoorScreen: React.FC = () => {
           <h1 className="font-display font-bold tracking-tight text-[clamp(1.9rem,4vw,4rem)] leading-[1.05] mt-3 [text-wrap:balance]">{session.title}</h1>
           <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-4 text-white/80 text-base lg:text-lg">
             <span className="inline-flex items-center gap-1.5"><Clock className="w-4 h-4 text-blue-200" />{formatTime(session.start)} – {formatTime(session.end)}</span>
-            {room && <span className="inline-flex items-center gap-1.5"><MapPin className="w-4 h-4 text-blue-200" />{room.name}</span>}
+            {room && <span className="inline-flex items-center gap-1.5"><MapPin className="w-4 h-4 text-blue-200" />{roomLabel(room)}</span>}
             {session.speakers.length > 0 && <span className="inline-flex items-center gap-1.5"><Mic className="w-4 h-4 text-blue-200" />{session.speakers.map((p) => p.name).join(', ')}</span>}
           </div>
 
@@ -311,7 +313,7 @@ export const HerePage: React.FC = () => {
       <Card className={`p-7 text-center overflow-hidden relative ${isIn ? 'here-in' : ''}`}>
         <div className="eyebrow mb-2">{event.name}</div>
         <h2 className="text-xl font-bold text-ink-900 [text-wrap:balance]">{session.title}</h2>
-        <div className="text-sm text-ink-500 mt-1">{formatTime(session.start)} – {formatTime(session.end)}{room ? ` · ${room.name}` : ''}</div>
+        <div className="text-sm text-ink-500 mt-1">{formatTime(session.start)} – {formatTime(session.end)}{room ? ` · ${roomLabel(room)}` : ''}</div>
         <div className="mt-7">
           {isIn ? (
             <div className="flex flex-col items-center gap-3">
@@ -474,7 +476,7 @@ export const HostPanel: React.FC<{ event: Event; session: Session; room?: Room }
         <div className="min-w-0">
           <div className="eyebrow text-blue-700">Your session is on</div>
           <div className="font-display font-bold text-lg text-ink-900 mt-1 [text-wrap:balance]">{session.title}</div>
-          <div className="text-sm text-ink-500">{formatTime(session.start)} – {formatTime(session.end)}{room ? ` · ${room.name}` : ''}</div>
+          <div className="text-sm text-ink-500">{formatTime(session.start)} – {formatTime(session.end)}{room ? ` · ${roomLabel(room)}` : ''}</div>
         </div>
         <div className="text-right shrink-0">
           <div className="font-display font-extrabold text-4xl tabular-nums text-ink-900 leading-none">{arrivals.items.length}</div>

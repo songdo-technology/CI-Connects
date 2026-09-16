@@ -9,6 +9,7 @@ import { isStaff } from '../lib/roles';
 import { formatTime, todayYmd, nowIso, toMinutes } from '../lib/time';
 import { seatState, toggleSeat, clashesFor, SeatState } from '../lib/schedule';
 import { Button, Chip, Drawer, Textarea, Notice } from './ui';
+import { roomLabel, roomWhere } from '../lib/rooms';
 
 /** Everything inside one event, live. */
 export function useEventData(eventId: string | null) {
@@ -86,7 +87,7 @@ export const SessionCard: React.FC<{
           <h3 className={`font-semibold text-ink-900 leading-snug ${compact ? 'text-sm' : 'text-base'}`}>{s.title}</h3>
           {!compact && s.abstract && <p className="text-sm text-ink-500 mt-1 line-clamp-2">{s.abstract}</p>}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-ink-500">
-            {room && <span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{room.name}</span>}
+            {room && <span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{roomLabel(room)}</span>}
             {s.speakers.length > 0 && <span className="inline-flex items-center gap-1"><Users className="w-3.5 h-3.5" />{s.speakers.map((sp) => sp.name).join(', ')}</span>}
             {s.capacity > 0 && <span className="tabular-nums">{s.reservedUserIds.length}/{s.capacity} seats{s.waitlistUserIds.length > 0 ? ` · ${s.waitlistUserIds.length} waiting` : ''}</span>}
             {sponsor && <span className="text-blue-700">with {sponsor.name}</span>}
@@ -107,7 +108,7 @@ export const RoomGrid: React.FC<{ sessions: Session[]; rooms: Room[]; tracks: Tr
       <div className="min-w-[56rem] grid gap-2" style={{ gridTemplateColumns: `5.5rem repeat(${usedRooms.length}, minmax(13rem, 1fr))` }}>
         <div />
         {usedRooms.map((r) => (
-          <div key={r.id} className="eyebrow px-1 pb-1 border-b border-sand-300 truncate" title={r.location}>{r.name}</div>
+          <div key={r.id} className="eyebrow px-1 pb-1 border-b border-sand-300 truncate" title={roomWhere(r)}>{roomLabel(r)}</div>
         ))}
         {times.map((t) => (
           <React.Fragment key={t}>
@@ -150,7 +151,7 @@ export const SessionDrawer: React.FC<{
             <h2 className="text-xl font-bold text-ink-900 leading-snug">{s.title}</h2>
             <div className="mt-3 space-y-1.5 text-sm text-ink-700">
               <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-ink-300" /><span className="tabular-nums">{formatTime(s.start)} – {formatTime(s.end)}</span></div>
-              {room && <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-ink-300" />{room.name}{room.location ? <span className="text-ink-500"> · {room.location}</span> : null}</div>}
+              {room && <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-ink-300" />{roomLabel(room)}{roomWhere(room) ? <span className="text-ink-500"> · {roomWhere(room)}</span> : null}</div>}
               {s.capacity > 0 && <div className="flex items-center gap-2"><Users className="w-4 h-4 text-ink-300" /><span className="tabular-nums">{s.reservedUserIds.length} of {s.capacity} seats taken{s.waitlistUserIds.length > 0 ? `, ${s.waitlistUserIds.length} waiting` : ''}</span></div>}
             </div>
           </div>

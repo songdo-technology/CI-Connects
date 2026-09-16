@@ -17,6 +17,8 @@ import { Scanner } from '../components/Scanner';
 import { Button, Card, Chip, Drawer, Empty, Field, Input, Notice, Select, Spinner, Textarea, PageHeader, Avatar, SubNav, TimeInput } from '../components/ui';
 import { ImagePicker } from '../components/ImagePicker';
 import { badgeUid } from '../components/Badge';
+import { RoomPicker, RoomChoice } from '../components/RoomPicker';
+import { roomLabel, roomWhere, facilityWhere } from '../lib/rooms';
 
 const TYPES: SessionType[] = ['keynote', 'talk', 'workshop', 'panel', 'break', 'social'];
 const COLORS = ['#002B54', '#2A6791', '#56A0D3', '#5E6513', '#B04318', '#8B5E34', '#6B605A', '#7C3AED'];
@@ -91,7 +93,7 @@ export const AdminSchedule: React.FC = () => {
                             {track && <Chip className="bg-white border border-sand-200 text-ink-700"><TrackDot track={track} />{track.name}</Chip>}
                             {clash && <Chip tone="rose"><AlertTriangle className="w-3 h-3" />Room clash</Chip>}
                           </div>
-                          <div className="text-xs text-ink-500 mt-1">{[room?.name ?? 'No room', s.speakers.map((x) => x.name).join(', ') || null, s.capacity ? `${s.reservedUserIds.length}/${s.capacity} seats${s.waitlistUserIds.length ? ` · ${s.waitlistUserIds.length} waiting` : ''}` : 'open seating'].filter(Boolean).join(' · ')}</div>
+                          <div className="text-xs text-ink-500 mt-1">{[room ? roomLabel(room) : 'No room', s.speakers.map((x) => x.name).join(', ') || null, s.capacity ? `${s.reservedUserIds.length}/${s.capacity} seats${s.waitlistUserIds.length ? ` · ${s.waitlistUserIds.length} waiting` : ''}` : 'open seating'].filter(Boolean).join(' · ')}</div>
                         </div>
                       </button>
                     );
@@ -128,7 +130,7 @@ const RoomsPanel: React.FC<{ event: Event; rooms: Room[]; sessions: Session[] }>
           const used = sessions.some((s) => s.roomId === r.id);
           return (
             <li key={r.id} className="flex items-center justify-between gap-2 text-sm">
-              <div className="min-w-0"><div className="text-ink-900 truncate">{r.name}</div><div className="text-[11px] text-ink-500">{[r.capacity ? `${r.capacity} seats` : 'open', r.location].filter(Boolean).join(' · ')}</div></div>
+              <div className="min-w-0"><div className="text-ink-900 truncate">{roomLabel(r)}</div><div className="text-[11px] text-ink-500">{[r.capacity ? `${r.capacity} seats` : 'open', roomWhere(r)].filter(Boolean).join(' · ')}</div></div>
               <button disabled={used} onClick={() => void store.remove('rooms', r.id)} title={used ? 'In use by a session' : 'Remove'} className="btn-ghost btn-sm disabled:opacity-30"><Trash2 className="w-3.5 h-3.5" /></button>
             </li>
           );
@@ -191,6 +193,7 @@ const SessionEditor: React.FC<{ event: Event; session: Session | null; rooms: Ro
     const [busy, setBusy] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState(false);
     const users = useWatch('users', []);
+    const facilities = useWatch('facilities', []);
     const people = useMemo(() => users.items.filter((u) => u.role !== 'user' || u.eventAccess.includes(event.id)).sort((a, b) => a.name.localeCompare(b.name)), [users.items, event.id]);
     useEffect(() => {
       setForm(session); setSpeakers(session ? speakersToText(session.speakers) : ''); setMaterials(session ? materialsToText(session.materials) : '');
@@ -220,6 +223,18 @@ const SessionEditor: React.FC<{ event: Event; session: Session | null; rooms: Ro
       } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
     };
     const remove = async () => { setBusy(true); await store.remove('sessions', form.id); setBusy(false); onClose(); };
+    // A campus room chosen for the first time becomes one of this event's rooms.
+    const chooseRoom = async (c: RoomChoice) => {
+      let room: Room;
+      if ('room' in c) room = c.room;
+      else {
+        const f = c.facility;
+        const existing = rooms.find((r) => r.facilityId === f.id || (f.number ? r.number === f.number : false));
+        if (existing) room = existing;
+        else { room = { id: newId('room'), eventId: event.id, name: f.name, number: f.number, facilityId: f.id, where: facilityWhere(f), capacity: 0, order: rooms.length + 1 }; await store.set('rooms', room.id, room); }
+      }
+      set({ roomId: room.id, ...(form.capacity === 0 && room.capacity ? { capacity: room.capacity } : {}) });
+    };
     return (
       <Drawer open onClose={onClose} title={isNew ? 'New session' : 'Edit session'} wide>
         <div className="space-y-4">
@@ -228,10 +243,14 @@ const SessionEditor: React.FC<{ event: Event; session: Session | null; rooms: Ro
           <div className="grid sm:grid-cols-3 gap-3">
             <Field label="Type"><Select value={form.type} onChange={(e) => set({ type: e.target.value as SessionType })}>{TYPES.map((t) => <option key={t} value={t}>{SESSION_TYPE_LABEL[t]}</option>)}</Select></Field>
             <Field label="Day"><Select value={form.date} onChange={(e) => set({ date: e.target.value })}>{dates.map((d) => <option key={d} value={d}>{formatDate(d, { weekday: 'short', day: 'numeric', month: 'short' })}</option>)}</Select></Field>
-            <Field label="Track"><Select value={form.trackId ?? ''} onChange={(e) => set({ trackId: e.target.value || undefined })}><option value="">None</option>{tracks.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select></Field>
+            <Field label="Track" hint={tracks.length === 0 ? 'Optional — a way to group sessions by theme (a strand, a division). Add tracks under Details.' : undefined}>
+              {tracks.length === 0
+                ? <div className="input bg-sand-50 text-ink-500 text-sm">None on this event</div>
+                : <Select value={form.trackId ?? ''} onChange={(e) => set({ trackId: e.target.value || undefined })}><option value="">No track</option>{tracks.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</Select>}
+            </Field>
             <Field label="Starts"><TimeInput value={form.start} onChange={(v) => set({ start: v })} /></Field>
             <Field label="Ends"><TimeInput value={form.end} onChange={(v) => set({ end: v })} /></Field>
-            <Field label="Room"><Select value={form.roomId} onChange={(e) => { const r = rooms.find((x) => x.id === e.target.value); set({ roomId: e.target.value, ...(r && form.capacity === 0 && r.capacity ? { capacity: r.capacity } : {}) }); }}>{rooms.length === 0 && <option value="">Add a room first</option>}{rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}</Select></Field>
+            <Field label="Room"><RoomPicker rooms={rooms} facilities={facilities.items} value={form.roomId} onChoose={(c) => void chooseRoom(c)} /></Field>
           </div>
           <div className="grid sm:grid-cols-[8rem_minmax(0,1fr)] gap-3">
             <Field label="Seats" hint="0 = open seating"><Input type="number" min={0} value={form.capacity} onChange={(e) => set({ capacity: Math.max(0, Number(e.target.value) || 0) })} /></Field>
@@ -651,7 +670,7 @@ export const AdminLive: React.FC = () => {
             <div><div className="font-semibold text-ink-900 text-sm inline-flex items-center gap-1.5"><DoorOpen className="w-4 h-4 text-blue-400" />Room screens</div><div className="text-xs text-ink-500">Open one on each room's projector and leave it: it follows that room's programme through the day.</div></div>
           </div>
           <div className="flex flex-wrap gap-2">
-            {data.rooms.map((r) => <a key={r.id} href={`/door/${id}/room/${r.id}`} target="_blank" rel="noreferrer" className="btn-secondary btn-sm"><MonitorPlay className="w-3.5 h-3.5" />{r.name}</a>)}
+            {data.rooms.map((r) => <a key={r.id} href={`/door/${id}/room/${r.id}`} target="_blank" rel="noreferrer" className="btn-secondary btn-sm"><MonitorPlay className="w-3.5 h-3.5" />{roomLabel(r)}</a>)}
           </div>
         </Card>
       )}
@@ -667,7 +686,7 @@ export const AdminLive: React.FC = () => {
                 <div className="w-[4.5rem] shrink-0 text-xs text-ink-500 tabular-nums leading-snug">{formatTime(s.start)}<br />{formatTime(s.end)}</div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap"><span className="text-sm font-semibold text-ink-900">{s.title}</span>{on && <Chip tone="green">Now</Chip>}</div>
-                  <div className="text-xs text-ink-500">{room?.name ?? '—'}{s.speakers.length ? ` · ${s.speakers.map((p) => p.name).join(', ')}` : ''}</div>
+                  <div className="text-xs text-ink-500">{room ? roomLabel(room) : '—'}{s.speakers.length ? ` · ${s.speakers.map((p) => p.name).join(', ')}` : ''}</div>
                   {list.length > 0 && (
                     <div className="mt-1.5 flex flex-wrap gap-1">
                       {list.slice(0, 10).map((a) => <span key={a.id} className="text-[11px] rounded-full bg-sand-100 border border-sand-200 px-2 py-0.5 text-ink-700">{nameOf(a)}</span>)}

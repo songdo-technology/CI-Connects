@@ -1,0 +1,2546 @@
+{
+  "facilities": [
+    {
+      "name": "VS Library Media Center",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-001",
+      "order": 1,
+      "id": "fac-a-001"
+    },
+    {
+      "name": "Kindergarten B",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-005",
+      "order": 2,
+      "id": "fac-a-005"
+    },
+    {
+      "name": "Pre-Kindergarten C",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-007",
+      "order": 3,
+      "id": "fac-a-007"
+    },
+    {
+      "name": "Pre-Kindergarten B",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-008",
+      "order": 4,
+      "id": "fac-a-008"
+    },
+    {
+      "name": "Pre-Kindergarten A",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-010",
+      "order": 5,
+      "id": "fac-a-010"
+    },
+    {
+      "name": "Early Years Art",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-011",
+      "order": 6,
+      "id": "fac-a-011"
+    },
+    {
+      "name": "Kindergarten D",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-013",
+      "order": 7,
+      "id": "fac-a-013"
+    },
+    {
+      "name": "Kindergarten C",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-014",
+      "order": 8,
+      "id": "fac-a-014"
+    },
+    {
+      "name": "Kindergarten A",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-016",
+      "order": 9,
+      "id": "fac-a-016"
+    },
+    {
+      "name": "Grade 1A",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-019",
+      "order": 10,
+      "id": "fac-a-019"
+    },
+    {
+      "name": "Grade 1B",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-020",
+      "order": 11,
+      "id": "fac-a-020"
+    },
+    {
+      "name": "Grade 1C",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-024",
+      "order": 12,
+      "id": "fac-a-024"
+    },
+    {
+      "name": "VS Art 1",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-025",
+      "order": 13,
+      "id": "fac-a-025"
+    },
+    {
+      "name": "VS Art 2",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-029",
+      "order": 14,
+      "id": "fac-a-029"
+    },
+    {
+      "name": "Grade 1D",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-030",
+      "order": 15,
+      "id": "fac-a-030"
+    },
+    {
+      "name": "Grade 1E",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-034",
+      "order": 16,
+      "id": "fac-a-034"
+    },
+    {
+      "name": "Early Years Music",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-036",
+      "order": 17,
+      "id": "fac-a-036"
+    },
+    {
+      "name": "VS Music 1",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-039",
+      "order": 18,
+      "id": "fac-a-039"
+    },
+    {
+      "name": "VS Music 2",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "A-041",
+      "order": 19,
+      "id": "fac-a-041"
+    },
+    {
+      "name": "VS Cafeteria",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "Basement",
+      "number": "C-003",
+      "order": 20,
+      "id": "fac-c-003"
+    },
+    {
+      "name": "VS Office",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-100",
+      "order": 21,
+      "id": "fac-a-100"
+    },
+    {
+      "name": "PYP Coordinator",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-100.2",
+      "order": 22,
+      "id": "fac-a-100-2"
+    },
+    {
+      "name": "VS Assistant Principal",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-100.3",
+      "order": 23,
+      "id": "fac-a-100-3"
+    },
+    {
+      "name": "VS Principal",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-100.4",
+      "order": 24,
+      "id": "fac-a-100-4"
+    },
+    {
+      "name": "VS Lost & Found",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-101",
+      "order": 25,
+      "id": "fac-a-101"
+    },
+    {
+      "name": "VS MPR",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-102",
+      "order": 26,
+      "id": "fac-a-102"
+    },
+    {
+      "name": "VS MPR Storage",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-102.1",
+      "order": 27,
+      "id": "fac-a-102-1"
+    },
+    {
+      "name": "VS Collaboration",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-103",
+      "order": 28,
+      "id": "fac-a-103"
+    },
+    {
+      "name": "Grey Hub",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-103.1",
+      "order": 29,
+      "id": "fac-a-103-1"
+    },
+    {
+      "name": "Blue Hub",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-103.2",
+      "order": 30,
+      "id": "fac-a-103-2"
+    },
+    {
+      "name": "Grade 2A",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-104",
+      "order": 31,
+      "id": "fac-a-104"
+    },
+    {
+      "name": "Grade 2B",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-106",
+      "order": 32,
+      "id": "fac-a-106"
+    },
+    {
+      "name": "World Language",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-107",
+      "order": 33,
+      "id": "fac-a-107"
+    },
+    {
+      "name": "Health Office",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-109",
+      "order": 34,
+      "id": "fac-a-109"
+    },
+    {
+      "name": "Grade 2C",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-110",
+      "order": 35,
+      "id": "fac-a-110"
+    },
+    {
+      "name": "Grade 2D",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-112",
+      "order": 36,
+      "id": "fac-a-112"
+    },
+    {
+      "name": "Grade 2E",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-113",
+      "order": 37,
+      "id": "fac-a-113"
+    },
+    {
+      "name": "EAL Classroom 1",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-115",
+      "order": 38,
+      "id": "fac-a-115"
+    },
+    {
+      "name": "VS Faculty/Staff Lounge",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-118",
+      "order": 39,
+      "id": "fac-a-118"
+    },
+    {
+      "name": "Coaches Workroom",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-119",
+      "order": 40,
+      "id": "fac-a-119"
+    },
+    {
+      "name": "Literacy Room",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-123",
+      "order": 41,
+      "id": "fac-a-123"
+    },
+    {
+      "name": "Grade 4A",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-124",
+      "order": 42,
+      "id": "fac-a-124"
+    },
+    {
+      "name": "EAL Classroom 2",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-126",
+      "order": 43,
+      "id": "fac-a-126"
+    },
+    {
+      "name": "Grade 4B",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-128",
+      "order": 44,
+      "id": "fac-a-128"
+    },
+    {
+      "name": "Grade 4C",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-129",
+      "order": 45,
+      "id": "fac-a-129"
+    },
+    {
+      "name": "Grade 4D",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-133",
+      "order": 46,
+      "id": "fac-a-133"
+    },
+    {
+      "name": "Grade 4E",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-135",
+      "order": 47,
+      "id": "fac-a-135"
+    },
+    {
+      "name": "School Psychologist Office",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-138",
+      "order": 48,
+      "id": "fac-a-138"
+    },
+    {
+      "name": "VS Counselor Office Vestibule",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-139",
+      "order": 49,
+      "id": "fac-a-139"
+    },
+    {
+      "name": "VS Counselor Office 1",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-139.1",
+      "order": 50,
+      "id": "fac-a-139-1"
+    },
+    {
+      "name": "VS Counselor Office 2",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-139.2",
+      "order": 51,
+      "id": "fac-a-139-2"
+    },
+    {
+      "name": "VS Maker Space",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "1st floor",
+      "number": "A-140",
+      "order": 52,
+      "id": "fac-a-140"
+    },
+    {
+      "name": "VS SST 1",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "2nd floor",
+      "number": "A-200",
+      "order": 53,
+      "id": "fac-a-200"
+    },
+    {
+      "name": "VS SST 2",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "2nd floor",
+      "number": "A-202",
+      "order": 54,
+      "id": "fac-a-202"
+    },
+    {
+      "name": "Grade 3E",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "2nd floor",
+      "number": "A-203",
+      "order": 55,
+      "id": "fac-a-203"
+    },
+    {
+      "name": "Grade 3D",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "2nd floor",
+      "number": "A-205",
+      "order": 56,
+      "id": "fac-a-205"
+    },
+    {
+      "name": "Grade 3C",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "2nd floor",
+      "number": "A-206",
+      "order": 57,
+      "id": "fac-a-206"
+    },
+    {
+      "name": "Grade 3B",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "2nd floor",
+      "number": "A-208",
+      "order": 58,
+      "id": "fac-a-208"
+    },
+    {
+      "name": "Grade 3A",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "2nd floor",
+      "number": "A-209",
+      "order": 59,
+      "id": "fac-a-209"
+    },
+    {
+      "name": "VS Drama",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "2nd floor",
+      "number": "A-211",
+      "order": 60,
+      "id": "fac-a-211"
+    },
+    {
+      "name": "World Language",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "2nd floor",
+      "number": "A-214",
+      "order": 61,
+      "id": "fac-a-214"
+    },
+    {
+      "name": "Grade 5A",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "2nd floor",
+      "number": "A-216",
+      "order": 62,
+      "id": "fac-a-216"
+    },
+    {
+      "name": "Grade 5B",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "2nd floor",
+      "number": "A-220",
+      "order": 63,
+      "id": "fac-a-220"
+    },
+    {
+      "name": "Grade 5C",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "2nd floor",
+      "number": "A-222",
+      "order": 64,
+      "id": "fac-a-222"
+    },
+    {
+      "name": "Grade 5D",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "2nd floor",
+      "number": "A-225",
+      "order": 65,
+      "id": "fac-a-225"
+    },
+    {
+      "name": "Grade 5E",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "2nd floor",
+      "number": "A-226",
+      "order": 66,
+      "id": "fac-a-226"
+    },
+    {
+      "name": "VS Korean",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "2nd floor",
+      "number": "A-229",
+      "order": 67,
+      "id": "fac-a-229"
+    },
+    {
+      "name": "VS Chinese",
+      "building": "Village School",
+      "buildingCode": "A",
+      "floor": "2nd floor",
+      "number": "A-232",
+      "order": 68,
+      "id": "fac-a-232"
+    },
+    {
+      "name": "PREK Playground",
+      "building": "Outdoor",
+      "buildingCode": "",
+      "floor": "Outdoor",
+      "area": "PREK",
+      "order": 69,
+      "id": "fac-prek-playground"
+    },
+    {
+      "name": "Kinder Playground",
+      "building": "Outdoor",
+      "buildingCode": "",
+      "floor": "Outdoor",
+      "area": "Kinder",
+      "order": 70,
+      "id": "fac-kinder-playground"
+    },
+    {
+      "name": "G1 A~C Playground",
+      "building": "Outdoor",
+      "buildingCode": "",
+      "floor": "Outdoor",
+      "area": "G1 A~C",
+      "order": 71,
+      "id": "fac-g1-a-c-playground"
+    },
+    {
+      "name": "G1 D~E Playground",
+      "building": "Outdoor",
+      "buildingCode": "",
+      "floor": "Outdoor",
+      "area": "G1 D~E",
+      "order": 72,
+      "id": "fac-g1-d-e-playground"
+    },
+    {
+      "name": "MS/US Cafeteria",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "Basement",
+      "number": "B-001",
+      "order": 73,
+      "id": "fac-b-001"
+    },
+    {
+      "name": "Ping Pong",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "Basement",
+      "number": "B-001.1",
+      "order": 74,
+      "id": "fac-b-001-1"
+    },
+    {
+      "name": "Cafeteria Office",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "Basement",
+      "number": "B-002",
+      "order": 75,
+      "id": "fac-b-002"
+    },
+    {
+      "name": "Cafeteria Deli",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "Basement",
+      "number": "B-002.1",
+      "order": 76,
+      "id": "fac-b-002-1"
+    },
+    {
+      "name": "CIPA Office",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "Basement",
+      "number": "B-003",
+      "order": 77,
+      "id": "fac-b-003"
+    },
+    {
+      "name": "CIPA Storage",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "Basement",
+      "number": "B-003.1",
+      "order": 78,
+      "id": "fac-b-003-1"
+    },
+    {
+      "name": "MPR4 / US Drama",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "Basement",
+      "number": "B-004",
+      "order": 79,
+      "id": "fac-b-004"
+    },
+    {
+      "name": "School Store",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "Basement",
+      "number": "B-005",
+      "order": 80,
+      "id": "fac-b-005"
+    },
+    {
+      "name": "School Store Storage",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "Basement",
+      "number": "B-005.1",
+      "order": 81,
+      "id": "fac-b-005-1"
+    },
+    {
+      "name": "Robotics Room",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "Basement",
+      "number": "B-006",
+      "order": 82,
+      "id": "fac-b-006"
+    },
+    {
+      "name": "MS Office",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-102",
+      "order": 83,
+      "id": "fac-b-102"
+    },
+    {
+      "name": "MS Assistant Principal",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-102.1",
+      "order": 84,
+      "id": "fac-b-102-1"
+    },
+    {
+      "name": "MS Principal",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-102.2",
+      "order": 85,
+      "id": "fac-b-102-2"
+    },
+    {
+      "name": "MS Conference Room",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-102.3",
+      "order": 86,
+      "id": "fac-b-102-3"
+    },
+    {
+      "name": "MS Counselor",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-102.4",
+      "order": 87,
+      "id": "fac-b-102-4"
+    },
+    {
+      "name": "MS/US Counselor",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-104.1",
+      "order": 88,
+      "id": "fac-b-104-1"
+    },
+    {
+      "name": "US Counselor",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-104.2",
+      "order": 89,
+      "id": "fac-b-104-2"
+    },
+    {
+      "name": "IB Program and Curriculum Office Vestibule",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-105",
+      "order": 90,
+      "id": "fac-b-105"
+    },
+    {
+      "name": "IB Program Coordinators Office",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-105.1",
+      "order": 91,
+      "id": "fac-b-105-1"
+    },
+    {
+      "name": "Global Citizenship & Community Office Vestibule",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-106",
+      "order": 92,
+      "id": "fac-b-106"
+    },
+    {
+      "name": "Global Citizenship & Community Office",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-106.1",
+      "order": 93,
+      "id": "fac-b-106-1"
+    },
+    {
+      "name": "MS Drama",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-107",
+      "order": 94,
+      "id": "fac-b-107"
+    },
+    {
+      "name": "US Art Room 1",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-111",
+      "order": 95,
+      "id": "fac-b-111"
+    },
+    {
+      "name": "Art Room Storage 1",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-112",
+      "order": 96,
+      "id": "fac-b-112"
+    },
+    {
+      "name": "MS Art Room 2",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-113",
+      "order": 97,
+      "id": "fac-b-113"
+    },
+    {
+      "name": "Visual Arts",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-115",
+      "order": 98,
+      "id": "fac-b-115"
+    },
+    {
+      "name": "Art Room Storage 2",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-116",
+      "order": 99,
+      "id": "fac-b-116"
+    },
+    {
+      "name": "MS Visual Arts",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-117",
+      "order": 100,
+      "id": "fac-b-117"
+    },
+    {
+      "name": "TV Studio",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-120",
+      "order": 101,
+      "id": "fac-b-120"
+    },
+    {
+      "name": "TV Studio Control Room",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-120.1",
+      "order": 102,
+      "id": "fac-b-120-1"
+    },
+    {
+      "name": "MS SST 1",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-121",
+      "order": 103,
+      "id": "fac-b-121"
+    },
+    {
+      "name": "MS SST 2",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-124",
+      "order": 104,
+      "id": "fac-b-124"
+    },
+    {
+      "name": "College Counseling Center",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-125",
+      "order": 105,
+      "id": "fac-b-125"
+    },
+    {
+      "name": "College Counselor Office 1",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-125.1",
+      "order": 106,
+      "id": "fac-b-125-1"
+    },
+    {
+      "name": "College Counselor Office 2",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-125.2",
+      "order": 107,
+      "id": "fac-b-125-2"
+    },
+    {
+      "name": "College Counselor Office 3",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-125.3",
+      "order": 108,
+      "id": "fac-b-125-3"
+    },
+    {
+      "name": "Director of College Counseling",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-125.4",
+      "order": 109,
+      "id": "fac-b-125-4"
+    },
+    {
+      "name": "College Counseling Meeting Room",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-125.5",
+      "order": 110,
+      "id": "fac-b-125-5"
+    },
+    {
+      "name": "Upper School Office",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-126",
+      "order": 111,
+      "id": "fac-b-126"
+    },
+    {
+      "name": "US Assistant Principal",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-126.1",
+      "order": 112,
+      "id": "fac-b-126-1"
+    },
+    {
+      "name": "US Principal",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "number": "B-126.2",
+      "order": 113,
+      "id": "fac-b-126-2"
+    },
+    {
+      "name": "MS/US Atrium (Student Common Area 1)",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "1st floor",
+      "order": 114,
+      "id": "fac-ms-us-atrium-student-common-area-1"
+    },
+    {
+      "name": "MS English",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-202",
+      "order": 115,
+      "id": "fac-b-202"
+    },
+    {
+      "name": "B-203",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "order": 116,
+      "id": "fac-b-203"
+    },
+    {
+      "name": "MS I&S",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-204",
+      "order": 117,
+      "id": "fac-b-204"
+    },
+    {
+      "name": "MS Math",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-205",
+      "order": 118,
+      "id": "fac-b-205"
+    },
+    {
+      "name": "B-206",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "order": 119,
+      "id": "fac-b-206"
+    },
+    {
+      "name": "MS Math & US I&S",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-207",
+      "order": 120,
+      "id": "fac-b-207"
+    },
+    {
+      "name": "MS Math",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-208",
+      "order": 121,
+      "id": "fac-b-208"
+    },
+    {
+      "name": "B-209",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "order": 122,
+      "id": "fac-b-209"
+    },
+    {
+      "name": "Chinese",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-210",
+      "order": 123,
+      "id": "fac-b-210"
+    },
+    {
+      "name": "MS World Language",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-211",
+      "order": 124,
+      "id": "fac-b-211"
+    },
+    {
+      "name": "B-212",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "order": 125,
+      "id": "fac-b-212"
+    },
+    {
+      "name": "MS World Language",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-213",
+      "order": 126,
+      "id": "fac-b-213"
+    },
+    {
+      "name": "MS English",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-216",
+      "order": 127,
+      "id": "fac-b-216"
+    },
+    {
+      "name": "B-217",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "order": 128,
+      "id": "fac-b-217"
+    },
+    {
+      "name": "MS English",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-218",
+      "order": 129,
+      "id": "fac-b-218"
+    },
+    {
+      "name": "MS I&S",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-219",
+      "order": 130,
+      "id": "fac-b-219"
+    },
+    {
+      "name": "B-220",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "order": 131,
+      "id": "fac-b-220"
+    },
+    {
+      "name": "MS I&S",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-221",
+      "order": 132,
+      "id": "fac-b-221"
+    },
+    {
+      "name": "MS/US Faculty Lounge",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-224.1",
+      "order": 133,
+      "id": "fac-b-224-1"
+    },
+    {
+      "name": "MS World Language / US Korean",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-224.2",
+      "order": 134,
+      "id": "fac-b-224-2"
+    },
+    {
+      "name": "English LAB - Co-Taught ELL Flex Room",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-224.3",
+      "order": 135,
+      "id": "fac-b-224-3"
+    },
+    {
+      "name": "MS/US Faculty Lounge Pantry",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-225",
+      "order": 136,
+      "id": "fac-b-225"
+    },
+    {
+      "name": "MS/US Library",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-226",
+      "order": 137,
+      "id": "fac-b-226"
+    },
+    {
+      "name": "CI Hub (Collaboration & Innovation Hub)",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-226.1",
+      "order": 138,
+      "id": "fac-b-226-1"
+    },
+    {
+      "name": "Registrar Office",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-226.2",
+      "order": 139,
+      "id": "fac-b-226-2"
+    },
+    {
+      "name": "Director of Informational Tech Office",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-226.3",
+      "order": 140,
+      "id": "fac-b-226-3"
+    },
+    {
+      "name": "MS/US librarian Office",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-228",
+      "order": 141,
+      "id": "fac-b-228"
+    },
+    {
+      "name": "MS/US Library Office",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "number": "B-229",
+      "order": 142,
+      "id": "fac-b-229"
+    },
+    {
+      "name": "Andromeda (Student Common Area 2)",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "order": 143,
+      "id": "fac-andromeda-student-common-area-2"
+    },
+    {
+      "name": "Cassiopia (Student Common Area 3)",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "2nd floor",
+      "order": 144,
+      "id": "fac-cassiopia-student-common-area-3"
+    },
+    {
+      "name": "US I&S",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-302",
+      "order": 145,
+      "id": "fac-b-302"
+    },
+    {
+      "name": "B-303",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "order": 146,
+      "id": "fac-b-303"
+    },
+    {
+      "name": "US I&S / US English",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-304",
+      "order": 147,
+      "id": "fac-b-304"
+    },
+    {
+      "name": "US I&S / US English / US Math",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-305",
+      "order": 148,
+      "id": "fac-b-305"
+    },
+    {
+      "name": "B-306",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "order": 149,
+      "id": "fac-b-306"
+    },
+    {
+      "name": "US Math / TOK",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-307",
+      "order": 150,
+      "id": "fac-b-307"
+    },
+    {
+      "name": "US Math",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-308",
+      "order": 151,
+      "id": "fac-b-308"
+    },
+    {
+      "name": "B-309",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "order": 152,
+      "id": "fac-b-309"
+    },
+    {
+      "name": "US Math",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-310",
+      "order": 153,
+      "id": "fac-b-310"
+    },
+    {
+      "name": "US Math",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-311",
+      "order": 154,
+      "id": "fac-b-311"
+    },
+    {
+      "name": "US Chinese",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-312",
+      "order": 155,
+      "id": "fac-b-312"
+    },
+    {
+      "name": "US Math",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-313",
+      "order": 156,
+      "id": "fac-b-313"
+    },
+    {
+      "name": "MS Science",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-316",
+      "order": 157,
+      "id": "fac-b-316"
+    },
+    {
+      "name": "Science Prep",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-317",
+      "order": 158,
+      "id": "fac-b-317"
+    },
+    {
+      "name": "PREP Room",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-318",
+      "order": 159,
+      "id": "fac-b-318"
+    },
+    {
+      "name": "US Science",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-319",
+      "order": 160,
+      "id": "fac-b-319"
+    },
+    {
+      "name": "PREP Room",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-320",
+      "order": 161,
+      "id": "fac-b-320"
+    },
+    {
+      "name": "US Science",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-321",
+      "order": 162,
+      "id": "fac-b-321"
+    },
+    {
+      "name": "MS Science",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-322",
+      "order": 163,
+      "id": "fac-b-322"
+    },
+    {
+      "name": "PREP Room",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-323",
+      "order": 164,
+      "id": "fac-b-323"
+    },
+    {
+      "name": "US I&S / US English",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-326",
+      "order": 165,
+      "id": "fac-b-326"
+    },
+    {
+      "name": "PREP Room",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-326.1",
+      "order": 166,
+      "id": "fac-b-326-1"
+    },
+    {
+      "name": "US I&S / US English",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-327",
+      "order": 167,
+      "id": "fac-b-327"
+    },
+    {
+      "name": "US I&S / TOK",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "number": "B-327.1",
+      "order": 168,
+      "id": "fac-b-327-1"
+    },
+    {
+      "name": "Orion (Student Common Area 4)",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "3rd floor",
+      "order": 169,
+      "id": "fac-orion-student-common-area-4"
+    },
+    {
+      "name": "US Korean",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-402",
+      "order": 170,
+      "id": "fac-b-402"
+    },
+    {
+      "name": "B-403",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "order": 171,
+      "id": "fac-b-403"
+    },
+    {
+      "name": "US Korean",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-404",
+      "order": 172,
+      "id": "fac-b-404"
+    },
+    {
+      "name": "US I&S / TOK / US English",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-405",
+      "order": 173,
+      "id": "fac-b-405"
+    },
+    {
+      "name": "B-406",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "order": 174,
+      "id": "fac-b-406"
+    },
+    {
+      "name": "US English / TOK",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-407",
+      "order": 175,
+      "id": "fac-b-407"
+    },
+    {
+      "name": "US English / TOK",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-408",
+      "order": 176,
+      "id": "fac-b-408"
+    },
+    {
+      "name": "B-409",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "order": 177,
+      "id": "fac-b-409"
+    },
+    {
+      "name": "US Chinese / US English / TOK",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-410",
+      "order": 178,
+      "id": "fac-b-410"
+    },
+    {
+      "name": "TOK / US Spanish / US Korean / US I&S",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-411",
+      "order": 179,
+      "id": "fac-b-411"
+    },
+    {
+      "name": "B-412",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "order": 180,
+      "id": "fac-b-412"
+    },
+    {
+      "name": "US Spanish",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-413",
+      "order": 181,
+      "id": "fac-b-413"
+    },
+    {
+      "name": "US Science",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-416",
+      "order": 182,
+      "id": "fac-b-416"
+    },
+    {
+      "name": "PREP Room",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-417",
+      "order": 183,
+      "id": "fac-b-417"
+    },
+    {
+      "name": "US Science",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-418",
+      "order": 184,
+      "id": "fac-b-418"
+    },
+    {
+      "name": "US Science / TOK",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-419",
+      "order": 185,
+      "id": "fac-b-419"
+    },
+    {
+      "name": "PREP Room",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-420",
+      "order": 186,
+      "id": "fac-b-420"
+    },
+    {
+      "name": "US Science",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-421",
+      "order": 187,
+      "id": "fac-b-421"
+    },
+    {
+      "name": "US Science",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-422",
+      "order": 188,
+      "id": "fac-b-422"
+    },
+    {
+      "name": "PREP Room",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-423",
+      "order": 189,
+      "id": "fac-b-423"
+    },
+    {
+      "name": "US SST",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-424",
+      "order": 190,
+      "id": "fac-b-424"
+    },
+    {
+      "name": "COPY ROOM",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-425",
+      "order": 191,
+      "id": "fac-b-425"
+    },
+    {
+      "name": "US English / US Math / TOK",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-426",
+      "order": 192,
+      "id": "fac-b-426"
+    },
+    {
+      "name": "MS/US Counselor",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-427",
+      "order": 193,
+      "id": "fac-b-427"
+    },
+    {
+      "name": "US English / CI Health & Exercise Science",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "number": "B-428",
+      "order": 194,
+      "id": "fac-b-428"
+    },
+    {
+      "name": "Polaris (Student Common Area 5)",
+      "building": "Middle & Upper School",
+      "buildingCode": "B",
+      "floor": "4th floor",
+      "order": 195,
+      "id": "fac-polaris-student-common-area-5"
+    },
+    {
+      "name": "Transportation Office",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "Basement",
+      "number": "C-026.1",
+      "order": 196,
+      "id": "fac-c-026-1"
+    },
+    {
+      "name": "FM Office",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "Basement",
+      "number": "C-028",
+      "order": 197,
+      "id": "fac-c-028"
+    },
+    {
+      "name": "Facility Service Desk",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "Basement",
+      "number": "C-030",
+      "order": 198,
+      "id": "fac-c-030"
+    },
+    {
+      "name": "Aquatic Center",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-100",
+      "order": 199,
+      "id": "fac-c-100"
+    },
+    {
+      "name": "Aquatic Center Boy's Locker Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "order": 200,
+      "id": "fac-aquatic-center-boy-s-locker-room"
+    },
+    {
+      "name": "Aquatic Center Girl's Locker Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "order": 201,
+      "id": "fac-aquatic-center-girl-s-locker-room"
+    },
+    {
+      "name": "Aquatic Center Office",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-101",
+      "order": 202,
+      "id": "fac-c-101"
+    },
+    {
+      "name": "Auxiliary Gym",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-106",
+      "order": 203,
+      "id": "fac-c-106"
+    },
+    {
+      "name": "Main Gym",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-107",
+      "order": 204,
+      "id": "fac-c-107"
+    },
+    {
+      "name": "Male Coach & Judge Locker Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-108",
+      "order": 205,
+      "id": "fac-c-108"
+    },
+    {
+      "name": "OE Director Office",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-108.1",
+      "order": 206,
+      "id": "fac-c-108-1"
+    },
+    {
+      "name": "Boys' PE Locker Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-109",
+      "order": 207,
+      "id": "fac-c-109"
+    },
+    {
+      "name": "PE & OE Loading Dock",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-110",
+      "order": 208,
+      "id": "fac-c-110"
+    },
+    {
+      "name": "PE Storage",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "order": 209,
+      "id": "fac-pe-storage"
+    },
+    {
+      "name": "Athletic Storage 1",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "order": 210,
+      "id": "fac-athletic-storage-1"
+    },
+    {
+      "name": "OE Storage",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "order": 211,
+      "id": "fac-oe-storage"
+    },
+    {
+      "name": "Female Faculty & Staff Locker Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-111",
+      "order": 212,
+      "id": "fac-c-111"
+    },
+    {
+      "name": "Athletic Storage 2",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-111-1",
+      "order": 213,
+      "id": "fac-c-111-1"
+    },
+    {
+      "name": "Girls' PE Locker Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-112",
+      "order": 214,
+      "id": "fac-c-112"
+    },
+    {
+      "name": "VS PE Storage",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-113",
+      "order": 215,
+      "id": "fac-c-113"
+    },
+    {
+      "name": "Theater Office",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-117",
+      "order": 216,
+      "id": "fac-c-117"
+    },
+    {
+      "name": "Main Theater",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-119",
+      "order": 217,
+      "id": "fac-c-119"
+    },
+    {
+      "name": "Practice Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-124",
+      "order": 218,
+      "id": "fac-c-124"
+    },
+    {
+      "name": "Practice Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-125",
+      "order": 219,
+      "id": "fac-c-125"
+    },
+    {
+      "name": "MS/US Music",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-126",
+      "order": 220,
+      "id": "fac-c-126"
+    },
+    {
+      "name": "Instrument Storage",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-126.1",
+      "order": 221,
+      "id": "fac-c-126-1"
+    },
+    {
+      "name": "Music Classroom Storage",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-126.2",
+      "order": 222,
+      "id": "fac-c-126-2"
+    },
+    {
+      "name": "Practice Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-127",
+      "order": 223,
+      "id": "fac-c-127"
+    },
+    {
+      "name": "Practice Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-128",
+      "order": 224,
+      "id": "fac-c-128"
+    },
+    {
+      "name": "MS/US Music",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-129",
+      "order": 225,
+      "id": "fac-c-129"
+    },
+    {
+      "name": "Ensemble Practice Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-130",
+      "order": 226,
+      "id": "fac-c-130"
+    },
+    {
+      "name": "MS/US Music",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-131",
+      "order": 227,
+      "id": "fac-c-131"
+    },
+    {
+      "name": "Practice Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-132",
+      "order": 228,
+      "id": "fac-c-132"
+    },
+    {
+      "name": "Practice Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-133",
+      "order": 229,
+      "id": "fac-c-133"
+    },
+    {
+      "name": "Practice Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-134",
+      "order": 230,
+      "id": "fac-c-134"
+    },
+    {
+      "name": "Practice Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-135",
+      "order": 231,
+      "id": "fac-c-135"
+    },
+    {
+      "name": "Practice Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-136",
+      "order": 232,
+      "id": "fac-c-136"
+    },
+    {
+      "name": "Practice Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-137",
+      "order": 233,
+      "id": "fac-c-137"
+    },
+    {
+      "name": "Theater Loading Dock",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-138",
+      "order": 234,
+      "id": "fac-c-138"
+    },
+    {
+      "name": "IMP Offfice",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "1st floor",
+      "number": "C-138.1",
+      "order": 235,
+      "id": "fac-c-138-1"
+    },
+    {
+      "name": "Black Box Theater",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-200",
+      "order": 236,
+      "id": "fac-c-200"
+    },
+    {
+      "name": "Ceramics Studio",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-202A",
+      "order": 237,
+      "id": "fac-c-202a"
+    },
+    {
+      "name": "US Design / MS Advisory",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-202B",
+      "order": 238,
+      "id": "fac-c-202b"
+    },
+    {
+      "name": "Kiln Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-202.2",
+      "order": 239,
+      "id": "fac-c-202-2"
+    },
+    {
+      "name": "MS Design",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-204",
+      "order": 240,
+      "id": "fac-c-204"
+    },
+    {
+      "name": "MS Design",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-205",
+      "order": 241,
+      "id": "fac-c-205"
+    },
+    {
+      "name": "MS Design",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-206",
+      "order": 242,
+      "id": "fac-c-206"
+    },
+    {
+      "name": "Professional Learning Center",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-210",
+      "order": 243,
+      "id": "fac-c-210"
+    },
+    {
+      "name": "MPR3 - PHE Class 1",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-213",
+      "order": 244,
+      "id": "fac-c-213"
+    },
+    {
+      "name": "Laundry Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-214",
+      "order": 245,
+      "id": "fac-c-214"
+    },
+    {
+      "name": "PHE Office",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-215",
+      "order": 246,
+      "id": "fac-c-215"
+    },
+    {
+      "name": "Male Faculty & Staff Locker Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-216",
+      "order": 247,
+      "id": "fac-c-216"
+    },
+    {
+      "name": "Gymnastics Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-217",
+      "order": 248,
+      "id": "fac-c-217"
+    },
+    {
+      "name": "US Design",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-218",
+      "order": 249,
+      "id": "fac-c-218"
+    },
+    {
+      "name": "Varsiry Boys' Locker Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-218.1",
+      "order": 250,
+      "id": "fac-c-218-1"
+    },
+    {
+      "name": "Varsiry Girls' Locker Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-220",
+      "order": 251,
+      "id": "fac-c-220"
+    },
+    {
+      "name": "US Design",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-221",
+      "order": 252,
+      "id": "fac-c-221"
+    },
+    {
+      "name": "PHE Classroom 2",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "2nd floor",
+      "number": "C-222",
+      "order": 253,
+      "id": "fac-c-222"
+    },
+    {
+      "name": "Main Theater Operation Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "3rd floor",
+      "number": "C-300",
+      "order": 254,
+      "id": "fac-c-300"
+    },
+    {
+      "name": "Black Box Theater Operation Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "3rd floor",
+      "number": "C-301.1",
+      "order": 255,
+      "id": "fac-c-301-1"
+    },
+    {
+      "name": "Dance Studio",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "3rd floor",
+      "number": "C-309",
+      "order": 256,
+      "id": "fac-c-309"
+    },
+    {
+      "name": "Fitness Room",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "3rd floor",
+      "number": "C-310",
+      "order": 257,
+      "id": "fac-c-310"
+    },
+    {
+      "name": "Athletics & CICP Director Office",
+      "building": "Spine",
+      "buildingCode": "C",
+      "floor": "3rd floor",
+      "number": "C-312",
+      "order": 258,
+      "id": "fac-c-312"
+    },
+    {
+      "name": "Admissions Office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "1st floor",
+      "number": "D-101",
+      "order": 259,
+      "id": "fac-d-101"
+    },
+    {
+      "name": "Director of Enrollment Management and Strategy Office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "1st floor",
+      "number": "D-102",
+      "order": 260,
+      "id": "fac-d-102"
+    },
+    {
+      "name": "Director of Admissions",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "1st floor",
+      "number": "D-104",
+      "order": 261,
+      "id": "fac-d-104"
+    },
+    {
+      "name": "Meeting Room",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "2nd floor",
+      "number": "D-200",
+      "order": 262,
+      "id": "fac-d-200"
+    },
+    {
+      "name": "Purchasing Office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "2nd floor",
+      "number": "D-201",
+      "order": 263,
+      "id": "fac-d-201"
+    },
+    {
+      "name": "Director of Professional Learning Office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "2nd floor",
+      "number": "D-202",
+      "order": 264,
+      "id": "fac-d-202"
+    },
+    {
+      "name": "Nursing Room",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "2nd floor",
+      "number": "D-203",
+      "order": 265,
+      "id": "fac-d-203"
+    },
+    {
+      "name": "Telepresence Room",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "2nd floor",
+      "number": "D-205",
+      "order": 266,
+      "id": "fac-d-205"
+    },
+    {
+      "name": "Communications Office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "2nd floor",
+      "number": "D-206",
+      "order": 267,
+      "id": "fac-d-206"
+    },
+    {
+      "name": "Director of Communications Office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "2nd floor",
+      "number": "D-206.1",
+      "order": 268,
+      "id": "fac-d-206-1"
+    },
+    {
+      "name": "Human Resources Office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "2nd floor",
+      "number": "D-208",
+      "order": 269,
+      "id": "fac-d-208"
+    },
+    {
+      "name": "Director of Human Resources Office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "2nd floor",
+      "number": "D-208.1",
+      "order": 270,
+      "id": "fac-d-208-1"
+    },
+    {
+      "name": "External Affairs Office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "2nd floor",
+      "number": "D-209",
+      "order": 271,
+      "id": "fac-d-209"
+    },
+    {
+      "name": "Director of External Affairs Office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "2nd floor",
+      "number": "D-209.1",
+      "order": 272,
+      "id": "fac-d-209-1"
+    },
+    {
+      "name": "Head office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "3rd floor",
+      "number": "D-303",
+      "order": 273,
+      "id": "fac-d-303"
+    },
+    {
+      "name": "Head Master Office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "3rd floor",
+      "number": "D-303.1",
+      "order": 274,
+      "id": "fac-d-303-1"
+    },
+    {
+      "name": "Head office Meeting Room",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "3rd floor",
+      "number": "D-303.2",
+      "order": 275,
+      "id": "fac-d-303-2"
+    },
+    {
+      "name": "Assistant Head Master Office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "3rd floor",
+      "number": "D-304",
+      "order": 276,
+      "id": "fac-d-304"
+    },
+    {
+      "name": "CFO Office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "3rd floor",
+      "number": "D-305",
+      "order": 277,
+      "id": "fac-d-305"
+    },
+    {
+      "name": "Meeting Room",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "3rd floor",
+      "number": "D-306",
+      "order": 278,
+      "id": "fac-d-306"
+    },
+    {
+      "name": "Director of GA Office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "3rd floor",
+      "number": "D-307",
+      "order": 279,
+      "id": "fac-d-307"
+    },
+    {
+      "name": "Director of Alumni Relations and International Community Relations",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "3rd floor",
+      "number": "D-308",
+      "order": 280,
+      "id": "fac-d-308"
+    },
+    {
+      "name": "General Affairs Office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "3rd floor",
+      "number": "D-309A",
+      "order": 281,
+      "id": "fac-d-309a"
+    },
+    {
+      "name": "Finance Office",
+      "building": "Leadership Building",
+      "buildingCode": "D",
+      "floor": "3rd floor",
+      "number": "D-309B",
+      "order": 282,
+      "id": "fac-d-309b"
+    },
+    {
+      "name": "Low Rope Obstacle Course",
+      "building": "Outdoor",
+      "buildingCode": "",
+      "floor": "Outdoor",
+      "area": "Soccer Field",
+      "order": 283,
+      "id": "fac-low-rope-obstacle-course"
+    },
+    {
+      "name": "Soccer Field",
+      "building": "Outdoor",
+      "buildingCode": "",
+      "floor": "Outdoor",
+      "area": "Soccer Field",
+      "order": 284,
+      "id": "fac-soccer-field"
+    },
+    {
+      "name": "Tennis Courts",
+      "building": "Outdoor",
+      "buildingCode": "",
+      "floor": "Outdoor",
+      "area": "Tennis Courts",
+      "order": 285,
+      "id": "fac-tennis-courts"
+    }
+  ]
+}

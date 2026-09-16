@@ -21,7 +21,7 @@ import path from 'node:path';
 
 const PROJECT = 'ci-connects';
 const PROTECTED = { sessions: ['reservedUserIds', 'waitlistUserIds', 'checkinCode'], users: ['role', 'eventAccess', 'hostOf'] };
-const ORDER = ['settings', 'users', 'events', 'rooms', 'tracks', 'sponsors', 'sessions', 'announcements', 'invites'];
+const ORDER = ['settings', 'facilities', 'users', 'events', 'rooms', 'tracks', 'sponsors', 'sessions', 'announcements', 'invites'];
 
 const file = process.argv[2];
 if (!file) { console.error('usage: node seed/seed.mjs <seed.json>'); process.exit(1); }

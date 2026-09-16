@@ -125,8 +125,27 @@ export interface Room {
   id: string;
   eventId: string;
   name: string;
+  /** The number on the door, from the campus directory: B-201. */
+  number?: string;
+  /** Which campus room this is, when it came from the directory. */
+  facilityId?: string;
+  /** Building and floor, as people are told where to go. */
+  where?: string;
   capacity: number;
   location?: string;
+  order: number;
+}
+
+/** One room on campus, from the school's facilities list — the directory
+ *  a session's room is chosen from, and what tells a person where it is. */
+export interface Facility {
+  id: string;
+  number?: string;
+  name: string;
+  building: string;
+  buildingCode: string;
+  floor: string;
+  area?: string;
   order: number;
 }
 
@@ -189,6 +208,7 @@ export interface Collections {
   events: Event;
   sessions: Session;
   rooms: Room;
+  facilities: Facility;
   tracks: Track;
   sponsors: Sponsor;
   attendance: Attendance;

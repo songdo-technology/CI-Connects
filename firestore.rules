@@ -437,5 +437,11 @@ service cloud.firestore {
       allow write: if v2Admin();
     }
 
+    // The campus room directory, from the school's facilities list.
+    match /v2/data/facilities/{facilityId} {
+      allow read: if signedIn();
+      allow write: if v2Admin();
+    }
+
   }
 }

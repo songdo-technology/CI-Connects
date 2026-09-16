@@ -514,6 +514,20 @@ shows `HostPanel` (live count, names, *Open the door screen*) for a hosted
 session that is on now, and `/door/<event>/<session>` admits hosts as well
 as staff. Staff keep the Live tab and door screens for everything.
 
+**Campus rooms (16 Sep 2026).** The school's facilities list (the
+2026-2027 workbook: VS, MS/US, Spine, Leadership Building, outdoor — 285
+rooms with number, name, building and floor) is `v2/seed/facilities.json`
+→ `/v2/data/facilities` (read: signed in; write: admin). In the session
+editor the Room field is a search (`RoomPicker`): this event's rooms first,
+then any room on campus by number or name; choosing a campus room adopts
+it as an event room with `number`, `facilityId` and `where` ("Middle &
+Upper School (Building B) · 2nd floor"). Rooms show as "B-201 · MS English"
+everywhere (`roomLabel`/`roomWhere` in `src/lib/rooms.ts`); the event's
+Venue page groups rooms by building and has *Find a room* over the whole
+directory. Regenerate the JSON from a new workbook with the Python in the
+16 Sep transcript (sheet layout: floor labels in row 2, number/name column
+pairs) and `npm run seed -- seed/facilities.json`.
+
 **No demo build.** Removed at deploy time: `MemoryStore`, the seed import,
 the persona picker, `npm run demo`, `VITE_DEMO`. Anything that needs a
 signed-in person is verified on `localhost:3100` or live, by a person.

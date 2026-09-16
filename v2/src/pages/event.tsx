@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link, Navigate, Outlet, useNavigate, useOutletContext, useParams, useLocation } from 'react-router';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-  CalendarDays, MapPin, Search, LayoutList, LayoutGrid, Download, Users, Lock, ArrowLeft, CircleCheck, Clock, ShieldCheck, ExternalLink, Maximize2, Printer, ScanLine, QrCode,
+  CalendarDays, MapPin, Search, LayoutList, LayoutGrid, Download, Users, Lock, ArrowLeft, CircleCheck, Clock, ShieldCheck, ExternalLink, Maximize2, Printer, ScanLine, QrCode, Building2,
 } from 'lucide-react';
 import { Event, Room, Session, Track, Sponsor, SPONSOR_TIERS, SPONSOR_TIER_LABEL } from '../lib/types';
 import { useAuth } from '../lib/auth';
@@ -17,7 +17,8 @@ import { EventWelcome, seenWelcome } from '../components/EventWelcome';
 import { BadgeCard, BadgeFullscreen } from '../components/Badge';
 import { HostPanel } from './checkin';
 import { PageTransition } from '../lib/motion';
-import { Avatar, Button, Card, Chip, Empty, Spinner, SubNav } from '../components/ui';
+import { Avatar, Button, Card, Chip, Empty, Spinner, SubNav, Input } from '../components/ui';
+import { roomLabel, roomWhere, facilityLabel, facilityWhere, searchFacilities, norm } from '../lib/rooms';
 
 interface EventCtx { event: Event; sessions: Session[]; rooms: Room[]; tracks: Track[]; sponsors: Sponsor[]; mine: Session[]; base: string }
 const useEvent = () => useOutletContext<EventCtx>();
@@ -267,24 +268,72 @@ export const SpeakersPage: React.FC = () => {
 };
 
 // ------------------------------------------------------------------ venue
+const RoomHit: React.FC<{ label: string; where?: string; sessions?: Session[]; base?: string }> = ({ label, where, sessions = [], base }) => (
+  <Card className="p-4">
+    <div className="font-semibold text-ink-900">{label}</div>
+    {where && <div className="text-sm text-ink-700 mt-0.5 inline-flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-blue-400" />{where}</div>}
+    {sessions.length > 0 && base && (
+      <ul className="mt-2 space-y-1">
+        {[...sessions].sort(byStart).map((s) => <li key={s.id} className="text-sm"><Link to={`${base}/schedule/${s.id}`} className="text-blue-700 hover:underline">{formatTime(s.start)} · {s.title}</Link></li>)}
+      </ul>
+    )}
+  </Card>
+);
+
+/** The event's rooms by building, where each one is, and a way to find
+ *  any room on campus by the number on its door. */
 export const VenuePage: React.FC = () => {
-  const { event, rooms, sessions } = useEvent();
+  const { event, rooms, sessions, base } = useEvent();
+  const facilities = useWatch('facilities', []);
+  const [q, setQ] = useState('');
   const maps = `https://www.google.com/maps/search/${encodeURIComponent(event.venueAddress ?? event.venueName)}`;
+  const hits = useMemo(() => {
+    if (!q.trim()) return null;
+    const t = norm(q);
+    const inEvent = rooms.filter((r) => norm(roomLabel(r)).includes(t));
+    const taken = new Set(rooms.map((r) => r.facilityId).filter(Boolean));
+    const campus = searchFacilities(facilities.items, q, 8).filter((f) => !taken.has(f.id));
+    return { inEvent, campus };
+  }, [q, rooms, facilities.items]);
+  const groups = useMemo(() => {
+    const m = new Map<string, Room[]>();
+    for (const r of rooms) { const k = roomWhere(r)?.split(' · ')[0] ?? event.venueName; m.set(k, [...(m.get(k) ?? []), r]); }
+    return [...m.entries()];
+  }, [rooms, event.venueName]);
   return (
     <div className="grid lg:grid-cols-[minmax(0,1fr)_20rem] gap-5">
-      <div className="space-y-3">
-        {rooms.map((r) => {
-          const n = sessions.filter((s) => s.roomId === r.id).length;
-          return (
-            <Card key={r.id} className="p-4 flex items-center justify-between gap-3">
-              <div>
-                <div className="font-semibold text-ink-900">{r.name}</div>
-                <div className="text-xs text-ink-500">{[r.location, r.capacity ? `${r.capacity} seats` : null].filter(Boolean).join(' · ')}</div>
-              </div>
-              <div className="text-xs text-ink-500 tabular-nums">{n} session{n === 1 ? '' : 's'}</div>
-            </Card>
-          );
-        })}
+      <div className="space-y-5">
+        <Card className="p-4">
+          <div className="eyebrow mb-2">Find a room</div>
+          <div className="relative"><Search className="w-4 h-4 text-ink-300 absolute left-3 top-1/2 -translate-y-1/2" /><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="The number on the door, or a name — B-201, Library, Main Theater" className="pl-9" /></div>
+          {hits && (
+            <div className="mt-3 space-y-2">
+              {hits.inEvent.length === 0 && hits.campus.length === 0 && <p className="text-sm text-ink-500">Nothing matches. Try the number on the door, or part of the name.</p>}
+              {hits.inEvent.map((r) => <RoomHit key={r.id} label={roomLabel(r)} where={roomWhere(r)} sessions={sessions.filter((s) => s.roomId === r.id)} base={base} />)}
+              {hits.campus.map((f) => <RoomHit key={f.id} label={facilityLabel(f)} where={facilityWhere(f)} />)}
+            </div>
+          )}
+        </Card>
+        {groups.map(([building, list]) => (
+          <section key={building}>
+            <div className="eyebrow mb-2 inline-flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" />{building}</div>
+            <div className="space-y-2">
+              {list.map((r) => {
+                const n = sessions.filter((s) => s.roomId === r.id).length;
+                const floor = roomWhere(r)?.split(' · ').slice(1).join(' · ');
+                return (
+                  <Card key={r.id} className="p-4 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="font-semibold text-ink-900 truncate">{roomLabel(r)}</div>
+                      <div className="text-xs text-ink-500">{[floor, r.capacity ? `${r.capacity} seats` : null].filter(Boolean).join(' · ')}</div>
+                    </div>
+                    <div className="text-xs text-ink-500 tabular-nums shrink-0">{n} session{n === 1 ? '' : 's'}</div>
+                  </Card>
+                );
+              })}
+            </div>
+          </section>
+        ))}
         {rooms.length === 0 && <Empty icon={MapPin} title="Rooms are being confirmed" />}
       </div>
       <Card className="p-5 h-fit">
@@ -292,6 +341,7 @@ export const VenuePage: React.FC = () => {
         <div className="font-semibold text-ink-900">{event.venueName}</div>
         {event.venueAddress && <p className="text-sm text-ink-700 mt-1">{event.venueAddress}</p>}
         <a href={maps} target="_blank" rel="noreferrer" className="btn-secondary btn-sm mt-4"><ExternalLink className="w-3.5 h-3.5" />Open in Maps</a>
+        <p className="text-xs text-ink-500 mt-4">Buildings: A is the Village School, B the Middle & Upper School, C the Spine (theatre, gyms, music), D the Leadership Building. Room numbers start with the building letter and the floor: B-201 is Building B, 2nd floor.</p>
       </Card>
     </div>
   );
