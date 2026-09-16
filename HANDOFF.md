@@ -484,7 +484,12 @@ they are on: `BadgeCard` (`src/components/Badge.tsx`) — lanyard card, name,
 school, role, QR `ci2:<uid>` — in a wallet at `/badge` (nav: Badge), full
 size at `/e/<slug>/badge` with *Show at the door* (white full-screen code)
 and *Print* (3.5in card). The code is the person, so one badge works at
-every event. Doors: `/door/<eventId>/<sessionId>` and
+every event. It is a link — `https://ci-events.pages.dev/b/<uid>` — because
+a phone camera has to open *something*: the owner's phone lands on their
+badges, an organiser's phone gets a check-in card for that person
+(`BadgeLinkPage`: event, venue or session, one tap), anyone else is told
+badges are read at the door. The scanners take the uid out of the link
+(`badgeUid`, which still reads the older `ci2:<uid>` form). Doors: `/door/<eventId>/<sessionId>` and
 `/door/<eventId>/room/<roomId>` (`DoorScreen`, staff only, meant for a
 projector, opened in its own tab from Administration → Events → **Live**):
 session on now (a room screen follows the room's programme through the

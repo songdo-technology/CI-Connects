@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useOutletContext, useParams, useSearchParams } from 'react-router';
 import { QRCodeSVG } from 'qrcode.react';
-import { ArrowLeft, CircleCheck, Clock, MapPin, RefreshCw, AlertTriangle, ScanLine, Camera, Maximize2, Users, Mic } from 'lucide-react';
+import {
+  ArrowLeft, CircleCheck, Clock, MapPin, RefreshCw, AlertTriangle, ScanLine, Camera, Maximize2, Users, Mic, IdCardLanyard, UserCheck,
+} from 'lucide-react';
 import { Attendance, Event, Profile, Room, Session, Sponsor, Track } from '../lib/types';
 import { useAuth } from '../lib/auth';
 import { useWatch, useDoc } from '../lib/hooks';
@@ -12,7 +14,10 @@ import { formatTime, nowIso, formatClock, todayYmd, toMinutes, formatDate } from
 import { Mark } from '../components/Mark';
 import { OrbitDiagram } from '../components/Orbit';
 import { Scanner } from '../components/Scanner';
-import { Avatar, Button, Card, Spinner, Empty } from '../components/ui';
+import { Avatar, Button, Card, Spinner, Empty, Field, Select, Notice, Chip } from '../components/ui';
+import { badgeUid } from '../components/Badge';
+import { canSeeEvent } from '../lib/roles';
+import { ROLE_LABEL } from '../lib/types';
 
 /** The address a door QR opens. */
 export const hereUrl = (slug: string, sessionId: string, code: string) =>
@@ -109,7 +114,7 @@ export const DoorScreen: React.FC = () => {
   useEffect(() => { if (!toast) return; const t = window.setTimeout(() => setToast(null), 3200); return () => window.clearTimeout(t); }, [toast]);
   const handleCode = useCallback(async (text: string) => {
     if (!session || !profile || !eventId) return;
-    const m = text.trim().match(/^ci2:(.+)$/); const uid = m ? m[1] : text.trim();
+    const uid = badgeUid(text) ?? text.trim();
     const u = people.find((p) => p.id === uid);
     if (!u) { setToast({ text: 'That badge is not on this event', tone: 'warn' }); return; }
     const existing = arrivals.items.find((a) => a.userId === uid);
@@ -316,6 +321,118 @@ export const HerePage: React.FC = () => {
         </div>
       </Card>
       <div className="text-center mt-4"><Link to={`${base}/schedule`} className="text-sm text-blue-700 hover:underline">Back to the programme</Link></div>
+    </div>
+  );
+};
+
+/**
+ * What a badge's code opens on a phone. The person's own phone lands on
+ * their badges. An organiser's phone gets a check-in card for whoever the
+ * badge belongs to — event, venue or session, one tap — so a member of
+ * staff can walk the room with nothing but their phone. Anyone else sees
+ * that badges are for the door.
+ */
+export const BadgeLinkPage: React.FC = () => {
+  const { uid } = useParams();
+  const { profile } = useAuth();
+  const staff = isStaff(profile);
+  const { doc: person, ready } = useDoc('users', uid ?? null);
+  const events = useWatch('events', [], staff);
+  const [eventId, setEventId] = useState('');
+  const eventFilter = eventId ? [{ field: 'eventId', op: '==' as const, value: eventId }] : [];
+  const sessions = useWatch('sessions', eventFilter, Boolean(eventId));
+  const invites = useWatch('invites', eventFilter, Boolean(eventId) && staff);
+  const attendance = useWatch('attendance', eventId && uid ? [...eventFilter, { field: 'userId', op: '==', value: uid }] : [], Boolean(eventId && uid));
+  const [sessionId, setSessionId] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
+
+  // The event that is on today, else the next one, else the last one.
+  useEffect(() => {
+    if (eventId || events.items.length === 0) return;
+    const today = todayYmd();
+    const live = events.items.find((e) => e.startDate <= today && today <= e.endDate);
+    const next = [...events.items].filter((e) => e.startDate > today).sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
+    const last = [...events.items].sort((a, b) => b.startDate.localeCompare(a.startDate))[0];
+    setEventId((live ?? next ?? last)?.id ?? '');
+  }, [events.items, eventId]);
+  // The session that is on right now, if one is.
+  useEffect(() => {
+    const now = new Date(); const today = todayYmd(); const mins = now.getHours() * 60 + now.getMinutes();
+    const on = sessions.items.find((s) => s.date === today && toMinutes(s.start) - 15 <= mins && mins <= toMinutes(s.end));
+    setSessionId(on?.id ?? '');
+  }, [sessions.items]);
+
+  if (profile && uid === profile.id) return <Navigate to="/badge" replace />;
+  if (!ready) return <Spinner />;
+  if (!person) {
+    return (
+      <div className="max-w-md mx-auto">
+        <Empty icon={IdCardLanyard} title={staff ? 'No such badge' : 'Badges are read at the door'}
+          body={staff ? 'This code does not belong to anyone on CI Connects.' : 'An organiser scans a badge to check its owner in. Your own badge is under Badge.'}
+          action={<Button to="/badge">Your badge</Button>} />
+      </div>
+    );
+  }
+  const event = events.items.find((e) => e.id === eventId) ?? null;
+  const target = sessionId || null;
+  const existing = attendance.items.find((a) => a.sessionId === target);
+  const invited = invites.items.some((i) => i.email === person.email.toLowerCase());
+  const listed = event ? canSeeEvent(person, event.id) || invited : false;
+  const session = sessions.items.find((s) => s.id === sessionId);
+  const checkIn = async () => {
+    if (!profile || !event) return;
+    setBusy(true); setNote(null);
+    const rec: Attendance = { id: `${event.id}__${target ?? 'venue'}__${person.id}`, eventId: event.id, sessionId: target, userId: person.id, at: nowIso(), by: profile.id, name: person.name, org: person.org };
+    try { await store.set('attendance', rec.id, rec); setNote({ tone: 'success', text: `${person.name} is in${session ? ` · ${session.title}` : ' · at the venue'}` }); }
+    catch { setNote({ tone: 'error', text: 'That did not record — check the connection and try again.' }); }
+    finally { setBusy(false); }
+  };
+  const first = person.name.split(' ')[0];
+  return (
+    <div className="max-w-md mx-auto">
+      <Card className="p-5 flex items-center gap-4">
+        <Avatar name={person.name} photoUrl={person.photoUrl} size={56} className="ring-2 ring-white shadow-md" />
+        <div className="min-w-0">
+          <div className="font-display font-bold text-xl text-ink-900 leading-tight truncate">{person.name}</div>
+          {(person.title || person.org) && <div className="text-sm text-ink-500 truncate">{[person.title, person.org].filter(Boolean).join(' · ')}</div>}
+          <div className="mt-1.5"><Chip tone={person.role === 'user' ? undefined : 'blue'}>{person.role === 'user' ? 'Participant' : ROLE_LABEL[person.role]}</Chip></div>
+        </div>
+      </Card>
+      {staff ? (
+        <Card className="p-5 mt-4 space-y-4">
+          <div className="eyebrow">Check in</div>
+          <Field label="Event">
+            <Select value={eventId} onChange={(e) => { setEventId(e.target.value); setNote(null); }}>
+              {[...events.items].sort((a, b) => b.startDate.localeCompare(a.startDate)).map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
+            </Select>
+          </Field>
+          <Field label="Where">
+            <Select value={sessionId} onChange={(e) => { setSessionId(e.target.value); setNote(null); }}>
+              <option value="">Arrival at the venue</option>
+              {[...sessions.items].sort((a, b) => a.date.localeCompare(b.date) || toMinutes(a.start) - toMinutes(b.start)).map((s) => <option key={s.id} value={s.id}>{formatTime(s.start)} · {s.title}</option>)}
+            </Select>
+          </Field>
+          {event && !listed && <Notice tone="warn">{first} is not on this event's list. You can still check them in.</Notice>}
+          {note && <Notice tone={note.tone}>{note.text}</Notice>}
+          {existing && !note
+            ? <Notice tone="success"><CircleCheck className="w-4 h-4 inline mr-1 -mt-0.5" />Already in · {formatClock(existing.at)}</Notice>
+            : !note && <Button onClick={() => void checkIn()} busy={busy} disabled={!event} className="w-full py-3.5 text-base"><UserCheck className="w-4 h-4" />Check in {first}</Button>}
+          {attendance.items.length > 0 && (
+            <div>
+              <div className="text-[11px] uppercase tracking-wider text-ink-500 mb-1.5">Seen at {event?.name}</div>
+              <ul className="space-y-1">
+                {[...attendance.items].sort((a, b) => a.at.localeCompare(b.at)).map((a) => {
+                  const s = sessions.items.find((x) => x.id === a.sessionId);
+                  return <li key={a.id} className="text-sm flex items-center gap-2"><CircleCheck className="w-4 h-4 text-emerald-600 shrink-0" /><span className="text-ink-900 truncate">{s?.title ?? (a.sessionId ? a.sessionId : 'Arrived at the venue')}</span><span className="text-xs text-ink-500 ml-auto tabular-nums">{formatClock(a.at)}</span></li>;
+                })}
+              </ul>
+            </div>
+          )}
+        </Card>
+      ) : (
+        <p className="text-sm text-ink-500 text-center mt-4">An organiser scans this from their own phone to check {first} in.</p>
+      )}
     </div>
   );
 };

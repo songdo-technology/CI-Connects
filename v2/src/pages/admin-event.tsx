@@ -16,6 +16,7 @@ import { useEventData, TrackDot } from '../components/schedule';
 import { Scanner } from '../components/Scanner';
 import { Button, Card, Chip, Drawer, Empty, Field, Input, Notice, Select, Spinner, Textarea, PageHeader, Avatar, SubNav, TimeInput } from '../components/ui';
 import { ImagePicker } from '../components/ImagePicker';
+import { badgeUid } from '../components/Badge';
 
 const TYPES: SessionType[] = ['keynote', 'talk', 'workshop', 'panel', 'break', 'social'];
 const COLORS = ['#002B54', '#2A6791', '#56A0D3', '#5E6513', '#B04318', '#8B5E34', '#6B605A', '#7C3AED'];
@@ -451,8 +452,7 @@ export const AdminCheckIn: React.FC = () => {
 
   /** A badge code, from the camera or a keyboard scanner. */
   const handleCode = useCallback(async (text: string) => {
-    const m = text.trim().match(/^ci2:(.+)$/);
-    const uid = m ? m[1] : text.trim();
+    const uid = badgeUid(text) ?? text.trim();
     const u = people.find((p) => p.id === uid);
     if (!u) { setResult({ tone: 'unknown', name: text.trim().slice(0, 40) }); return; }
     await checkIn(u);

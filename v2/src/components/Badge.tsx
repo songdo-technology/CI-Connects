@@ -9,8 +9,21 @@ import { Avatar } from './ui';
 import { Mark } from './Mark';
 import { OrbitDiagram } from './Orbit';
 
-/** What a badge's code says. The door scanners and the check-in page read it. */
-export const badgeCode = (uid: string) => `ci2:${uid}`;
+/**
+ * What a badge's code says: a link to the person, so a phone camera opens
+ * something (an organiser's phone gets a check-in card; the person's own
+ * phone, their badge) while the door scanners read the uid out of it.
+ * Older badges said `ci2:<uid>`; `badgeUid` still understands those.
+ */
+export const badgeCode = (uid: string) => `${window.location.origin}/b/${uid}`;
+
+/** The person a scanned badge belongs to, from either form of code. */
+export function badgeUid(text: string): string | null {
+  const t = text.trim();
+  const m = /^ci2:([A-Za-z0-9_-]+)$/.exec(t) ?? /\/b\/([A-Za-z0-9_-]+)(?:[/?#]|$)/.exec(t);
+  if (m) return m[1];
+  return /^[A-Za-z0-9_-]{20,}$/.test(t) ? t : null;
+}
 
 /** A card that leans towards the pointer, the way a lanyard badge turns in
  *  the hand. Off for touch and for people who asked for less motion. */
@@ -76,7 +89,7 @@ export const BadgeCard: React.FC<{
             {speaker && profile.role !== 'user' && <span className="chip bg-amber-100 text-amber-900"><Mic className="w-3 h-3" />Speaker</span>}
           </div>
           <div className={`flex items-center gap-4 ${full ? 'mt-5 pb-5' : 'mt-4 pb-4'}`}>
-            <div className="p-2 bg-white rounded-xl border border-sand-200 shrink-0"><QRCodeSVG value={badgeCode(profile.id)} size={full ? 132 : 96} level="M" /></div>
+            <div className="p-2 bg-white rounded-xl border border-sand-200 shrink-0"><QRCodeSVG value={badgeCode(profile.id)} size={full ? 140 : 104} level="M" /></div>
             <div className="text-xs text-ink-500 leading-relaxed min-w-0">
               <div className="font-semibold text-ink-900">Scan at the door</div>
               <div className="mt-0.5">Any phone signed in as you shows the same code.</div>
