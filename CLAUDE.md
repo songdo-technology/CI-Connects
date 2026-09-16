@@ -34,7 +34,7 @@ guess:
 From a machine with a wrangler login, `npm run ship` (root or `v2/`) does
 typecheck → build → `git push` → deploy in one step with no token; it refuses
 a dirty tree, a branch other than `main`, or a bundle not built for
-`ci-events.pages.dev`. Always deploy from the repository root: `functions/`
+`ci-connects.org`. Always deploy from the repository root: `functions/`
 (the auth-handler proxy) is picked up from the working directory. Once the Actions secret is set, a plain `git push`
 is enough and `ship` merely deploys the same bundle twice.
 

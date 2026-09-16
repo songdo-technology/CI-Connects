@@ -49,7 +49,7 @@ jobs:
           # Public Firebase client config — identifies the project, does not
           # authenticate. Kept as repository *variables*; see v2/.env.example.
           # The auth domain is not passed: v2/.env.production fixes it to
-          # ci-events.pages.dev for every production build.
+          # ci-connects.org for every production build.
           VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID }}
           VITE_FIREBASE_STORAGE_BUCKET: ${{ vars.VITE_FIREBASE_STORAGE_BUCKET }}
@@ -58,7 +58,7 @@ jobs:
         run: |
           test -n "$VITE_FIREBASE_API_KEY" || { echo "::error::Repository variables VITE_FIREBASE_* are not set"; exit 1; }
           npm run build
-          grep -lq 'ci-events\.pages\.dev' dist/assets/*.js || { echo "::error::Bundle is not built for ci-events.pages.dev — v2/.env.production is missing"; exit 1; }
+          grep -lq 'ci-connects\.org' dist/assets/*.js || { echo "::error::Bundle is not built for ci-connects.org — v2/.env.production is missing"; exit 1; }
 
       - name: Deploy to production
         if: env.HAS_CF_TOKEN == 'true'
@@ -73,5 +73,5 @@ jobs:
       - name: Not deployed
         if: env.HAS_CF_TOKEN != 'true'
         run: |
-          echo "::warning::CLOUDFLARE_API_TOKEN is not set, so GitHub did not deploy this push. If it went out with 'npm run ship', live already matches main; otherwise main is ahead of https://ci-events.pages.dev"
+          echo "::warning::CLOUDFLARE_API_TOKEN is not set, so GitHub did not deploy this push. If it went out with 'npm run ship', live already matches main; otherwise main is ahead of https://ci-connects.org"
           echo "Optional — to deploy from GitHub too:  gh secret set CLOUDFLARE_API_TOKEN -R songdo-technology/CI-Connects   (HANDOFF.md -> Automatic deploys)"

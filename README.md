@@ -3,7 +3,7 @@
 Chadwick International's event platform — the programme, seats, badges and
 the people in the room for events such as KORCOS 2026.
 
-- **Live:** <https://ci-events.pages.dev> — this is **v2**, the app in [`v2/`](v2/)
+- **Live:** <https://ci-connects.org> (the Pages address `ci-events.pages.dev` forwards there) — **v2**, the app in [`v2/`](v2/)
 - **Repo:** <https://github.com/songdo-technology/CI-Connects>, branch `main`
 - **v1** (the first platform) is sealed at tag `v1.0.0` at the repository
   root. It still builds, but nothing deploys it any more.

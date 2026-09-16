@@ -5,37 +5,36 @@ evening when v2 went live. Everything needed to resume is in this repository
 except `v2/.env.local`, which is gitignored and which `scripts/bootstrap.sh`
 recreates.
 
-## Domain: ci-connects.org (17 Sep 2026, in progress)
+## Domain: ci-connects.org (17 Sep 2026) — wired, deploy held for the campus firewall
 
-Bought on Cloudflare Registrar in the school account (zone active). Done by
-API: both `ci-connects.org` and `www` added as custom domains of the Pages
-project `ci-events` (pending until DNS resolves), both added to Firebase
-Auth's authorised domains. Waiting on two things only a person can do:
+The site's address is **https://ci-connects.org** (www too). Bought on
+Cloudflare Registrar in the school account; zone active; both hostnames
+are custom domains of the Pages project `ci-events` (CNAME →
+ci-events.pages.dev, proxied — added by hand in the dashboard, because
+the wrangler login can read zones but not write records; status active,
+certificate issued). Firebase Auth has both on its authorised list; the
+OAuth web client has `https://ci-connects.org/__/auth/handler` (checked
+with `check-oauth-uri.sh`). From outside the school the site answers 200.
 
-1. **DNS** — the wrangler login can read zones but not write records, so
-   the two CNAMEs (`@` and `www` → `ci-events.pages.dev`, proxied) are added
-   in the dashboard (Workers & Pages → ci-events → Custom domains → the
-   pending entries offer to add them). Check: `dig +short ci-connects.org`.
-2. **OAuth redirect URI** — `https://ci-connects.org/__/auth/handler` on
-   the Firebase-made web client in Google Cloud Console (project
-   ci-connects → APIs & Services → Credentials). Check without signing in:
-   `sh check-oauth-uri.sh https://ci-connects.org/__/auth/handler`.
-
-Then, in order: ship the host redirect already in `v2/src/main.tsx`
-(pages.dev and www → ci-connects.org) once DNS is live; and once the URI
-is registered switch `v2/.env.production` to
-`VITE_FIREBASE_AUTH_DOMAIN=ci-connects.org` and the `ci-events.pages.dev`
-checks in `v2/scripts/ship.sh` and `deploy.yml` to the new domain, so the
-mobile redirect fallback is same-site again. Until that switch, sign-in
-from the new domain still works by pop-up through the old handler. A stray
-zone `ciconnect.org` (no s) sits in the account, initializing — probably
-added by mistake; harmless, can be deleted.
+**On the school network a FortiGate intercepts the new domain** (the
+chain shows a Fortinet CA, the reply is 403) — the usual newly-registered-
+domain block. Until it is allowed there, this commit is pushed but **not
+deployed**: `v2/.env.production` now says
+`VITE_FIREBASE_AUTH_DOMAIN=ci-connects.org`, `ship.sh` / `deploy.yml`
+refuse a bundle built for anything else, and `v2/src/main.tsx` forwards
+`ci-events.pages.dev` and `www` to the apex. Deploying before the firewall
+allows the domain would send everyone on campus from a working address to
+a blocked one. When it is allowed (test: `curl -sI https://ci-connects.org`
+from campus shows a Google Trust Services certificate and 200), run
+`npm run ship`. The old address stays valid as the Pages origin and its
+`/__/auth/handler` keeps answering. A stray zone `ciconnect.org` (no s,
+registered at name.com by someone) sits in the account pending — not ours.
 
 ## Where things stand (10 Sep 2026, evening)
 
-- **<https://ci-events.pages.dev> is v2** — the app in `v2/` — deployed by
-  `npm run ship` from this Mac. It replaced v1 on the same Pages project, so
-  the Firebase OAuth registration for this origin still holds.
+- **v2 is live** — the app in `v2/` — at <https://ci-connects.org> from
+  17 Sep 2026 (ci-events.pages.dev, the Pages origin, forwards there once the
+  held deploy above goes out), by `npm run ship` from this Mac.
 - **v1 is sealed** at tag `v1.0.0` (`e1a7fe6`), still at the repository
   root. It builds; nothing deploys it. The sections below marked *v1* are
   kept for reference and for its data, which is still in Firestore beside

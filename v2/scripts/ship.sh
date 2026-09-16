@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 # Ship v2: typecheck, build for production, push main, deploy to the Cloudflare
-# Pages project ci-events (https://ci-events.pages.dev) with this machine's
+# Pages project ci-events (https://ci-connects.org) with this machine's
 # wrangler login. Runs from the repository root so the Pages Functions in
 # ./functions — the Firebase auth-handler proxy sign-in depends on — ride
 # along with the bundle.
@@ -18,7 +18,7 @@ fi
 
 # .env.production points sign-in at this origin; a bundle without it would
 # sign in through firebaseapp.com and fail on phones.
-grep -lq 'ci-events\.pages\.dev' v2/dist/assets/*.js || { echo "ship: bundle is not built for ci-events.pages.dev (v2/.env.production missing?)" >&2; exit 1; }
+grep -lq 'ci-connects\.org' v2/dist/assets/*.js || { echo "ship: bundle is not built for ci-connects.org (v2/.env.production missing?)" >&2; exit 1; }
 
 git push origin main
 npx wrangler pages deploy v2/dist --project-name=ci-events --branch=main
