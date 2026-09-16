@@ -46,7 +46,7 @@ export const EventWelcome: React.FC<{
   }, [event.id, profile.id, reduced]);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); enter(); } };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === 'Escape' || e.code === 'Enter' || e.code === 'NumpadEnter') { e.preventDefault(); enter(); } };
     window.addEventListener('keydown', onKey);
     // Nothing behind the threshold scrolls while it is up.
     const prev = document.documentElement.style.overflow;
