@@ -59,6 +59,22 @@ account with their name, school and title; a Chadwick address is sent to
 Google instead (their Workspace profile is what shows). Both use Firebase
 Auth's providers on project `ci-connects`.
 
+## Badges, doors and who is in the room
+
+Every person has a badge for each event they are on — `/badge` in the app
+(the wallet), `/e/<slug>/badge` full size, printable, and *Show at the
+door* for a white full-screen code. The QR is `ci2:<uid>`: the person, not
+the event, so one badge works everywhere.
+
+A room's projector shows a **door screen** (Administration → Events →
+Live → *Door screen* / a room's button; staff only): the session on now, a
+QR people scan with their phone to record themselves, the live count, the
+latest arrivals, and a full-screen *Welcome, Name* the moment anyone is
+recorded — by phone, by a handheld scanner typing the badge code, or by the
+laptop's camera. A room screen follows that room's programme through the
+day on its own. **Live attendance** is the organiser's table of every
+session's count and names as it happens.
+
 ## Attendance and QR
 
 - **Badge → staff camera.** Every person's badge is a QR (`ci2:<uid>`).

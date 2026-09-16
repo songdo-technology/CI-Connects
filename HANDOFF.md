@@ -479,6 +479,24 @@ the document stores, so nothing else changed. `storage.rules` has a v2 block
 cross-service `firestore.get` on `/v2/data/users/<uid>`, 8 MB, images only.
 "Use a link instead" keeps the old way for Unsplash and the like.
 
+**Badges and doors (16 Sep 2026).** Every person has a badge per event
+they are on: `BadgeCard` (`src/components/Badge.tsx`) — lanyard card, name,
+school, role, QR `ci2:<uid>` — in a wallet at `/badge` (nav: Badge), full
+size at `/e/<slug>/badge` with *Show at the door* (white full-screen code)
+and *Print* (3.5in card). The code is the person, so one badge works at
+every event. Doors: `/door/<eventId>/<sessionId>` and
+`/door/<eventId>/room/<roomId>` (`DoorScreen`, staff only, meant for a
+projector, opened in its own tab from Administration → Events → **Live**):
+session on now (a room screen follows the room's programme through the
+day), live count and arrivals, the self check-in QR, a handheld scanner
+(types the badge code + Enter) or the laptop camera to scan badges as
+staff — and on every new attendance record a 4-second **"Welcome, Name"**
+splash. The phone side (`/e/<slug>/here?s&c`) now records the person the
+moment it opens with a valid code. Attendance records carry `name`/`org`
+so a screen can greet without a lookup. `AdminLive`
+(`/admin/events/<id>/live`) is the organiser's live table: per-session
+counts, names, room-screen links.
+
 **No demo build.** Removed at deploy time: `MemoryStore`, the seed import,
 the persona picker, `npm run demo`, `VITE_DEMO`. Anything that needs a
 signed-in person is verified on `localhost:3100` or live, by a person.

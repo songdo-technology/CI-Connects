@@ -6,9 +6,10 @@ import { PublicLayout, AppShell, RequireAuth, RequireStaff, RequireAdmin } from 
 import { Landing, EventsIndex, EventPublic, SignIn } from './pages/public';
 import { Dashboard, ProfilePage, NotFound } from './pages/app';
 import { EventLayout, SchedulePage, MySchedulePage, SpeakersPage, VenuePage, BadgePage, SponsorsPage } from './pages/event';
-import { DoorQr, HerePage } from './pages/checkin';
+import { DoorScreen, HerePage } from './pages/checkin';
+import { BadgesPage } from './pages/badges';
 import { AdminLayout, AdminHome, AdminEvents, AdminEventEdit, AdminPeople, AdminAnnouncements, AdminSettings } from './pages/admin';
-import { AdminSchedule, AdminAccess, AdminCheckIn, AdminSponsors } from './pages/admin-event';
+import { AdminSchedule, AdminAccess, AdminCheckIn, AdminSponsors, AdminLive } from './pages/admin-event';
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
           <Route element={<RequireAuth><AppShell /></RequireAuth>}>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="me" element={<ProfilePage />} />
+            <Route path="badge" element={<BadgesPage />} />
             <Route path="e/:slug" element={<EventLayout />}>
               <Route index element={<Navigate to="schedule" replace />} />
               <Route path="schedule" element={<SchedulePage />} />
@@ -45,6 +47,7 @@ export default function App() {
                 <Route path="events" element={<AdminEvents />} />
                 <Route path="events/:id/schedule" element={<AdminSchedule />} />
                 <Route path="events/:id/checkin" element={<AdminCheckIn />} />
+                <Route path="events/:id/live" element={<AdminLive />} />
                 <Route path="events/:id/sponsors" element={<AdminSponsors />} />
                 <Route element={<RequireAdmin />}>
                   <Route path="events/new" element={<AdminEventEdit />} />
@@ -59,7 +62,8 @@ export default function App() {
           </Route>
 
           <Route element={<RequireAuth />}>
-            <Route path="door/:eventId/:sessionId" element={<DoorQr />} />
+            <Route path="door/:eventId/room/:roomId" element={<DoorScreen />} />
+            <Route path="door/:eventId/:sessionId" element={<DoorScreen />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

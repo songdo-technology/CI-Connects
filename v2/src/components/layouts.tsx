@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router';
 import {
-  LayoutDashboard, CalendarDays, UserRound, ShieldCheck, LogOut, Menu, X, Eye, Megaphone,
+  LayoutDashboard, CalendarDays, UserRound, ShieldCheck, LogOut, Menu, X, Eye, Megaphone, IdCardLanyard,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useWatch, useDoc } from '../lib/hooks';
@@ -92,6 +92,7 @@ export const AppShell: React.FC = () => {
         <div className="space-y-0.5">
           <NavItem to="/dashboard" icon={LayoutDashboard} onClick={close}>Dashboard</NavItem>
           <NavItem to="/events" icon={CalendarDays} onClick={close}>All events</NavItem>
+          <NavItem to="/badge" icon={IdCardLanyard} onClick={close}>Badge</NavItem>
           <NavItem to="/me" icon={UserRound} onClick={close}>Profile</NavItem>
         </div>
       </div>

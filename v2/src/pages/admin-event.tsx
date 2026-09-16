@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 import {
-  ArrowLeft, Plus, Trash2, Upload, AlertTriangle, Check, DoorOpen, Tag, Search, UserPlus, Mail, ScanLine, CircleCheck, Undo2, KeyRound, ClipboardCheck, ListTree, Camera, QrCode, Handshake, Pencil,
+  ArrowLeft, Plus, Trash2, Upload, AlertTriangle, Check, DoorOpen, Tag, Search, UserPlus, Mail, ScanLine, CircleCheck, Undo2, KeyRound, ClipboardCheck, ListTree, Camera, QrCode, Handshake, Pencil, Radio, MonitorPlay,
 } from 'lucide-react';
 import { Event, Session, Room, Track, SessionType, SESSION_TYPE_LABEL, Invite, Profile, Attendance, Sponsor, SponsorTier, SPONSOR_TIERS, SPONSOR_TIER_LABEL } from '../lib/types';
 import { useAuth } from '../lib/auth';
 import { useWatch, useDoc } from '../lib/hooks';
 import { store } from '../lib/store';
 import { isAdmin } from '../lib/roles';
-import { formatRange, formatDate, formatTime, eachDate, nowIso, newId, formatStamp, formatClock } from '../lib/time';
+import { formatRange, formatDate, formatTime, eachDate, nowIso, newId, formatStamp, formatClock, todayYmd, toMinutes } from '../lib/time';
 import { byStart, overlaps } from '../lib/schedule';
 import { parseCsv, rowsToSessions, parseSpeakers, CSV_TEMPLATE, ImportRow } from '../lib/csv';
 import { inviteId } from '../lib/hash';
@@ -444,7 +444,7 @@ export const AdminCheckIn: React.FC = () => {
     if (!profile || !id) return;
     const existing = recordFor(u.id);
     if (existing) { setResult({ tone: 'again', name: u.name, at: existing.at }); return; }
-    const rec: Attendance = { id: `${id}__${target ?? 'venue'}__${u.id}`, eventId: id, sessionId: target, userId: u.id, at: nowIso(), by: profile.id };
+    const rec: Attendance = { id: `${id}__${target ?? 'venue'}__${u.id}`, eventId: id, sessionId: target, userId: u.id, at: nowIso(), by: profile.id, name: u.name, org: u.org };
     await store.set('attendance', rec.id, rec);
     setResult({ tone: 'ok', name: u.name, at: rec.at });
   }, [profile, id, target, recordFor]);
@@ -472,7 +472,8 @@ export const AdminCheckIn: React.FC = () => {
       <EventHeader event={event} title="Check-in" description={`${checkedCount} of ${people.length} ${target ? 'in this session' : 'arrived'}`}
         actions={<>
           <Button variant={camera ? 'primary' : 'secondary'} onClick={() => setCamera((v) => !v)}><Camera className="w-4 h-4" />{camera ? 'Stop camera' : 'Scan badges'}</Button>
-          {target && <Button variant="secondary" to={`/door/${id}/${target}`}><QrCode className="w-4 h-4" />Door QR</Button>}
+          <Button variant="secondary" to={`/admin/events/${id}/live`}><Radio className="w-4 h-4" />Live</Button>
+          {target && <a href={`/door/${id}/${target}`} target="_blank" rel="noreferrer" className="btn-secondary"><MonitorPlay className="w-4 h-4" />Door screen</a>}
         </>} />
       <div className="grid sm:grid-cols-[minmax(0,1fr)_18rem] gap-3 mb-4">
         <div className="relative"><Search className="w-4 h-4 text-ink-300 absolute left-3 top-1/2 -translate-y-1/2" /><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a person" className="pl-9" /></div>
@@ -583,6 +584,87 @@ export const AdminSponsors: React.FC = () => {
           </div>
         )}
       </Drawer>
+    </div>
+  );
+};
+
+// ================================================================== live
+/**
+ * Who is in which room, as it happens — the organiser's view of the day.
+ * Each session's count updates the moment a badge is scanned or a phone
+ * confirms at a door; the door screens themselves open in their own tab,
+ * one per session or one per room that follows the programme.
+ */
+export const AdminLive: React.FC = () => {
+  const { id } = useParams();
+  const { doc: event, ready } = useDoc('events', id ?? null);
+  const data = useEventData(id ?? null);
+  const attendance = useWatch('attendance', id ? [{ field: 'eventId', op: '==', value: id }] : [], Boolean(id));
+  const users = useWatch('users', []);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => { const t = window.setInterval(() => setNow(new Date()), 30_000); return () => window.clearInterval(t); }, []);
+  if (!ready || !data.ready) return <Spinner />;
+  if (!event || !id) return <Empty icon={Radio} title="No such event" action={<Button to="/admin/events">Events</Button>} />;
+  const byUser = new Map(users.items.map((u) => [u.id, u]));
+  const nameOf = (a: Attendance) => byUser.get(a.userId)?.name ?? a.name ?? 'Someone';
+  const venue = attendance.items.filter((a) => a.sessionId === null);
+  const forSession = (sid: string) => attendance.items.filter((a) => a.sessionId === sid).sort((a, b) => b.at.localeCompare(a.at));
+  const today = todayYmd(); const mins = now.getHours() * 60 + now.getMinutes();
+  const isNow = (s: Session) => s.date === today && toMinutes(s.start) - 15 <= mins && mins <= toMinutes(s.end);
+  const sessions = [...data.sessions].sort(byStart);
+  const running = sessions.filter(isNow);
+  const inRoomsNow = new Set(running.flatMap((s) => forSession(s.id).map((a) => a.userId))).size;
+  const distinct = new Set(attendance.items.map((a) => a.userId)).size;
+  let lastDate = '';
+  return (
+    <div>
+      <EventHeader event={event} title="Live attendance" description="Who is in which room, as it happens. A door screen on the room's projector shows the code, greets each arrival by name and counts the room."
+        actions={<Button variant="secondary" to={`/admin/events/${id}/checkin`}><ClipboardCheck className="w-4 h-4" />Check-in desk</Button>} />
+      <div className="grid sm:grid-cols-3 gap-3 mb-6">
+        {[[venue.length, 'arrived at the venue'], [inRoomsNow, `in ${running.length} session${running.length === 1 ? '' : 's'} right now`], [distinct, 'people seen today']].map(([v, l]) => (
+          <Card key={String(l)} className="p-4"><div className="font-display font-bold text-3xl tabular-nums text-ink-900">{v}</div><div className="text-xs text-ink-500 mt-1">{l}</div></Card>
+        ))}
+      </div>
+      {data.rooms.length > 0 && (
+        <Card className="p-4 mb-6">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
+            <div><div className="font-semibold text-ink-900 text-sm inline-flex items-center gap-1.5"><DoorOpen className="w-4 h-4 text-blue-400" />Room screens</div><div className="text-xs text-ink-500">Open one on each room's projector and leave it: it follows that room's programme through the day.</div></div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {data.rooms.map((r) => <a key={r.id} href={`/door/${id}/room/${r.id}`} target="_blank" rel="noreferrer" className="btn-secondary btn-sm"><MonitorPlay className="w-3.5 h-3.5" />{r.name}</a>)}
+          </div>
+        </Card>
+      )}
+      <Card className="divide-y divide-sand-200">
+        {sessions.length === 0 && <div className="p-6 text-sm text-ink-500 text-center">No sessions on the programme yet.</div>}
+        {sessions.map((s) => {
+          const list = forSession(s.id); const room = data.rooms.find((r) => r.id === s.roomId); const on = isNow(s);
+          const header = s.date !== lastDate ? (lastDate = s.date, <div className="px-3 py-1.5 bg-sand-50 text-[11px] uppercase tracking-wider text-ink-500">{formatDate(s.date)}</div>) : null;
+          return (
+            <React.Fragment key={s.id}>
+              {header}
+              <div className={`p-3 flex items-center gap-3 ${on ? 'bg-blue-50/70' : ''}`}>
+                <div className="w-[4.5rem] shrink-0 text-xs text-ink-500 tabular-nums leading-snug">{formatTime(s.start)}<br />{formatTime(s.end)}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap"><span className="text-sm font-semibold text-ink-900">{s.title}</span>{on && <Chip tone="green">Now</Chip>}</div>
+                  <div className="text-xs text-ink-500">{room?.name ?? '—'}{s.speakers.length ? ` · ${s.speakers.map((p) => p.name).join(', ')}` : ''}</div>
+                  {list.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {list.slice(0, 10).map((a) => <span key={a.id} className="text-[11px] rounded-full bg-sand-100 border border-sand-200 px-2 py-0.5 text-ink-700">{nameOf(a)}</span>)}
+                      {list.length > 10 && <span className="text-[11px] text-ink-500 px-1">+{list.length - 10} more</span>}
+                    </div>
+                  )}
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="font-display font-bold text-2xl tabular-nums text-ink-900">{list.length}</div>
+                  <div className="text-[11px] text-ink-500">{s.capacity ? `of ${s.capacity}` : 'in'}{list[0] ? ` · last ${formatClock(list[0].at)}` : ''}</div>
+                </div>
+                <a href={`/door/${id}/${s.id}`} target="_blank" rel="noreferrer" className="btn-secondary btn-sm shrink-0"><MonitorPlay className="w-3.5 h-3.5" />Door screen</a>
+              </div>
+            </React.Fragment>
+          );
+        })}
+      </Card>
     </div>
   );
 };

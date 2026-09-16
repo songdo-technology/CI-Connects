@@ -142,6 +142,10 @@ export interface Attendance {
   by: string;
   /** Present when the person recorded it themselves by scanning a door. */
   code?: string;
+  /** The person's name and school as they were when they arrived, so a door
+   *  screen can greet them without looking anyone up. */
+  name?: string;
+  org?: string;
 }
 
 export interface Announcement {

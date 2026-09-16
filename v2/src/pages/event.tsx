@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link, Navigate, Outlet, useNavigate, useOutletContext, useParams, useLocation } from 'react-router';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-  CalendarDays, MapPin, Search, LayoutList, LayoutGrid, Download, Users, Lock, ArrowLeft, CircleCheck, Clock, ShieldCheck, ExternalLink,
+  CalendarDays, MapPin, Search, LayoutList, LayoutGrid, Download, Users, Lock, ArrowLeft, CircleCheck, Clock, ShieldCheck, ExternalLink, Maximize2, Printer, ScanLine, QrCode,
 } from 'lucide-react';
 import { Event, Room, Session, Track, Sponsor, SPONSOR_TIERS, SPONSOR_TIER_LABEL } from '../lib/types';
 import { useAuth } from '../lib/auth';
@@ -14,6 +14,7 @@ import { buildIcs, downloadText } from '../lib/ics';
 import { useEventData, SessionCard, RoomGrid, SessionDrawer, TrackDot } from '../components/schedule';
 import { AnnouncementBar } from '../components/layouts';
 import { EventWelcome, seenWelcome } from '../components/EventWelcome';
+import { BadgeCard, BadgeFullscreen } from '../components/Badge';
 import { PageTransition } from '../lib/motion';
 import { Avatar, Button, Card, Chip, Empty, Spinner, SubNav } from '../components/ui';
 
@@ -338,36 +339,45 @@ export const BadgePage: React.FC = () => {
   const { event, sessions } = useEvent();
   const { user, profile } = useAuth();
   const attendance = useWatch('attendance', [{ field: 'eventId', op: '==', value: event.id }, { field: 'userId', op: '==', value: user?.uid ?? '' }], Boolean(user));
-  const arrived = attendance.items.find((a) => a.sessionId === null);
+  const [door, setDoor] = useState(false);
   if (!user || !profile) return null;
+  const arrived = attendance.items.find((a) => a.sessionId === null) ?? null;
+  const me = profile.name.trim().toLowerCase();
+  const speaker = sessions.some((s) => s.speakers.some((p) => p.name.trim().toLowerCase() === me));
+  const reserved = sessions.filter((s) => s.reservedUserIds.includes(profile.id)).length;
+  const been = attendance.items.filter((a) => a.sessionId).sort((a, b) => a.at.localeCompare(b.at));
   return (
-    <div className="max-w-sm mx-auto">
-      <Card className="p-6 text-center">
-        <div className="eyebrow mb-1">{event.name}</div>
-        <div className="text-xs text-ink-500 mb-5">{formatRange(event.startDate, event.endDate)}</div>
-        <div className="inline-block p-3 bg-white rounded-xl border border-sand-200">
-          <QRCodeSVG value={`ci2:${user.uid}`} size={196} level="M" />
+    <div className="grid lg:grid-cols-[auto_minmax(0,1fr)] gap-8 items-start">
+      <div className="flex flex-col items-center gap-4 mx-auto lg:mx-0">
+        <BadgeCard event={event} profile={profile} speaker={speaker} reserved={reserved} arrived={arrived} size="full" className="rise" />
+        <div className="flex gap-2 print:hidden">
+          <Button onClick={() => setDoor(true)}><Maximize2 className="w-4 h-4" />Show at the door</Button>
+          <Button variant="secondary" onClick={() => window.print()}><Printer className="w-4 h-4" />Print</Button>
         </div>
-        <div className="mt-5 text-xl font-bold text-ink-900">{profile.name}</div>
-        {(profile.title || profile.org) && <div className="text-sm text-ink-500">{[profile.title, profile.org].filter(Boolean).join(' · ')}</div>}
-        <div className="mt-5">
-          {arrived
-            ? <Chip tone="green"><CircleCheck className="w-3.5 h-3.5" />Checked in {formatClock(arrived.at)}</Chip>
-            : <Chip><Clock className="w-3.5 h-3.5" />Show this at the desk</Chip>}
-        </div>
-      </Card>
-      {attendance.items.some((a) => a.sessionId) && (
-        <Card className="p-4 mt-4">
-          <div className="eyebrow mb-2">Sessions you were at</div>
-          <ul className="space-y-1.5">
-            {attendance.items.filter((a) => a.sessionId).map((a) => {
-              const s = sessions.find((x) => x.id === a.sessionId);
-              return <li key={a.id} className="text-sm flex items-center gap-2"><CircleCheck className="w-4 h-4 text-emerald-600 shrink-0" /><span className="text-ink-900">{s?.title ?? a.sessionId}</span><span className="text-xs text-ink-500 ml-auto">{formatClock(a.at)}</span></li>;
-            })}
+      </div>
+      <div className="space-y-4 print:hidden">
+        <Card className="p-5">
+          <div className="eyebrow mb-2">How it works</div>
+          <ul className="text-sm text-ink-700 space-y-2">
+            <li className="flex gap-2"><ScanLine className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />At the entrance and at each room, hold the code up to the scanner. The screen greets you and you are counted in.</li>
+            <li className="flex gap-2"><QrCode className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />Walked in without being scanned? Scan the code on the room's screen with your phone instead — that records you too.</li>
+            <li className="flex gap-2"><Printer className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />Print it for a lanyard, or keep it on your phone. The code is yours, not the event's: the same badge works at every event you are on.</li>
           </ul>
         </Card>
-      )}
-      <p className="text-xs text-ink-500 text-center mt-3">Your badge works from any phone signed in as you.</p>
+        <Card className="p-5">
+          <div className="eyebrow mb-2">Where you have been</div>
+          {been.length === 0 && !arrived ? <p className="text-sm text-ink-500">Nothing yet — your arrivals will be listed here.</p> : (
+            <ul className="space-y-1.5">
+              {arrived && <li className="text-sm flex items-center gap-2"><CircleCheck className="w-4 h-4 text-emerald-600 shrink-0" /><span className="text-ink-900">Arrived at {event.venueName}</span><span className="text-xs text-ink-500 ml-auto">{formatClock(arrived.at)}</span></li>}
+              {been.map((a) => {
+                const s = sessions.find((x) => x.id === a.sessionId);
+                return <li key={a.id} className="text-sm flex items-center gap-2"><CircleCheck className="w-4 h-4 text-emerald-600 shrink-0" /><span className="text-ink-900">{s?.title ?? a.sessionId}</span><span className="text-xs text-ink-500 ml-auto">{formatClock(a.at)}</span></li>;
+              })}
+            </ul>
+          )}
+        </Card>
+      </div>
+      {door && <BadgeFullscreen profile={profile} event={event} onClose={() => setDoor(false)} />}
     </div>
   );
 };
