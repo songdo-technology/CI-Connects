@@ -553,6 +553,25 @@ directory. Regenerate the JSON from a new workbook with the Python in the
 16 Sep transcript (sheet layout: floor labels in row 2, number/name column
 pairs) and `npm run seed -- seed/facilities.json`.
 
+**Badge backs and event codes (17 Sep 2026).** A badge whose event has
+sponsors turns over (`Sponsors` on the front, `Front` on the back; a 3D
+flip, both faces side by side in print): the back lists sponsors by tier
+— Platinum, Gold, Silver, Exhibitors — a tier only when it has someone,
+marks sized to the count, names in type when there is no logo. The fourth
+tier is now `exhibitor` (was `partner`; the two existing docs were
+migrated). **Event codes** replace "email the organisers": Administration
+→ Events → Access → *Event code* (`/v2/data/codes/<eventId>`, staff read,
+admin write; *Make a code* / *New code*, *Copy code*, *Copy invitation*,
+*Email it*, and the link `https://ci-connects.org/join/<eventId>?c=CODE`).
+A member enters the code on the dashboard (event picker + code), on the
+event's public page when signed in but not listed, or by opening the link
+(`/join/<eventId>` joins on its own). The join is one write to the
+member's own profile — `eventAccess` plus a transient `joining {event,
+code}` — that the rule `v2JoinOk` accepts only if exactly that one event
+is added and the code matches the one on file; the client then clears
+`joining`. Not yet tried with a non-staff account: the rule is live, the
+form is live, a member has not clicked it.
+
 **No demo build.** Removed at deploy time: `MemoryStore`, the seed import,
 the persona picker, `npm run demo`, `VITE_DEMO`. Anything that needs a
 signed-in person is verified on `localhost:3100` or live, by a person.

@@ -15,13 +15,14 @@ import { Empty, PageHeader, Spinner } from '../components/ui';
 const WalletBadge: React.FC<{ event: Event; profile: Profile }> = ({ event, profile }) => {
   const sessions = useWatch('sessions', [{ field: 'eventId', op: '==', value: event.id }]);
   const attendance = useWatch('attendance', [{ field: 'eventId', op: '==', value: event.id }, { field: 'userId', op: '==', value: profile.id }]);
+  const sponsors = useWatch('sponsors', [{ field: 'eventId', op: '==', value: event.id }]);
   const me = profile.name.trim().toLowerCase();
   const reserved = sessions.items.filter((s) => s.reservedUserIds.includes(profile.id)).length;
   const speaker = sessions.items.some((s) => s.speakers.some((p) => p.name.trim().toLowerCase() === me));
   const arrived = attendance.items.find((a) => a.sessionId === null) ?? null;
   return (
     <Link to={`/e/${event.slug}/badge`} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-[1.75rem]" title={`Your ${event.name} badge`}>
-      <BadgeCard event={event} profile={profile} speaker={speaker} reserved={reserved} arrived={arrived} size="wallet" />
+      <BadgeCard event={event} profile={profile} sponsors={sponsors.items} speaker={speaker} reserved={reserved} arrived={arrived} size="wallet" />
     </Link>
   );
 };

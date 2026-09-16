@@ -8,6 +8,7 @@ import { Dashboard, ProfilePage, NotFound } from './pages/app';
 import { EventLayout, SchedulePage, MySchedulePage, SpeakersPage, VenuePage, BadgePage, SponsorsPage } from './pages/event';
 import { DoorScreen, HerePage, BadgeLinkPage } from './pages/checkin';
 import { BadgesPage } from './pages/badges';
+import { JoinPage } from './pages/join';
 import { AdminLayout, AdminHome, AdminEvents, AdminEventEdit, AdminPeople, AdminAnnouncements, AdminSettings } from './pages/admin';
 import { AdminSchedule, AdminAccess, AdminCheckIn, AdminSponsors, AdminLive } from './pages/admin-event';
 
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="me" element={<ProfilePage />} />
             <Route path="badge" element={<BadgesPage />} />
             <Route path="b/:uid" element={<BadgeLinkPage />} />
+            <Route path="join/:eventId" element={<JoinPage />} />
             <Route path="e/:slug" element={<EventLayout />}>
               <Route index element={<Navigate to="schedule" replace />} />
               <Route path="schedule" element={<SchedulePage />} />

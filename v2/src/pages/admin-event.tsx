@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 import {
-  ArrowLeft, Plus, Trash2, Upload, AlertTriangle, Check, DoorOpen, Tag, Search, UserPlus, Mail, ScanLine, CircleCheck, Undo2, KeyRound, ClipboardCheck, ListTree, Camera, QrCode, Handshake, Pencil, Radio, MonitorPlay, X,
+  ArrowLeft, Plus, Trash2, Upload, AlertTriangle, Check, DoorOpen, Tag, Search, UserPlus, Mail, ScanLine, CircleCheck, Undo2, KeyRound, ClipboardCheck, ListTree, Camera, QrCode, Handshake, Pencil, Radio, MonitorPlay, X, Copy, ClipboardCopy, RefreshCw,
 } from 'lucide-react';
 import { Event, Session, Room, Track, SessionType, SESSION_TYPE_LABEL, Invite, Profile, Attendance, Sponsor, SponsorTier, SPONSOR_TIERS, SPONSOR_TIER_LABEL } from '../lib/types';
 import { useAuth } from '../lib/auth';
@@ -11,7 +11,7 @@ import { isAdmin } from '../lib/roles';
 import { formatRange, formatDate, formatTime, eachDate, nowIso, newId, formatStamp, formatClock, todayYmd, toMinutes } from '../lib/time';
 import { byStart, overlaps } from '../lib/schedule';
 import { parseCsv, rowsToSessions, parseSpeakers, CSV_TEMPLATE, ImportRow } from '../lib/csv';
-import { inviteId } from '../lib/hash';
+import { inviteId, randomCode } from '../lib/hash';
 import { useEventData, TrackDot } from '../components/schedule';
 import { Scanner } from '../components/Scanner';
 import { Button, Card, Chip, Drawer, Empty, Field, Input, Notice, Select, Spinner, Textarea, PageHeader, Avatar, SubNav, TimeInput } from '../components/ui';
@@ -354,6 +354,45 @@ const ImportDrawer: React.FC<{ event: Event; open: boolean; rooms: Room[]; track
 };
 
 // ================================================================== access
+/**
+ * The event code an organiser hands out. Whoever enters it on CI Connects
+ * is put on the list — no address to type in here first. A new code
+ * retires the old one; people already on the list stay.
+ */
+const EventCodeCard: React.FC<{ event: Event; adminId: string }> = ({ event, adminId }) => {
+  const { doc: code, ready } = useDoc('codes', event.id);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { if (!copied) return; const t = window.setTimeout(() => setCopied(null), 2000); return () => window.clearTimeout(t); }, [copied]);
+  const make = async () => { setBusy(true); await store.set('codes', event.id, { id: event.id, eventId: event.id, code: randomCode(6), updatedAt: nowIso(), by: adminId }); setBusy(false); };
+  const link = code ? `${window.location.origin}/join/${event.id}?c=${code.code}` : '';
+  const message = code ? `You are on the list for ${event.name} (${formatRange(event.startDate, event.endDate)}) on CI Connects.\n\nOpen ${link} and sign in — that is all.\n\nOr go to ${window.location.origin}, sign in, choose "${event.name}" and enter the code ${code.code}.` : '';
+  const copy = async (what: string, text: string) => { try { await navigator.clipboard.writeText(text); setCopied(what); } catch { /* clipboard not allowed here */ } };
+  return (
+    <Card className="p-5 mb-5">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <div className="eyebrow mb-1">Event code</div>
+          <p className="text-sm text-ink-500 max-w-xl">Hand this to the people you want on the list — in an email, on a slide, at the door. They sign in, enter it, and they are in. A new code retires the old one; people already on the list stay.</p>
+        </div>
+        {ready && !code && <Button onClick={() => void make()} busy={busy}><KeyRound className="w-4 h-4" />Make a code</Button>}
+      </div>
+      {code && (
+        <>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <div className="font-mono text-3xl font-bold tracking-[0.25em] text-ink-900 bg-sand-50 border border-sand-200 rounded-xl px-4 py-2">{code.code}</div>
+            <Button variant="secondary" size="sm" onClick={() => void copy('code', code.code)}><Copy className="w-3.5 h-3.5" />{copied === 'code' ? 'Copied' : 'Copy code'}</Button>
+            <Button variant="secondary" size="sm" onClick={() => void copy('message', message)}><ClipboardCopy className="w-3.5 h-3.5" />{copied === 'message' ? 'Copied' : 'Copy invitation'}</Button>
+            <a href={`mailto:?subject=${encodeURIComponent(`${event.name} — your place on CI Connects`)}&body=${encodeURIComponent(message)}`} className="btn-secondary btn-sm"><Mail className="w-3.5 h-3.5" />Email it</a>
+            <Button variant="ghost" size="sm" onClick={() => void make()} busy={busy}><RefreshCw className="w-3.5 h-3.5" />New code</Button>
+          </div>
+          <p className="text-xs text-ink-500 mt-3">Invitation link: <span className="font-mono break-all">{link}</span> — it signs the person in and joins them in one go.</p>
+        </>
+      )}
+    </Card>
+  );
+};
+
 export const AdminAccess: React.FC = () => {
   const { id } = useParams();
   const { profile } = useAuth();
@@ -398,6 +437,7 @@ export const AdminAccess: React.FC = () => {
   return (
     <div>
       <EventHeader event={event} title="Access" description="Who may see inside this event. Administrators and schedule admins always can." />
+      <EventCodeCard event={event} adminId={profile?.id ?? ''} />
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="space-y-4">
           <Card className="p-5">
@@ -567,7 +607,7 @@ export const AdminCheckIn: React.FC = () => {
 };
 
 // ================================================================== sponsors
-const blankSponsor = (eventId: string, n: number): Sponsor => ({ id: newId('spn'), eventId, name: '', tier: 'partner', order: n + 1 });
+const blankSponsor = (eventId: string, n: number): Sponsor => ({ id: newId('spn'), eventId, name: '', tier: 'exhibitor', order: n + 1 });
 
 export const AdminSponsors: React.FC = () => {
   const { id } = useParams();

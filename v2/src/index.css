@@ -171,11 +171,20 @@
 @keyframes pop { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .welcome-splash, .arrival-in, .here-check { animation: none !important; } .badge-tilt { transition: none; } }
 
+.badge-flip { display: grid; transform-style: preserve-3d; transition: transform .75s cubic-bezier(.2, .7, .2, 1); }
+.badge-flip > .badge-face { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.badge-flip > .badge-back { transform: rotateY(180deg); }
+.badge-flip.is-flipped { transform: rotateY(180deg); }
+@media (prefers-reduced-motion: reduce) { .badge-flip { transition: none; } }
+
 @media print {
   body { background: #fff !important; }
   body * { visibility: hidden; }
-  .badge-print, .badge-print * { visibility: visible; }
-  .badge-tilt { transform: none !important; }
-  .badge-print { position: fixed; left: 50%; top: 0.4in; transform: translateX(-50%); width: 3.5in; box-shadow: none !important; border-radius: 0.35in; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .badge-flip, .badge-flip * { visibility: visible; }
+  .badge-tilt { transform: none !important; position: fixed; left: 0.4in; top: 0.4in; width: auto !important; max-width: none !important; }
+  .badge-flip { display: flex; gap: 0.3in; transform: none !important; transform-style: flat; }
+  .badge-flip > .badge-face { transform: none !important; backface-visibility: visible; -webkit-backface-visibility: visible; width: 3.5in; flex: none; }
+  .badge-face * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .badge-face > div { box-shadow: none !important; border-radius: 0.35in; }
   .badge-glare { display: none; }
 }

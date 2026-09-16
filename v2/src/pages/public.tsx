@@ -11,6 +11,7 @@ import { ConnectsOrbit, MODES } from '../components/Orbit';
 import { Reveal, Marquee, useParallax, useMouseParallax, CountUp } from '../lib/motion';
 import { useIntroDone } from '../components/Intro';
 import { Mark } from '../components/Mark';
+import { JoinByCode } from '../components/Join';
 
 const usePublishedEvents = () => useWatch('events', [{ field: 'status', op: '==', value: 'published' }]);
 
@@ -244,9 +245,10 @@ export const EventPublic: React.FC = () => {
                   <div className="font-semibold text-ink-900 inline-flex items-center gap-2"><Lock className="w-4 h-4 text-ink-500" />The programme is for listed participants</div>
                   <p className="text-sm text-ink-500 mt-1">
                     {status === 'signed_in'
-                      ? 'Your account is not on this event\'s list. Ask the organisers, and check you signed in with the address they invited.'
+                      ? 'Your account is not on this event\'s list yet. Enter the event code the organisers gave you, or check you signed in with the address they invited.'
                       : 'Sign in with the Google account you were invited at, and it opens.'}
                   </p>
+                  {status === 'signed_in' && <div className="mt-4"><JoinByCode events={[event]} fixed={event} /></div>}
                 </div>
                 {status !== 'signed_in' && <Button to={`/signin?next=${encodeURIComponent(`/events/${event.slug}`)}`}><LogIn className="w-4 h-4" />Sign in</Button>}
               </div>

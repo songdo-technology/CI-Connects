@@ -350,6 +350,19 @@ service cloud.firestore {
     // own room.
     function v2HostOf() { return signedIn() && v2Exists() ? v2Me().get('hostOf', []) : []; }
     function v2Hosts(sessionId) { return sessionId in v2HostOf(); }
+    // Joining with a code: a person may add exactly one event to their own
+    // list, naming it and giving the code on file for it (v2/data/codes).
+    function v2JoinOk() {
+      let before = resource.data.get('eventAccess', []).toSet();
+      let after = request.resource.data.eventAccess.toSet();
+      let joining = request.resource.data.joining;
+      return after.hasAll(before)
+        && after.difference(before).size() == 1
+        && after.difference(before).hasAll([joining.event])
+        && joining.code is string
+        && exists(/databases/$(database)/documents/v2/data/codes/$(joining.event))
+        && get(/databases/$(database)/documents/v2/data/codes/$(joining.event)).data.code == joining.code;
+    }
 
     match /v2/data/users/{userId} {
       allow get: if signedIn() && (userId == uid() || v2Staff() || v2HostOf().size() > 0);
@@ -364,6 +377,7 @@ service cloud.firestore {
       // One's own profile, but never one's role, address or lists.
       allow update: if v2Admin()
                     || (v2Staff() && v2OnlyTouches(['hostOf']))
+                    || (signedIn() && userId == uid() && v2OnlyTouches(['eventAccess', 'joining']) && v2JoinOk())
                     || (signedIn() && userId == uid()
                         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'email', 'id', 'eventAccess', 'hostOf']));
       allow delete: if v2Admin();
@@ -434,6 +448,13 @@ service cloud.firestore {
 
     match /v2/data/settings/{docId} {
       allow read: if true;
+      allow write: if v2Admin();
+    }
+
+    // Event codes: what an organiser hands out; read by staff, written by
+    // administrators, checked by the rule above when someone joins.
+    match /v2/data/codes/{eventId} {
+      allow read: if v2Staff();
       allow write: if v2Admin();
     }
 

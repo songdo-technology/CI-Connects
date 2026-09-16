@@ -167,14 +167,14 @@
       "id": "ci-mission-2027-s-edevents",
       "eventId": "ci-mission-2027",
       "name": "Ed Events",
-      "tier": "partner",
+      "tier": "exhibitor",
       "order": 9
     },
     {
       "id": "ci-mission-2027-s-scalaedu",
       "eventId": "ci-mission-2027",
       "name": "Scalaedu",
-      "tier": "partner",
+      "tier": "exhibitor",
       "order": 10
     }
   ],

@@ -12,6 +12,7 @@ import { Button, Card, Chip, Empty, Field, Input, Notice, Spinner, PageHeader } 
 import { AnnouncementBar } from '../components/layouts';
 import { Reveal } from '../lib/motion';
 import { ROLE_LABEL } from '../lib/types';
+import { JoinByCode } from '../components/Join';
 
 const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; };
 
@@ -71,8 +72,8 @@ export const Dashboard: React.FC = () => {
           <div className="eyebrow mb-3">Your events</div>
           {!ready ? <Spinner /> : upcoming.length === 0 ? (
             <Empty icon={CalendarDays} title="You are not on an event's list yet"
-              body={`An organiser adds you to an event, and it appears here with its programme.${site?.contactEmail ? ` Ask ${site.contactEmail} if you expected one.` : ''}`}
-              action={site?.contactEmail ? <a href={`mailto:${site.contactEmail}`} className="btn-secondary btn-sm"><Mail className="w-3.5 h-3.5" />Email the organisers</a> : undefined} />
+              body="Organisers hand out an event code — on the invitation, a slide, the door. Enter it here and the event appears with its programme."
+              action={<JoinByCode events={events.filter((e) => !canSeeEvent(profile, e.id, invitedEventIds))} contactEmail={site?.contactEmail} />} />
           ) : (
             <div className="space-y-4">
               {upcoming.map((e) => {

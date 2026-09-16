@@ -115,6 +115,14 @@ Per event, with tiers, logos and websites (Administration → Events →
 Sponsors). Shown as *Supported by* on the public page, as a Sponsors tab
 in the portal, and as a partner credit on any session that names one.
 
+## Event codes
+
+Organisers hand out a code (Administration → Events → Access → *Event
+code*; also as an invitation link). A signed-in member enters it on the
+dashboard, on the event's public page, or by opening the link, and is put
+on the list — the security rules check the code against `/v2/data/codes`,
+which only staff can read.
+
 ## Who sees an event
 
 Inside an event — programme, seats, badge, speakers, venue — is for people an

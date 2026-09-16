@@ -387,7 +387,7 @@ export const SponsorsPage: React.FC = () => {
 
 // ------------------------------------------------------------------ badge
 export const BadgePage: React.FC = () => {
-  const { event, sessions, rooms } = useEvent();
+  const { event, sessions, rooms, sponsors } = useEvent();
   const { user, profile } = useAuth();
   const attendance = useWatch('attendance', [{ field: 'eventId', op: '==', value: event.id }, { field: 'userId', op: '==', value: user?.uid ?? '' }], Boolean(user));
   const [door, setDoor] = useState(false);
@@ -407,7 +407,7 @@ export const BadgePage: React.FC = () => {
       {hosting.map((s) => <HostPanel key={s.id} event={event} session={s} room={rooms.find((r) => r.id === s.roomId)} />)}
       <div className="grid md:grid-cols-[auto_minmax(0,1fr)] gap-6 items-start">
         <div className="mx-auto md:mx-0">
-          <BadgeCard event={event} profile={profile} speaker={speaker} reserved={reserved} arrived={arrived} size="full" className="rise" onCodeClick={() => setDoor(true)} />
+          <BadgeCard event={event} profile={profile} sponsors={sponsors} speaker={speaker} reserved={reserved} arrived={arrived} size="full" className="rise" onCodeClick={() => setDoor(true)} />
         </div>
         <Card className="p-5">
           <div className="eyebrow mb-2">Where you have been</div>

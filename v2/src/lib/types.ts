@@ -28,8 +28,21 @@ export interface Profile {
   /** Sessions this person runs — set by staff from the session editor. It
    *  is what lets someone who is not staff see their own room. */
   hostOf?: string[];
+  /** Set for the moment of joining an event with its code — the event and
+   *  the code, which the rules check — then cleared. */
+  joining?: { event: string; code: string } | null;
   dietary?: string;
   createdAt: string;
+}
+
+/** The code that puts a person on an event's list when they enter it.
+ *  Kept apart from the event, which everyone can read. */
+export interface EventCode {
+  id: string;
+  eventId: string;
+  code: string;
+  updatedAt: string;
+  by: string;
 }
 
 /** A place on an event for an address, made before that person has ever
@@ -106,9 +119,9 @@ export interface Session {
   checkinCode?: string;
 }
 
-export type SponsorTier = 'platinum' | 'gold' | 'silver' | 'partner';
-export const SPONSOR_TIER_LABEL: Record<SponsorTier, string> = { platinum: 'Platinum', gold: 'Gold', silver: 'Silver', partner: 'Partner' };
-export const SPONSOR_TIERS: SponsorTier[] = ['platinum', 'gold', 'silver', 'partner'];
+export type SponsorTier = 'platinum' | 'gold' | 'silver' | 'exhibitor';
+export const SPONSOR_TIER_LABEL: Record<SponsorTier, string> = { platinum: 'Platinum', gold: 'Gold', silver: 'Silver', exhibitor: 'Exhibitor' };
+export const SPONSOR_TIERS: SponsorTier[] = ['platinum', 'gold', 'silver', 'exhibitor'];
 
 export interface Sponsor {
   id: string;
@@ -209,6 +222,7 @@ export interface Collections {
   sessions: Session;
   rooms: Room;
   facilities: Facility;
+  codes: EventCode;
   tracks: Track;
   sponsors: Sponsor;
   attendance: Attendance;
