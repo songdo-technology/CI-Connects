@@ -5,6 +5,32 @@ evening when v2 went live. Everything needed to resume is in this repository
 except `v2/.env.local`, which is gitignored and which `scripts/bootstrap.sh`
 recreates.
 
+## Domain: ci-connects.org (17 Sep 2026, in progress)
+
+Bought on Cloudflare Registrar in the school account (zone active). Done by
+API: both `ci-connects.org` and `www` added as custom domains of the Pages
+project `ci-events` (pending until DNS resolves), both added to Firebase
+Auth's authorised domains. Waiting on two things only a person can do:
+
+1. **DNS** — the wrangler login can read zones but not write records, so
+   the two CNAMEs (`@` and `www` → `ci-events.pages.dev`, proxied) are added
+   in the dashboard (Workers & Pages → ci-events → Custom domains → the
+   pending entries offer to add them). Check: `dig +short ci-connects.org`.
+2. **OAuth redirect URI** — `https://ci-connects.org/__/auth/handler` on
+   the Firebase-made web client in Google Cloud Console (project
+   ci-connects → APIs & Services → Credentials). Check without signing in:
+   `sh check-oauth-uri.sh https://ci-connects.org/__/auth/handler`.
+
+Then, in order: ship the host redirect already in `v2/src/main.tsx`
+(pages.dev and www → ci-connects.org) once DNS is live; and once the URI
+is registered switch `v2/.env.production` to
+`VITE_FIREBASE_AUTH_DOMAIN=ci-connects.org` and the `ci-events.pages.dev`
+checks in `v2/scripts/ship.sh` and `deploy.yml` to the new domain, so the
+mobile redirect fallback is same-site again. Until that switch, sign-in
+from the new domain still works by pop-up through the old handler. A stray
+zone `ciconnect.org` (no s) sits in the account, initializing — probably
+added by mistake; harmless, can be deleted.
+
 ## Where things stand (10 Sep 2026, evening)
 
 - **<https://ci-events.pages.dev> is v2** — the app in `v2/` — deployed by
