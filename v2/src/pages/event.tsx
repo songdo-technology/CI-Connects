@@ -420,8 +420,8 @@ export const BadgePage: React.FC = () => {
           </div>
           <div className="text-[11px] text-ink-500 text-center max-w-xs">{format.note} Shown at the printed size.</div>
           <div className="flex flex-wrap items-center justify-center gap-2">
-            {sponsors.length > 0 && <Button variant="secondary" size="sm" onClick={() => setFlipped((v) => !v)}><RefreshCcw className="w-3.5 h-3.5" />{flipped ? 'Front' : 'Turn over'}</Button>}
-            <Button variant="secondary" size="sm" onClick={() => setPrinting(true)} disabled={printing}><Printer className="w-3.5 h-3.5" />Print{sponsors.length > 0 ? ' both sides' : ''}</Button>
+            <Button variant="secondary" size="sm" onClick={() => setFlipped((v) => !v)}><RefreshCcw className="w-3.5 h-3.5" />{flipped ? 'Front' : 'Turn over'}</Button>
+            <Button variant="secondary" size="sm" onClick={() => setPrinting(true)} disabled={printing}><Printer className="w-3.5 h-3.5" />Print both sides</Button>
           </div>
         </div>
         <Card className="p-5">

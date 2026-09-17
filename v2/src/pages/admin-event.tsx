@@ -822,7 +822,7 @@ export const AdminBadges: React.FC = () => {
           <div className="mx-auto lg:mx-0 lg:sticky lg:top-6">
             <div className="eyebrow mb-2 text-center">{previewUser.name}</div>
             <BadgeCard event={event} profile={previewUser} sponsors={data.sponsors} speaker={speakerNames.has(previewUser.name.trim().toLowerCase())} format={format} />
-            <p className="text-[11px] text-ink-500 text-center mt-2 max-w-[280px]">Shown at the printed size. {data.sponsors.length > 0 ? 'Sponsors on the back.' : 'No sponsors yet, so no back.'}</p>
+            <p className="text-[11px] text-ink-500 text-center mt-2 max-w-[280px]">Shown at the printed size. {data.sponsors.length > 0 ? 'Sponsors on the back.' : 'No sponsors yet — the back carries the event and the mission.'}</p>
           </div>
         )}
       </div>

@@ -47,6 +47,8 @@ function useTilt(max = 7) {
   return ref;
 }
 
+/** Type that fits the name whole on two lines: the point of a badge. */
+const nameSize = (name: string) => (name.length <= 16 ? 'text-2xl' : name.length <= 24 ? 'text-xl' : name.length <= 34 ? 'text-lg' : 'text-base');
 const roleLabel = (p: Profile, speaker: boolean) => (p.role === 'user' ? (speaker ? 'Speaker' : 'Participant') : ROLE_LABEL[p.role]);
 
 // ------------------------------------------------------------------ the back
@@ -59,8 +61,11 @@ const SponsorMark: React.FC<{ sponsor: Sponsor; height: number }> = ({ sponsor, 
   ? <img src={sponsor.logoUrl} alt={sponsor.name} title={sponsor.name} style={{ height, maxWidth: height * 3.2 }} className="object-contain" />
   : <span title={sponsor.name} style={{ fontSize: Math.max(10, Math.round(height * 0.36)) }} className="font-display font-bold text-ink-900 leading-tight text-center max-w-[10rem] [text-wrap:balance]">{sponsor.name}</span>;
 
+const MISSION = 'Chadwick Schools develop global citizens with keen minds, exemplary character, self-knowledge, and the ability to lead.';
+
 /** The back of the badge: the event's sponsors by tier — a tier only when
- *  someone is in it, marks sized to how many there are. */
+ *  someone is in it, marks sized to how many there are. An event without
+ *  sponsors yet still has a back: the event, and what the school is for. */
 const BadgeBack: React.FC<{ event: Event; sponsors: Sponsor[]; onFlip: () => void; full: boolean; print?: boolean }> = ({ event, sponsors, onFlip, full, print = false }) => {
   const groups = SPONSOR_TIERS.map((tier) => [tier, sponsors.filter((s) => s.tier === tier).sort((a, b) => a.order - b.order)] as const).filter(([, list]) => list.length > 0);
   return (
@@ -70,9 +75,16 @@ const BadgeBack: React.FC<{ event: Event; sponsors: Sponsor[]; onFlip: () => voi
         <div className="absolute -left-16 -bottom-24 w-56 h-56 opacity-20 text-blue-200" aria-hidden="true"><OrbitDiagram active={2} label={false} className="w-full h-full" /></div>
         <div className="relative flex items-center gap-2"><Mark size={20} light /><span className="text-[10px] uppercase tracking-[0.2em] text-blue-200/80">CI Connects</span></div>
         <div className={`relative font-display font-bold leading-tight mt-3 [text-wrap:balance] ${full ? 'text-lg' : 'text-base'}`}>{event.name}</div>
-        <div className="relative text-[11px] text-blue-100/80 mt-0.5">With thanks to our sponsors</div>
+        <div className="relative text-[11px] text-blue-100/80 mt-0.5">{groups.length > 0 ? 'With thanks to our sponsors' : event.tagline || formatRange(event.startDate, event.endDate)}</div>
       </div>
       <div className={`flex-1 flex flex-col justify-evenly gap-3 ${full ? 'px-6 py-4' : 'px-5 py-3'}`}>
+        {groups.length === 0 && (
+          <div className="text-center px-2">
+            <div className="text-[9px] uppercase tracking-[0.18em] text-ink-300 mb-3">Our mission</div>
+            <p className="font-display font-semibold text-ink-900 text-[15px] leading-snug [text-wrap:balance]">{MISSION}</p>
+            <div className="mt-5 text-xs text-ink-500">{formatRange(event.startDate, event.endDate)}<br />{event.venueName}</div>
+          </div>
+        )}
         {groups.map(([tier, list]) => (
           <section key={tier} className="text-center">
             <div className="text-[9px] uppercase tracking-[0.18em] text-ink-300 mb-1.5">{TIER_HEADING[tier]}</div>
@@ -127,7 +139,7 @@ export const BadgeCard: React.FC<{
   const role = roleLabel(profile, speaker);
   const [flippedState, setFlippedState] = useState(false);
   const flipped = flippedProp ?? flippedState;
-  const hasBack = sponsors.length > 0;
+  const hasBack = true;
   const flip = () => { const next = !flipped; setFlippedState(next); onFlip?.(next); };
   const face = (children: React.ReactNode, extra = '') => (
     <div className={`badge-face badge-print ${extra}`} style={{ width: W, height: H }}>
@@ -152,7 +164,7 @@ export const BadgeCard: React.FC<{
               <div className="flex items-center gap-3 min-w-0">
                 <Avatar name={profile.name} photoUrl={profile.photoUrl} size={56} className="ring-2 ring-white shadow-md" />
                 <div className="min-w-0">
-                  <div className="font-display font-bold text-ink-900 leading-tight text-2xl [text-wrap:balance] line-clamp-2">{profile.name}</div>
+                  <div className={`font-display font-bold text-ink-900 leading-tight [text-wrap:balance] line-clamp-2 ${nameSize(profile.name)}`}>{profile.name}</div>
                   {(profile.title || profile.org) && <div className="text-sm text-ink-500 truncate">{[profile.title, profile.org].filter(Boolean).join(' · ')}</div>}
                 </div>
               </div>
