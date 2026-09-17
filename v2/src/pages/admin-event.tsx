@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router';
+import { Link, useParams, useSearchParams, useLocation } from 'react-router';
 import {
   ArrowLeft, Plus, Trash2, Upload, AlertTriangle, Check, DoorOpen, Tag, Search, UserPlus, Mail, ScanLine, CircleCheck, Undo2, KeyRound, ClipboardCheck, ListTree, Camera, QrCode, Handshake, Pencil, Radio, MonitorPlay, X, Copy, ClipboardCopy, RefreshCw, IdCardLanyard, Printer,
 } from 'lucide-react';
@@ -22,6 +22,7 @@ import { roomLabel, roomWhere, facilityWhere } from '../lib/rooms';
 import { BadgeCard, BadgeData } from '../components/Badge';
 import { BadgePrintSheet, PrintLayout } from '../components/BadgePrint';
 import { BADGE_FORMATS, BadgeFormat, rememberedFormat, rememberFormat, sheetGrid } from '../lib/badgeFormats';
+import { SmartImport } from '../components/SmartImport';
 
 const TYPES: SessionType[] = ['keynote', 'talk', 'workshop', 'panel', 'break', 'social'];
 const COLORS = ['#002B54', '#2A6791', '#56A0D3', '#5E6513', '#B04318', '#8B5E34', '#6B605A', '#7C3AED'];
@@ -113,7 +114,7 @@ export const AdminSchedule: React.FC = () => {
       </div>
 
       <SessionEditor event={event} session={editing} rooms={data.rooms} tracks={data.tracks} sponsors={data.sponsors} others={data.sessions} onClose={closeEditor} />
-      <ImportDrawer event={event} open={importing} rooms={data.rooms} tracks={data.tracks} onClose={() => setImporting(false)} />
+      <SmartImport event={event} open={importing} rooms={data.rooms} tracks={data.tracks} sessions={data.sessions} onClose={() => setImporting(false)} />
     </div>
   );
 };
@@ -293,69 +294,6 @@ const SessionEditor: React.FC<{ event: Event; session: Session | null; rooms: Ro
     );
   };
 
-const ImportDrawer: React.FC<{ event: Event; open: boolean; rooms: Room[]; tracks: Track[]; onClose: () => void }> = ({ event, open, rooms, tracks, onClose }) => {
-  const [text, setText] = useState('');
-  const [rows, setRows] = useState<ImportRow[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState<number | null>(null);
-  useEffect(() => { if (!open) { setText(''); setRows([]); setDone(null); } }, [open]);
-  const preview = () => setRows(rowsToSessions(parseCsv(text), event.startDate));
-  const onFile = (f: File | undefined) => { if (!f) return; f.text().then((t) => { setText(t); setRows(rowsToSessions(parseCsv(t), event.startDate)); }); };
-  const good = rows.filter((r) => r.problems.length === 0);
-  const commit = async () => {
-    setBusy(true);
-    const roomByName = new Map(rooms.map((r) => [r.name.toLowerCase(), r]));
-    const trackByName = new Map(tracks.map((t) => [t.name.toLowerCase(), t]));
-    let order = rooms.length, torder = tracks.length;
-    for (const r of good) {
-      const s = r.session;
-      let room = roomByName.get(s.room.toLowerCase());
-      if (!room) { room = { id: newId('room'), eventId: event.id, name: s.room, capacity: s.capacity, order: ++order }; await store.set('rooms', room.id, room); roomByName.set(s.room.toLowerCase(), room); }
-      let track: Track | undefined;
-      if (s.track) {
-        track = trackByName.get(s.track.toLowerCase());
-        if (!track) { track = { id: newId('track'), eventId: event.id, name: s.track, color: COLORS[torder % COLORS.length], order: ++torder }; await store.set('tracks', track.id, track); trackByName.set(s.track.toLowerCase(), track); }
-      }
-      const session: Session = { id: newId('ses'), eventId: event.id, title: s.title, abstract: s.abstract, type: s.type, date: s.date, start: s.start, end: s.end, roomId: room.id, trackId: track?.id, speakers: s.speakers, capacity: s.capacity, reservedUserIds: [], waitlistUserIds: [] };
-      await store.set('sessions', session.id, session);
-    }
-    setBusy(false); setDone(good.length);
-  };
-  return (
-    <Drawer open={open} onClose={onClose} title="Import a spreadsheet" wide>
-      <div className="space-y-4">
-        <p className="text-sm text-ink-500">Paste rows from a sheet, or upload a CSV. Columns by name, any order: <code className="font-mono text-xs">title, abstract, type, date, start, end, room, track, speakers, capacity</code>. Rooms and tracks that do not exist yet are created.</p>
-        <div className="flex gap-2">
-          <label className="btn-secondary btn-sm cursor-pointer"><Upload className="w-3.5 h-3.5" />Upload .csv<input type="file" accept=".csv,.txt,.tsv" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} /></label>
-          <Button size="sm" variant="ghost" onClick={() => { setText(CSV_TEMPLATE); setRows(rowsToSessions(parseCsv(CSV_TEMPLATE), event.startDate)); }}>Use the template</Button>
-        </div>
-        <Textarea value={text} onChange={(e) => setText(e.target.value)} className="font-mono text-xs min-h-40" placeholder="title,abstract,type,date,start,end,room,track,speakers,capacity" />
-        <div className="flex items-center gap-2"><Button size="sm" variant="secondary" onClick={preview} disabled={!text.trim()}>Preview</Button>{rows.length > 0 && <span className="text-xs text-ink-500">{good.length} of {rows.length} rows ready</span>}</div>
-        {rows.length > 0 && (
-          <Card className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead className="text-left text-ink-500 border-b border-sand-200"><tr><th className="p-2">Line</th><th className="p-2">Title</th><th className="p-2">When</th><th className="p-2">Room</th><th className="p-2">Status</th></tr></thead>
-              <tbody className="divide-y divide-sand-200">
-                {rows.map((r) => (
-                  <tr key={r.line} className={r.problems.length ? 'bg-rose-50/60' : ''}>
-                    <td className="p-2 tabular-nums text-ink-500">{r.line}</td>
-                    <td className="p-2 font-semibold text-ink-900">{r.session.title || '—'}</td>
-                    <td className="p-2 tabular-nums">{r.session.date} {r.session.start}–{r.session.end}</td>
-                    <td className="p-2">{r.session.room || '—'}</td>
-                    <td className="p-2">{r.problems.length ? <span className="text-rose-700">{r.problems.join(', ')}</span> : <span className="text-emerald-700 inline-flex items-center gap-1"><Check className="w-3 h-3" />ready</span>}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Card>
-        )}
-        {done !== null ? <Notice tone="success">{done} session{done === 1 ? '' : 's'} imported.</Notice>
-          : <Button onClick={() => void commit()} disabled={good.length === 0} busy={busy}>Import {good.length || ''} ready row{good.length === 1 ? '' : 's'}</Button>}
-      </div>
-    </Drawer>
-  );
-};
-
 // ================================================================== access
 /**
  * The event code an organiser hands out. Whoever enters it on CI Connects
@@ -403,7 +341,8 @@ export const AdminAccess: React.FC = () => {
   const users = useWatch('users', []);
   const invites = useWatch('invites', id ? [{ field: 'eventId', op: '==', value: id }] : [], Boolean(id));
   const [q, setQ] = useState('');
-  const [emails, setEmails] = useState('');
+  const handed = (useLocation().state as { emails?: string } | null)?.emails ?? '';
+  const [emails, setEmails] = useState(handed);
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   if (!ready || !users.ready) return <Spinner />;

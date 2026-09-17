@@ -6,7 +6,7 @@
  * `speakers` is "Name (Title, Org); Name (Title, Org)". Times accept
  * "9:00", "09:00", "9:00 AM", "9am". Dates accept YYYY-MM-DD or D/M/YYYY.
  */
-import { Session, SessionType, Speaker } from './types';
+import type { Session, SessionType, Speaker } from './types';
 
 export function parseCsv(text: string): string[][] {
   const rows: string[][] = [];
