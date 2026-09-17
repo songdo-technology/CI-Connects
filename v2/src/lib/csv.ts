@@ -8,17 +8,29 @@
  */
 import type { Session, SessionType, Speaker } from './types';
 
-export function parseCsv(text: string): string[][] {
+/** Tabs, commas or semicolons: whichever the first lines are actually cut
+ *  by. A sheet pasted from Excel is tab-separated and its cells are full of
+ *  commas — "Norman (Director, Chadwick)" must stay one cell. */
+function detectDelimiter(src: string): string {
+  const lines = src.split(/\r?\n/).filter((l) => l.trim()).slice(0, 8);
+  const count = (ch: string) => lines.filter((l) => l.includes(ch)).length;
+  if (count('\t') >= Math.max(1, Math.ceil(lines.length / 2))) return '\t';
+  const commas = lines.reduce((n, l) => n + (l.match(/,/g)?.length ?? 0), 0), semis = lines.reduce((n, l) => n + (l.match(/;/g)?.length ?? 0), 0);
+  return semis > commas ? ';' : ',';
+}
+
+export function parseCsv(text: string, delimiter?: string): string[][] {
   const rows: string[][] = [];
   let row: string[] = [], cell = '', quoted = false;
-  const src = text.replace(/^﻿/, '');
+  const src = text.replace(/^\uFEFF/, '');
+  const cut = delimiter ?? detectDelimiter(src);
   for (let i = 0; i < src.length; i++) {
     const c = src[i];
     if (quoted) {
       if (c === '"') { if (src[i + 1] === '"') { cell += '"'; i++; } else quoted = false; }
       else cell += c;
-    } else if (c === '"') quoted = true;
-    else if (c === ',' || c === '\t') { row.push(cell); cell = ''; }
+    } else if (c === '"' && cell === '') quoted = true;
+    else if (c === cut) { row.push(cell); cell = ''; }
     else if (c === '\n' || c === '\r') {
       if (c === '\r' && src[i + 1] === '\n') i++;
       row.push(cell); rows.push(row); row = []; cell = '';
