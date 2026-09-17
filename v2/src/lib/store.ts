@@ -45,9 +45,15 @@ export class FirestoreStore implements Store {
 
   watch<K extends CollectionName>(name: K, filters: Filter[], onChange: (items: Collections[K][]) => void): Unsubscribe {
     const constraints: QueryConstraint[] = filters.map((f) => where(f.field, f.op, f.value));
+    // Only what the server has accepted. Firestore shows a local write at
+    // once and takes it back if the rules refuse it; for a screen that hides
+    // or unmounts on the optimistic state — the join form, the gate — that
+    // flicker also swallowed the refusal. Waiting for the ack costs a few
+    // hundred milliseconds and shows the truth.
     return onSnapshot(
       query(this.col(name), ...constraints),
-      (snap) => onChange(snap.docs.map((d) => ({ ...d.data(), id: d.id }) as Collections[K])),
+      { includeMetadataChanges: true },
+      (snap) => { if (!snap.metadata.hasPendingWrites) onChange(snap.docs.map((d) => ({ ...d.data(), id: d.id }) as Collections[K])); },
       (error) => {
         // A denied read resolves as empty rather than hanging the screen.
         if ((error as { code?: string }).code !== 'permission-denied') console.error(`[store] ${name}`, error);
