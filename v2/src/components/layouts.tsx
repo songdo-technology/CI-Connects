@@ -158,7 +158,8 @@ export const AppShell: React.FC = () => {
             <button onClick={() => setViewAs(null)} className="font-semibold underline underline-offset-2">Exit preview</button>
           </div>
         )}
-        <PageTransition depth={2}><Outlet /></PageTransition>
+        {/* The page takes at least the screen; the footer starts below it, not under a short page's last line. */}
+        <div className="min-h-screen"><PageTransition depth={2}><Outlet /></PageTransition></div>
         <SiteFooter contactEmail={site?.contactEmail} />
       </main>
     </div>

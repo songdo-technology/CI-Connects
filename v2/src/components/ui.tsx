@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router';
 import { X, Loader2 } from 'lucide-react';
 import { CountUp } from '../lib/motion';
@@ -144,8 +145,11 @@ export const Drawer: React.FC<{ open: boolean; onClose: () => void; title?: stri
       return () => window.removeEventListener('keydown', onKey);
     }, [open, onClose]);
     if (!open) return null;
-    return (
-      <div className="fixed inset-0 z-50 flex justify-end">
+    // Through a portal: rendered inline, a page's own reveal or arrival
+    // transform becomes this panel's containing block and pins it inside
+    // the card it was opened from, clipped to that card's height.
+    return createPortal(
+      <div className="fixed inset-0 z-[90] flex justify-end">
         <div className="absolute inset-0 bg-ink-900/40 scrim-in" onClick={onClose} />
         <div className={`relative h-full bg-white shadow-[var(--shadow-pop)] w-full ${wide ? 'max-w-2xl' : 'max-w-lg'} flex flex-col drawer-in`} role="dialog" aria-modal="true" aria-label={title}>
           <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-sand-200">
@@ -154,7 +158,8 @@ export const Drawer: React.FC<{ open: boolean; onClose: () => void; title?: stri
           </div>
           <div className="flex-1 overflow-y-auto px-5 py-5" data-lenis-prevent>{children}</div>
         </div>
-      </div>
+      </div>,
+      document.body,
     );
   };
 
