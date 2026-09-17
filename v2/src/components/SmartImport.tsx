@@ -27,7 +27,8 @@ function roomOptions(text: string, rooms: Room[], facilities: Facility[]) {
   const campus = searchFacilities(facilities, text, 5).filter((f) => !taken.has(f.id));
   const exactCampus = campus.find((f) => (f.number ? norm(f.number) === t : false))
     ?? ((campus.filter((f) => norm(f.name) === t).length === 1) ? campus.find((f) => norm(f.name) === t) : undefined);
-  const choice = exactOwn ? `event:${exactOwn.id}` : exactCampus ? `fac:${exactCampus.id}` : 'new';
+  // One room of this event that the text is part of ("Cafeteria" → "B-001 · MS/US Cafeteria") is the likely answer, still asked.
+  const choice = exactOwn ? `event:${exactOwn.id}` : exactCampus ? `fac:${exactCampus.id}` : own.length === 1 ? `event:${own[0].id}` : 'new';
   return { choice, sure: Boolean(exactOwn || exactCampus), own, campus };
 }
 

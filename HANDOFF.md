@@ -587,6 +587,24 @@ signed in — with a live preview, size and paper choice, select all/none,
 print one or all. The overlap on the badge page was the flip grid letting a
 long name widen the card past its column; the track is now `minmax(0,1fr)`.
 
+**Smart import (17 Sep 2026).** Administration → Events → Schedule →
+*Import* is a three-step drawer (`components/SmartImport.tsx`, logic in
+`lib/smartImport.ts`, Excel in `lib/xlsx.ts` — fflate plus the sheet XML,
+dates and times from styles, merged cells). File (xlsx, csv, tsv, a pasted
+table; loose text through `/api/structure`, the AI reader kept from v1 —
+Gemini key on Pages, staff accounts only — which transcribes into our
+columns and nothing else) → Columns (names matched by synonym, anything
+unmatched set to *Don't import* and flagged; the header row and the sheet
+can be changed) → Questions (unknown rooms with campus-directory
+suggestions, new tracks, days outside the event, sessions with no day or
+no room, sessions already there — updated by default, never doubled) with
+a preview; rows that cannot be a session are listed and left out. A sheet
+of addresses is recognised as people and handed to Access. Pasted tables
+are cut on their own delimiter (tab, comma or semicolon) — tab-separated
+cells keep their commas. Tried live on the PD Day event on 17 Sep: 4
+imported, 3 rooms and 3 tracks created, 1 row left out, a second run
+offered 4 updates; the test data was removed afterwards.
+
 **No demo build.** Removed at deploy time: `MemoryStore`, the seed import,
 the persona picker, `npm run demo`, `VITE_DEMO`. Anything that needs a
 signed-in person is verified on `localhost:3100` or live, by a person.
