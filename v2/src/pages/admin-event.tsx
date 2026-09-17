@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 import {
-  ArrowLeft, Plus, Trash2, Upload, AlertTriangle, Check, DoorOpen, Tag, Search, UserPlus, Mail, ScanLine, CircleCheck, Undo2, KeyRound, ClipboardCheck, ListTree, Camera, QrCode, Handshake, Pencil, Radio, MonitorPlay, X, Copy, ClipboardCopy, RefreshCw,
+  ArrowLeft, Plus, Trash2, Upload, AlertTriangle, Check, DoorOpen, Tag, Search, UserPlus, Mail, ScanLine, CircleCheck, Undo2, KeyRound, ClipboardCheck, ListTree, Camera, QrCode, Handshake, Pencil, Radio, MonitorPlay, X, Copy, ClipboardCopy, RefreshCw, IdCardLanyard, Printer,
 } from 'lucide-react';
-import { Event, Session, Room, Track, SessionType, SESSION_TYPE_LABEL, Invite, Profile, Attendance, Sponsor, SponsorTier, SPONSOR_TIERS, SPONSOR_TIER_LABEL } from '../lib/types';
+import { Event, Session, Room, Track, SessionType, SESSION_TYPE_LABEL, Invite, Profile, Attendance, Sponsor, SponsorTier, SPONSOR_TIERS, SPONSOR_TIER_LABEL, ROLE_LABEL } from '../lib/types';
 import { useAuth } from '../lib/auth';
 import { useWatch, useDoc } from '../lib/hooks';
 import { store } from '../lib/store';
@@ -19,6 +19,9 @@ import { ImagePicker } from '../components/ImagePicker';
 import { badgeUid } from '../components/Badge';
 import { RoomPicker, RoomChoice } from '../components/RoomPicker';
 import { roomLabel, roomWhere, facilityWhere } from '../lib/rooms';
+import { BadgeCard, BadgeData } from '../components/Badge';
+import { BadgePrintSheet, PrintLayout } from '../components/BadgePrint';
+import { BADGE_FORMATS, BadgeFormat, rememberedFormat, rememberFormat, sheetGrid } from '../lib/badgeFormats';
 
 const TYPES: SessionType[] = ['keynote', 'talk', 'workshop', 'panel', 'break', 'social'];
 const COLORS = ['#002B54', '#2A6791', '#56A0D3', '#5E6513', '#B04318', '#8B5E34', '#6B605A', '#7C3AED'];
@@ -744,6 +747,86 @@ export const AdminLive: React.FC = () => {
           );
         })}
       </Card>
+    </div>
+  );
+};
+
+// ================================================================== badges
+/**
+ * Every badge for this event, for the people who print and hand them out:
+ * staff, everyone on the list, everyone invited who has signed in. Pick the
+ * size the holders take, one per page or A4 sheets, and print — fronts and
+ * backs arranged for a duplex printer.
+ */
+export const AdminBadges: React.FC = () => {
+  const { id } = useParams();
+  const { doc: event, ready } = useDoc('events', id ?? null);
+  const users = useWatch('users', []);
+  const invites = useWatch('invites', id ? [{ field: 'eventId', op: '==', value: id }] : [], Boolean(id));
+  const data = useEventData(id ?? null);
+  const [q, setQ] = useState('');
+  const [format, setFormat] = useState<BadgeFormat>(() => rememberedFormat());
+  const [layout, setLayout] = useState<PrintLayout>('one');
+  const [excluded, setExcluded] = useState<Set<string>>(new Set());
+  const [printing, setPrinting] = useState<BadgeData[] | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const invited = useMemo(() => new Set(invites.items.map((i) => i.email)), [invites.items]);
+  const people = useMemo(() => (id ? users.items.filter((u) => u.role !== 'user' || u.eventAccess.includes(id) || invited.has(u.email.toLowerCase())) : []).sort((a, b) => a.name.localeCompare(b.name)), [users.items, invited, id]);
+  if (!ready || !users.ready || !data.ready) return <Spinner />;
+  if (!event || !id) return <Empty icon={IdCardLanyard} title="No such event" action={<Button to="/admin/events">Events</Button>} />;
+  const speakerNames = new Set(data.sessions.flatMap((s) => s.speakers.map((p) => p.name.trim().toLowerCase())));
+  const badge = (u: Profile): BadgeData => ({ event, profile: u, sponsors: data.sponsors, speaker: speakerNames.has(u.name.trim().toLowerCase()) });
+  const rows = people.filter((u) => !q || `${u.name} ${u.email} ${u.org ?? ''}`.toLowerCase().includes(q.toLowerCase()));
+  const chosen = people.filter((u) => !excluded.has(u.id));
+  const { cols, rows: sheetRows } = sheetGrid(format);
+  const pick = (f: BadgeFormat) => { setFormat(f); rememberFormat(f.id); };
+  const previewUser = people.find((u) => u.id === preview) ?? chosen[0] ?? people[0];
+  return (
+    <div>
+      <EventHeader event={event} title="Badges" description={`${people.length} people: staff, everyone on the list, and invited people who have signed in. Fronts and backs come out ready for a duplex printer.`}
+        actions={<Button onClick={() => setPrinting(chosen.map(badge))} disabled={chosen.length === 0}><Printer className="w-4 h-4" />Print {chosen.length} badge{chosen.length === 1 ? '' : 's'}</Button>} />
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_auto] gap-6 items-start">
+        <div className="space-y-4">
+          <Card className="p-4 grid sm:grid-cols-2 gap-4">
+            <Field label="Size" hint={format.note}>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {BADGE_FORMATS.map((f) => <button key={f.id} type="button" onClick={() => pick(f)} className={`chip border transition-colors ${f.id === format.id ? 'bg-blue-900 text-white border-blue-900' : 'bg-white text-ink-700 border-sand-200 hover:border-blue-300'}`}>{f.label}</button>)}
+              </div>
+            </Field>
+            <Field label="Paper" hint={layout === 'one' ? 'One badge per page, centred — card stock cut to size, or a card printer.' : `${cols * sheetRows} per A4 sheet (${cols} × ${sheetRows}); backs on the following sheet, mirrored to line up when flipped on the long edge.`}>
+              <Select value={layout} onChange={(e) => setLayout(e.target.value as PrintLayout)}>
+                <option value="one">One per page</option>
+                <option value="a4">A4 sheets, {cols * sheetRows} per sheet</option>
+              </Select>
+            </Field>
+          </Card>
+          <div className="relative"><Search className="w-4 h-4 text-ink-300 absolute left-3 top-1/2 -translate-y-1/2" /><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a person" className="pl-9" /></div>
+          <Card className="divide-y divide-sand-200">
+            <div className="p-3 flex items-center justify-between text-xs text-ink-500">
+              <span>{chosen.length} of {people.length} selected</span>
+              <span className="flex gap-3"><button type="button" onClick={() => setExcluded(new Set())} className="font-semibold hover:text-ink-900">All</button><button type="button" onClick={() => setExcluded(new Set(people.map((u) => u.id)))} className="font-semibold hover:text-ink-900">None</button></span>
+            </div>
+            {rows.length === 0 && <div className="p-6 text-sm text-ink-500 text-center">Nobody matches.</div>}
+            {rows.map((u) => (
+              <label key={u.id} className={`p-3 flex items-center gap-3 cursor-pointer ${preview === u.id ? 'bg-blue-50/60' : ''}`} onClick={() => setPreview(u.id)}>
+                <input type="checkbox" checked={!excluded.has(u.id)} onChange={(e) => setExcluded((x) => { const n = new Set(x); if (e.target.checked) n.delete(u.id); else n.add(u.id); return n; })} onClick={(e) => e.stopPropagation()} />
+                <Avatar name={u.name} photoUrl={u.photoUrl} size={32} />
+                <div className="min-w-0 flex-1"><div className="text-sm font-semibold text-ink-900 truncate">{u.name}</div><div className="text-xs text-ink-500 truncate">{[u.org, u.title].filter(Boolean).join(' · ') || u.email}</div></div>
+                {u.role !== 'user' && <Chip tone="blue">{ROLE_LABEL[u.role]}</Chip>}
+                <Button size="sm" variant="ghost" onClick={() => setPrinting([badge(u)])} title="Print this badge"><Printer className="w-3.5 h-3.5" /></Button>
+              </label>
+            ))}
+          </Card>
+        </div>
+        {previewUser && (
+          <div className="mx-auto lg:mx-0 lg:sticky lg:top-6">
+            <div className="eyebrow mb-2 text-center">{previewUser.name}</div>
+            <BadgeCard event={event} profile={previewUser} sponsors={data.sponsors} speaker={speakerNames.has(previewUser.name.trim().toLowerCase())} format={format} />
+            <p className="text-[11px] text-ink-500 text-center mt-2 max-w-[280px]">Shown at the printed size. {data.sponsors.length > 0 ? 'Sponsors on the back.' : 'No sponsors yet, so no back.'}</p>
+          </div>
+        )}
+      </div>
+      {printing && <BadgePrintSheet badges={printing} format={format} layout={layout} onDone={() => setPrinting(null)} />}
     </div>
   );
 };

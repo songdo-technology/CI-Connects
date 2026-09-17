@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link, Navigate, Outlet, useNavigate, useOutletContext, useParams, useLocation } from 'react-router';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-  CalendarDays, MapPin, Search, LayoutList, LayoutGrid, Download, Users, Lock, ArrowLeft, CircleCheck, Clock, ShieldCheck, ExternalLink, Maximize2, Printer, ScanLine, QrCode, Building2,
+  CalendarDays, MapPin, Search, LayoutList, LayoutGrid, Download, Users, Lock, ArrowLeft, CircleCheck, Clock, ShieldCheck, ExternalLink, Maximize2, Printer, ScanLine, QrCode, Building2, RefreshCcw,
 } from 'lucide-react';
 import { Event, Room, Session, Track, Sponsor, SPONSOR_TIERS, SPONSOR_TIER_LABEL } from '../lib/types';
 import { useAuth } from '../lib/auth';
@@ -15,6 +15,8 @@ import { useEventData, SessionCard, RoomGrid, SessionDrawer, TrackDot } from '..
 import { AnnouncementBar } from '../components/layouts';
 import { EventWelcome, seenWelcome } from '../components/EventWelcome';
 import { BadgeCard, BadgeFullscreen } from '../components/Badge';
+import { BadgePrintSheet } from '../components/BadgePrint';
+import { BADGE_FORMATS, BadgeFormat, rememberedFormat, rememberFormat } from '../lib/badgeFormats';
 import { HostPanel } from './checkin';
 import { PageTransition } from '../lib/motion';
 import { Avatar, Button, Card, Chip, Empty, Spinner, SubNav, Input } from '../components/ui';
@@ -391,6 +393,9 @@ export const BadgePage: React.FC = () => {
   const { user, profile } = useAuth();
   const attendance = useWatch('attendance', [{ field: 'eventId', op: '==', value: event.id }, { field: 'userId', op: '==', value: user?.uid ?? '' }], Boolean(user));
   const [door, setDoor] = useState(false);
+  const [format, setFormat] = useState<BadgeFormat>(() => rememberedFormat());
+  const [flipped, setFlipped] = useState(false);
+  const [printing, setPrinting] = useState(false);
   const [now, setNow] = useState(() => new Date());
   useEffect(() => { const t = window.setInterval(() => setNow(new Date()), 30_000); return () => window.clearInterval(t); }, []);
   if (!user || !profile) return null;
@@ -399,15 +404,25 @@ export const BadgePage: React.FC = () => {
   const speaker = sessions.some((s) => s.speakers.some((p) => p.name.trim().toLowerCase() === me));
   const reserved = sessions.filter((s) => s.reservedUserIds.includes(profile.id)).length;
   const been = attendance.items.filter((a) => a.sessionId).sort((a, b) => a.at.localeCompare(b.at));
-  // The rooms this person runs that are on right now — their view of the door.
   const today = todayYmd(); const mins = now.getHours() * 60 + now.getMinutes();
   const hosting = sessions.filter((s) => (s.hostIds ?? []).includes(profile.id) && s.date === today && toMinutes(s.start) - 15 <= mins && mins <= toMinutes(s.end));
+  const pick = (f: BadgeFormat) => { setFormat(f); rememberFormat(f.id); };
   return (
-    <div className="max-w-3xl mx-auto space-y-5">
+    <div className="max-w-4xl mx-auto space-y-5">
       {hosting.map((s) => <HostPanel key={s.id} event={event} session={s} room={rooms.find((r) => r.id === s.roomId)} />)}
-      <div className="grid md:grid-cols-[auto_minmax(0,1fr)] gap-6 items-start">
-        <div className="mx-auto md:mx-0">
-          <BadgeCard event={event} profile={profile} sponsors={sponsors} speaker={speaker} reserved={reserved} arrived={arrived} size="full" className="rise" onCodeClick={() => setDoor(true)} />
+      <div className="grid md:grid-cols-[auto_minmax(0,1fr)] gap-8 items-start">
+        <div className="flex flex-col items-center gap-4 mx-auto md:mx-0">
+          <BadgeCard event={event} profile={profile} sponsors={sponsors} speaker={speaker} reserved={reserved} arrived={arrived} format={format} className="rise" onCodeClick={() => setDoor(true)} flipped={flipped} onFlip={setFlipped} />
+          <div className="flex flex-wrap items-center justify-center gap-1.5">
+            {BADGE_FORMATS.map((f) => (
+              <button key={f.id} type="button" onClick={() => pick(f)} title={f.note} className={`chip border transition-colors ${f.id === format.id ? 'bg-blue-900 text-white border-blue-900' : 'bg-white text-ink-700 border-sand-200 hover:border-blue-300'}`}>{f.label}</button>
+            ))}
+          </div>
+          <div className="text-[11px] text-ink-500 text-center max-w-xs">{format.note} Shown at the printed size.</div>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {sponsors.length > 0 && <Button variant="secondary" size="sm" onClick={() => setFlipped((v) => !v)}><RefreshCcw className="w-3.5 h-3.5" />{flipped ? 'Front' : 'Turn over'}</Button>}
+            <Button variant="secondary" size="sm" onClick={() => setPrinting(true)} disabled={printing}><Printer className="w-3.5 h-3.5" />Print{sponsors.length > 0 ? ' both sides' : ''}</Button>
+          </div>
         </div>
         <Card className="p-5">
           <div className="eyebrow mb-2">Where you have been</div>
@@ -423,6 +438,7 @@ export const BadgePage: React.FC = () => {
         </Card>
       </div>
       {door && <BadgeFullscreen profile={profile} event={event} onClose={() => setDoor(false)} />}
+      {printing && <BadgePrintSheet badges={[{ event, profile, sponsors, speaker }]} format={format} layout="one" onDone={() => setPrinting(false)} />}
     </div>
   );
 };

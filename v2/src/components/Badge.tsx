@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { CircleCheck, Clock, Mic, X, RefreshCcw } from 'lucide-react';
 import { Attendance, Event, Profile, Sponsor, SponsorTier, ROLE_LABEL, SPONSOR_TIERS } from '../lib/types';
+import { BadgeFormat, formatById, mmToPx, BASE_W } from '../lib/badgeFormats';
 import { formatRange, formatClock } from '../lib/time';
 import { reducedMotion } from '../lib/motion';
 import { Avatar } from './ui';
@@ -31,7 +32,7 @@ function useTilt(max = 7) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current;
-    if (!el || reducedMotion() || !window.matchMedia?.('(hover: hover) and (pointer: fine)').matches) return;
+    if (!el || max === 0 || reducedMotion() || !window.matchMedia?.('(hover: hover) and (pointer: fine)').matches) return;
     const move = (e: PointerEvent) => {
       const r = el.getBoundingClientRect();
       const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
@@ -60,7 +61,7 @@ const SponsorMark: React.FC<{ sponsor: Sponsor; height: number }> = ({ sponsor, 
 
 /** The back of the badge: the event's sponsors by tier — a tier only when
  *  someone is in it, marks sized to how many there are. */
-const BadgeBack: React.FC<{ event: Event; sponsors: Sponsor[]; onFlip: () => void; full: boolean }> = ({ event, sponsors, onFlip, full }) => {
+const BadgeBack: React.FC<{ event: Event; sponsors: Sponsor[]; onFlip: () => void; full: boolean; print?: boolean }> = ({ event, sponsors, onFlip, full, print = false }) => {
   const groups = SPONSOR_TIERS.map((tier) => [tier, sponsors.filter((s) => s.tier === tier).sort((a, b) => a.order - b.order)] as const).filter(([, list]) => list.length > 0);
   return (
     <div className="relative h-full flex flex-col rounded-[1.75rem] overflow-hidden bg-white border border-sand-200 shadow-[var(--shadow-pop)]">
@@ -83,11 +84,14 @@ const BadgeBack: React.FC<{ event: Event; sponsors: Sponsor[]; onFlip: () => voi
       </div>
       <div className="px-5 py-2.5 border-t border-sand-200 bg-sand-50 text-[11px] text-ink-500 flex items-center justify-between gap-2">
         <span>{formatRange(event.startDate, event.endDate)}</span>
-        <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onFlip(); }} className="inline-flex items-center gap-1 font-semibold text-ink-700 hover:text-blue-700 print:hidden"><RefreshCcw className="w-3 h-3" />Front</button>
+        {print ? <span className="font-mono">ci-connects.org</span> : <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onFlip(); }} className="inline-flex items-center gap-1 font-semibold text-ink-700 hover:text-blue-700"><RefreshCcw className="w-3 h-3" />Front</button>}
       </div>
     </div>
   );
 };
+
+/** What a badge is made of, for the page that prints many. */
+export interface BadgeData { event: Event; profile: Profile; sponsors: Sponsor[]; speaker?: boolean; reserved?: number; arrived?: Attendance | null }
 
 /**
  * One person's badge for one event — the same card in the wallet, on the
@@ -97,39 +101,58 @@ const BadgeBack: React.FC<{ event: Event; sponsors: Sponsor[]; onFlip: () => voi
  * enough to read across a room, their school, what they are here as, and
  * the code that gets them through a door. The code is the person, not the
  * event, so the badge works at every event they are on. When the event has
- * sponsors, the card has a back, and turns over.
+ * sponsors, the card has a back, and turns over. It is drawn at a design
+ * width and scaled to a real badge format, so the screen shows the size the
+ * printer will cut.
  */
 export const BadgeCard: React.FC<{
   event: Event; profile: Profile; sponsors?: Sponsor[]; speaker?: boolean; reserved?: number; arrived?: Attendance | null;
-  size?: 'wallet' | 'full'; className?: string;
+  format?: BadgeFormat;
+  /** Shrinks the card on screen (the wallet); print never passes it. */
+  scale?: number;
+  /** On paper: the date instead of the check-in status, no controls. */
+  print?: boolean;
+  className?: string;
   /** Tapping the code — to enlarge it for a scanner. */
   onCodeClick?: () => void;
-}> = ({ event, profile, sponsors = [], speaker = false, reserved = 0, arrived = null, size = 'full', className = '', onCodeClick }) => {
-  const tilt = useTilt(size === 'full' ? 7 : 5);
-  const full = size === 'full';
+  /** Controlled flipping, for a page with its own "turn over". */
+  flipped?: boolean; onFlip?: (next: boolean) => void;
+}> = ({ event, profile, sponsors = [], speaker = false, reserved = 0, arrived = null, format, scale = 1, print = false, className = '', onCodeClick, flipped: flippedProp, onFlip }) => {
+  const f = format ?? formatById(null);
+  const W = mmToPx(f.w) * scale, H = mmToPx(f.h) * scale;
+  const k = W / BASE_W;                 // design px → card px
+  const innerH = H / k;                 // the design box's height, so the footer sits at the bottom
+  const full = W >= 300;
+  const tilt = useTilt(print ? 0 : full ? 7 : 5);
   const role = roleLabel(profile, speaker);
-  const [flipped, setFlipped] = useState(false);
+  const [flippedState, setFlippedState] = useState(false);
+  const flipped = flippedProp ?? flippedState;
   const hasBack = sponsors.length > 0;
-  const flip = () => setFlipped((v) => !v);
+  const flip = () => { const next = !flipped; setFlippedState(next); onFlip?.(next); };
+  const face = (children: React.ReactNode, extra = '') => (
+    <div className={`badge-face badge-print ${extra}`} style={{ width: W, height: H }}>
+      <div style={{ width: BASE_W, height: innerH, transform: `scale(${k})`, transformOrigin: 'top left' }}>{children}</div>
+    </div>
+  );
   return (
-    <div ref={tilt} className={`badge-tilt ${className}`} style={{ width: full ? 340 : 280, maxWidth: '100%' }}>
-      <div className={`badge-flip ${flipped ? 'is-flipped' : ''}`}>
-        <div className="badge-face badge-print">
+    <div ref={tilt} className={`badge-tilt ${className}`} style={{ width: W }}>
+      <div className={`badge-flip ${flipped ? 'is-flipped' : ''}`} style={{ width: W, height: H }}>
+        {face(
           <div className="relative h-full flex flex-col rounded-[1.75rem] overflow-hidden bg-white border border-sand-200 shadow-[var(--shadow-pop)]">
             <div className="absolute left-1/2 -translate-x-1/2 top-3 w-14 h-2 rounded-full bg-black/30 z-10" aria-hidden="true" />
             <div className="relative bg-blue-900 text-white px-6 pt-8 pb-5 overflow-hidden">
               <div className="absolute -right-16 -top-20 w-60 h-60 opacity-25 text-blue-200" aria-hidden="true"><OrbitDiagram active={1} label={false} className="w-full h-full" /></div>
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,.12),transparent_55%)]" aria-hidden="true" />
               <div className="relative flex items-center gap-2"><Mark size={20} light /><span className="text-[10px] uppercase tracking-[0.2em] text-blue-200/80">CI Connects</span></div>
-              <div className={`relative font-display font-bold leading-tight mt-4 [text-wrap:balance] ${full ? 'text-2xl' : 'text-xl'}`}>{event.name}</div>
+              <div className="relative font-display font-bold leading-tight mt-4 [text-wrap:balance] text-2xl">{event.name}</div>
               <div className="relative text-[11px] text-blue-100/80 mt-1.5">{formatRange(event.startDate, event.endDate)} · {event.venueName}</div>
             </div>
 
-            <div className={`flex-1 ${full ? 'px-6 pt-5' : 'px-5 pt-4'}`}>
-              <div className="flex items-center gap-3">
-                <Avatar name={profile.name} photoUrl={profile.photoUrl} size={full ? 56 : 44} className="ring-2 ring-white shadow-md" />
+            <div className="flex-1 min-h-0 px-6 pt-5 flex flex-col">
+              <div className="flex items-center gap-3 min-w-0">
+                <Avatar name={profile.name} photoUrl={profile.photoUrl} size={56} className="ring-2 ring-white shadow-md" />
                 <div className="min-w-0">
-                  <div className={`font-display font-bold text-ink-900 leading-tight truncate ${full ? 'text-2xl' : 'text-lg'}`}>{profile.name}</div>
+                  <div className="font-display font-bold text-ink-900 leading-tight text-2xl [text-wrap:balance] line-clamp-2">{profile.name}</div>
                   {(profile.title || profile.org) && <div className="text-sm text-ink-500 truncate">{[profile.title, profile.org].filter(Boolean).join(' · ')}</div>}
                 </div>
               </div>
@@ -137,33 +160,33 @@ export const BadgeCard: React.FC<{
                 <span className={`chip ${profile.role === 'user' ? 'bg-sand-100 text-ink-700 border border-sand-200' : 'bg-blue-900 text-white'}`}>{role}</span>
                 {speaker && profile.role !== 'user' && <span className="chip bg-amber-100 text-amber-900"><Mic className="w-3 h-3" />Speaker</span>}
               </div>
-              <div className={`flex items-center gap-4 ${full ? 'mt-5 pb-5' : 'mt-4 pb-4'}`}>
-                {onCodeClick
-                  ? <button type="button" onClick={(e) => { e.preventDefault(); onCodeClick(); }} title="Enlarge the code" className="p-2 bg-white rounded-xl border border-sand-200 shrink-0 hover:border-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors"><QRCodeSVG value={badgeCode(profile.id)} size={full ? 140 : 104} level="M" /></button>
-                  : <div className="p-2 bg-white rounded-xl border border-sand-200 shrink-0"><QRCodeSVG value={badgeCode(profile.id)} size={full ? 140 : 104} level="M" /></div>}
+              <div className="flex-1 flex items-center gap-4 py-4">
+                {onCodeClick && !print
+                  ? <button type="button" onClick={(e) => { e.preventDefault(); onCodeClick(); }} title="Enlarge the code" className="p-2 bg-white rounded-xl border border-sand-200 shrink-0 hover:border-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors"><QRCodeSVG value={badgeCode(profile.id)} size={140} level="M" /></button>
+                  : <div className="p-2 bg-white rounded-xl border border-sand-200 shrink-0"><QRCodeSVG value={badgeCode(profile.id)} size={140} level="M" /></div>}
                 <div className="text-xs text-ink-500 leading-relaxed min-w-0">
                   <div className="font-semibold text-ink-900">Scan at the door</div>
-                  <div className="mt-0.5">{onCodeClick ? 'Tap the code to enlarge it.' : 'Any phone signed in as you shows the same code.'}</div>
+                  <div className="mt-0.5">{print ? 'Any phone signed in as you shows the same code.' : onCodeClick ? 'Tap the code to enlarge it.' : 'Any phone signed in as you shows the same code.'}</div>
                   <div className="font-mono text-[10px] tracking-widest text-ink-300 mt-2 uppercase">{profile.id.slice(0, 8)}</div>
                 </div>
               </div>
             </div>
 
-            <div className={`px-6 py-2.5 text-[11px] border-t flex items-center justify-between gap-2 ${arrived ? 'bg-emerald-50 text-emerald-800 border-emerald-100' : 'bg-sand-50 text-ink-500 border-sand-200'}`}>
-              <span className="inline-flex items-center gap-1.5">{arrived ? <><CircleCheck className="w-3.5 h-3.5" />Checked in {formatClock(arrived.at)}</> : <><Clock className="w-3.5 h-3.5" />Not checked in yet</>}</span>
-              <span className="inline-flex items-center gap-3">
-                {reserved > 0 && <span>{reserved} seat{reserved === 1 ? '' : 's'} held</span>}
-                {hasBack && <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); flip(); }} className="inline-flex items-center gap-1 font-semibold text-ink-700 hover:text-blue-700 print:hidden"><RefreshCcw className="w-3 h-3" />Sponsors</button>}
-              </span>
+            <div className={`px-6 py-2.5 text-[11px] border-t flex items-center justify-between gap-2 ${!print && arrived ? 'bg-emerald-50 text-emerald-800 border-emerald-100' : 'bg-sand-50 text-ink-500 border-sand-200'}`}>
+              {print
+                ? <><span>{formatRange(event.startDate, event.endDate)}</span><span className="font-mono">ci-connects.org</span></>
+                : <>
+                  <span className="inline-flex items-center gap-1.5">{arrived ? <><CircleCheck className="w-3.5 h-3.5" />Checked in {formatClock(arrived.at)}</> : <><Clock className="w-3.5 h-3.5" />Not checked in yet</>}</span>
+                  <span className="inline-flex items-center gap-3">
+                    {reserved > 0 && <span>{reserved} seat{reserved === 1 ? '' : 's'} held</span>}
+                    {hasBack && <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); flip(); }} className="inline-flex items-center gap-1 font-semibold text-ink-700 hover:text-blue-700"><RefreshCcw className="w-3 h-3" />Sponsors</button>}
+                  </span>
+                </>}
             </div>
-            <div className="badge-glare absolute inset-0 pointer-events-none" aria-hidden="true" />
-          </div>
-        </div>
-        {hasBack && (
-          <div className="badge-face badge-back badge-print" aria-hidden={!flipped}>
-            <BadgeBack event={event} sponsors={sponsors} onFlip={flip} full={full} />
-          </div>
+            {!print && <div className="badge-glare absolute inset-0 pointer-events-none" aria-hidden="true" />}
+          </div>,
         )}
+        {hasBack && face(<BadgeBack event={event} sponsors={sponsors} onFlip={flip} full={full} print={print} />, 'badge-back')}
       </div>
     </div>
   );

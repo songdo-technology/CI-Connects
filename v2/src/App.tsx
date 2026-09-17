@@ -10,7 +10,7 @@ import { DoorScreen, HerePage, BadgeLinkPage } from './pages/checkin';
 import { BadgesPage } from './pages/badges';
 import { JoinPage } from './pages/join';
 import { AdminLayout, AdminHome, AdminEvents, AdminEventEdit, AdminPeople, AdminAnnouncements, AdminSettings } from './pages/admin';
-import { AdminSchedule, AdminAccess, AdminCheckIn, AdminSponsors, AdminLive } from './pages/admin-event';
+import { AdminSchedule, AdminAccess, AdminCheckIn, AdminSponsors, AdminLive, AdminBadges } from './pages/admin-event';
 
 export default function App() {
   return (
@@ -51,6 +51,7 @@ export default function App() {
                 <Route path="events/:id/schedule" element={<AdminSchedule />} />
                 <Route path="events/:id/checkin" element={<AdminCheckIn />} />
                 <Route path="events/:id/live" element={<AdminLive />} />
+                <Route path="events/:id/badges" element={<AdminBadges />} />
                 <Route path="events/:id/sponsors" element={<AdminSponsors />} />
                 <Route element={<RequireAdmin />}>
                   <Route path="events/new" element={<AdminEventEdit />} />

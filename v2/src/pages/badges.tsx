@@ -9,6 +9,7 @@ import { eventPhase } from '../lib/time';
 import { Reveal } from '../lib/motion';
 import { BadgeCard } from '../components/Badge';
 import { Empty, PageHeader, Spinner } from '../components/ui';
+import { rememberedFormat } from '../lib/badgeFormats';
 
 /** One event's badge in the wallet, with what the wallet needs from that
  *  event: seats held, whether the person speaks, whether they have arrived. */
@@ -22,7 +23,7 @@ const WalletBadge: React.FC<{ event: Event; profile: Profile }> = ({ event, prof
   const arrived = attendance.items.find((a) => a.sessionId === null) ?? null;
   return (
     <Link to={`/e/${event.slug}/badge`} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-[1.75rem]" title={`Your ${event.name} badge`}>
-      <BadgeCard event={event} profile={profile} sponsors={sponsors.items} speaker={speaker} reserved={reserved} arrived={arrived} size="wallet" />
+      <BadgeCard event={event} profile={profile} sponsors={sponsors.items} speaker={speaker} reserved={reserved} arrived={arrived} format={rememberedFormat()} scale={0.85} />
     </Link>
   );
 };

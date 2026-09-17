@@ -572,6 +572,21 @@ is added and the code matches the one on file; the client then clears
 `joining`. Not yet tried with a non-staff account: the rule is live, the
 form is live, a member has not clicked it.
 
+**Badge sizes and printing (17 Sep 2026).** A badge is drawn at a design
+width (340 px) and scaled to a real holder size — `src/lib/badgeFormats.ts`:
+Card 54 × 86 mm (CR80), A7 74 × 105 mm (default), 3.5 × 5.5 in — so the
+screen shows the printed size (CSS px = 1/96 in). The badge page has size
+chips (remembered in localStorage), *Turn over*, and *Print both sides*;
+`BadgePrintSheet` renders into `#badge-print-root`, which the print
+stylesheet shows instead of the page: *one per page* (front, then back,
+centred — a duplex printer flipping on the long edge puts the back behind
+the front) or *A4 sheets* (as many as fit; backs on the next sheet with
+columns mirrored). **Administration → Events → Badges** (`AdminBadges`,
+staff) lists everyone with a badge — staff, the list, invited people who
+signed in — with a live preview, size and paper choice, select all/none,
+print one or all. The overlap on the badge page was the flip grid letting a
+long name widen the card past its column; the track is now `minmax(0,1fr)`.
+
 **No demo build.** Removed at deploy time: `MemoryStore`, the seed import,
 the persona picker, `npm run demo`, `VITE_DEMO`. Anything that needs a
 signed-in person is verified on `localhost:3100` or live, by a person.
